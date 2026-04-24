@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Hızlı Matematik | PACDI Games</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+    body {
+      background: #04162E;
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .game-container {
+      max-width: 550px;
+      width: 100%;
+      background: #1e2a3a;
+      border-radius: 48px;
+      padding: 24px;
+      box-shadow: 0 20px 35px rgba(0,0,0,0.4);
+      border: 1px solid rgba(246,180,95,0.3);
+      text-align: center;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      color: #FFFFFF;
+    }
+    .logo { font-size: 1.4rem; font-weight: bold; }
+    .logo span { color: #F6B45F; }
+    .back-link { color: #F6B45F; text-decoration: none; font-weight: bold; background: #0a1018; padding: 5px 12px; border-radius: 40px; }
+    .stats {
+      display: flex;
+      justify-content: space-between;
+      background: #0a1018;
+      padding: 10px;
+      border-radius: 60px;
+      margin: 15px 0;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .stats div { background: #1e2a3a; padding: 4px 12px; border-radius: 40px; color: #F6B45F; font-weight: bold; }
+    .stats div span { color: #eaf2fb; }
+    button {
+      background: #F6B45F;
+      border: none;
+      padding: 6px 16px;
+      border-radius: 40px;
+      font-weight: bold;
+      cursor: pointer;
+      color: #04162E;
+      font-family: inherit;
+      margin: 0 4px;
+    }
+    .question {
+      font-size: 3rem;
+      font-weight: bold;
+      margin: 30px 0;
+      color: #F6B45F;
+      background: #0a1018;
+      padding: 20px;
+      border-radius: 60px;
+    }
+    .options {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+      margin: 20px 0;
+    }
+    .option {
+      background: #F6B45F;
+      padding: 12px 20px;
+      font-size: 1.5rem;
+      font-weight: bold;
+      border-radius: 60px;
+      cursor: pointer;
+      min-width: 80px;
+      color: #04162E;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      transition: 0.05s;
+    }
+    .option:active { transform: scale(0.96); }
+    .message {
+      margin-top: 20px;
+      padding: 8px;
+      background: #0a1018;
+      border-radius: 40px;
+      color: #eaf2fb;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+<div class="game-container">
+  <div class="header">
+    <div class="logo">PACDI<span>Games</span></div>
+    <a href="index.html" class="back-link">← Geri</a>
+  </div>
+  <div class="stats">
+    <div>⭐ Doğru: <span id="correct">0</span>/10</div>
+    <div>⏱️ Süre: <span id="timer">00:00</span></div>
+    <div>🏆 En İyi: <span id="bestScore">—</span></div>
+    <button id="resetBtn">Yeni Oyun</button>
+  </div>
+  <div class="question" id="question">5 + 3 = ?</div>
+  <div class="options" id="options"></div>
+  <div class="message" id="message">Doğru cevaba tıkla!</div>
+</div>
+
+<script>
+  (function() {
+    var currentQuestion, correctCount = 0, timerSeconds = 0, timerInterval = null;
+    var gameActive = true, targetCorrect = 10, bestKey = "mathBest";
+
+    function updateBestDisplay() {
+      var b = localStorage.getItem(bestKey);
+      document.getElementById("bestScore").innerText = b ? b : "—";
+    }
+    function stopTimer() { if(timerInterval) clearInterval(timerInterval); timerInterval = null; }
+    function startTimer() {
+      stopTimer();
+      timerInterval = setInterval(function() {
+        if(gameActive) {
+          timerSeconds++;
+          var m = Math.floor(timerSeconds/60), s = timerSeconds%60;
+          document.getElementById("timer").innerText = (m<10?"0"+m:m)+":"+(s<10?"0"+s:s);
+        }
+      }, 1000);
+    }
+    function generateQuestion() {
+      var ops = ['+','-'];
+      var op = ops[Math.floor(Math.random()*2)];
+      var a = Math.floor(Math.random()*20)+1, b = Math.floor(Math.random()*20)+1;
+      if(op === '-') if(a < b) { var t = a; a = b; b = t; }
+      var answer = op === '+' ? a+b : a-b;
+      var wrong1 = answer + Math.floor(Math.random()*5)+1;
+      var wrong2 = answer - Math.floor(Math.random()*5)-1;
+      if(wrong1 === answer) wrong1++;
+      if(wrong2 === answer) wrong2--;
+      if(wrong2 < 0) wrong2 = answer+1;
+      var opts = [answer, wrong1, wrong2];
+      for(var i=opts.length-1;i>0;i--) {
+        var j = Math.floor(Math.random()*(i+1));
+        var temp = opts[i]; opts[i] = opts[j]; opts[j] = temp;
+      }
+      return { text: a+" "+op+" "+b+" = ?", answer: answer, options: opts };
+    }
+    function renderQuestion() {
+      currentQuestion = generateQuestion();
+      document.getElementById("question").innerText = currentQuestion.text;
+      var container = document.getElementById("options");
+      container.innerHTML = "";
+      for(var i=0;i<currentQuestion.options.length;i++) {
+        var btn = document.createElement("div");
+        btn.className = "option";
+        btn.innerText = currentQuestion.options[i];
+        btn.addEventListener("click", (function(ans) { return function() { checkAnswer(ans); }; })(currentQuestion.options[i]));
+        container.appendChild(btn);
+      }
+    }
+    function checkAnswer(selected) {
+      if(!gameActive) return;
+      if(selected === currentQuestion.answer) {
+        correctCount++;
+        document.getElementById("correct").innerText = correctCount;
+        document.getElementById("message").innerText = "✅ Doğru!";
+        if(correctCount >= targetCorrect) {
+          gameActive = false;
+          stopTimer();
+          var best = localStorage.getItem(bestKey);
+          if(!best || timerSeconds < parseInt(best)) {
+            localStorage.setItem(bestKey, timerSeconds);
+            updateBestDisplay();
+            document.getElementById("message").innerHTML = "🎉 TEBRİKLER! YENİ REKOR! Süre: "+timerSeconds+" sn<br><button onclick='location.reload()'>Tekrar Oyna</button>";
+          } else {
+            document.getElementById("message").innerHTML = "🎉 OYUN TAMAMLANDI! Süre: "+timerSeconds+" sn<br><button onclick='location.reload()'>Tekrar Oyna</button>";
+          }
+          return;
+        }
+        renderQuestion();
+      } else {
+        document.getElementById("message").innerText = "❌ Yanlış! Doğru cevap: "+currentQuestion.answer;
+        setTimeout(function() {
+          renderQuestion();
+          document.getElementById("message").innerText = "Yeni soru!";
+        }, 1000);
+      }
+    }
+    function resetGame() {
+      stopTimer();
+      timerSeconds = 0;
+      correctCount = 0;
+      document.getElementById("correct").innerText = "0";
+      document.getElementById("timer").innerText = "00:00";
+      gameActive = true;
+      renderQuestion();
+      startTimer();
+      document.getElementById("message").innerText = "Yeni oyun başladı!";
+    }
+    document.getElementById("resetBtn").addEventListener("click", resetGame);
+    resetGame();
+    updateBestDisplay();
+  })();
+</script>
+</body>
+</html>

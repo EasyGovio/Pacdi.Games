@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Mahjong Solitaire | PACDI Games</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+    body {
+      background: #04162E;
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .game-container {
+      max-width: 750px;
+      width: 100%;
+      background: #1e2a3a;
+      border-radius: 48px;
+      padding: 24px;
+      box-shadow: 0 20px 35px rgba(0,0,0,0.4);
+      border: 1px solid rgba(246,180,95,0.3);
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      color: #FFFFFF;
+    }
+    .logo { font-size: 1.4rem; font-weight: bold; }
+    .logo span { color: #F6B45F; }
+    .back-link { color: #F6B45F; text-decoration: none; font-weight: bold; background: #0a1018; padding: 5px 12px; border-radius: 40px; }
+    .stats {
+      display: flex;
+      justify-content: space-between;
+      background: #0a1018;
+      padding: 10px;
+      border-radius: 60px;
+      margin: 15px 0;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .stats div { background: #1e2a3a; padding: 4px 12px; border-radius: 40px; color: #F6B45F; font-weight: bold; }
+    .stats div span { color: #eaf2fb; }
+    button {
+      background: #F6B45F;
+      border: none;
+      padding: 6px 16px;
+      border-radius: 40px;
+      font-weight: bold;
+      cursor: pointer;
+      color: #04162E;
+      font-family: inherit;
+      margin: 2px;
+    }
+    .mahjong-grid {
+      display: grid;
+      grid-template-columns: repeat(8,1fr);
+      gap: 8px;
+      margin: 20px 0;
+    }
+    .tile {
+      aspect-ratio:1/1;
+      background: #0a1018;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      font-weight: bold;
+      color: #F6B45F;
+      cursor: pointer;
+      border: 2px solid #F6B45F;
+      transition: 0.05s;
+    }
+    .tile.selected {
+      background: #F6B45F;
+      color: #04162E;
+      transform: scale(0.95);
+    }
+    .tile.removed {
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .message { text-align: center; margin-top: 15px; padding: 8px; background: #0a1018; border-radius: 40px; color: #eaf2fb; font-weight: bold; }
+  </style>
+</head>
+<body>
+<div class="game-container">
+  <div class="header">
+    <div class="logo">PACDI<span>Games</span></div>
+    <a href="index.html" class="back-link">← Geri</a>
+  </div>
+  <div class="stats">
+    <div>🀄 Kalan: <span id="remaining">32</span></div>
+    <div>⏱️ Süre: <span id="timer">00:00</span></div>
+    <div>🏆 En İyi: <span id="bestScore">—</span></div>
+    <button id="undoBtn">↩️ Geri Al</button>
+    <button id="resetBtn">Yeni Oyun</button>
+  </div>
+  <div id="grid" class="mahjong-grid"></div>
+  <div class="message" id="message">Aynı sembole sahip açık taşları eşle.</div>
+</div>
+
+<script>
+  (function() {
+    var symbols = ["🐉","🌸","🍂","🔥","💧","🌊","🐦","🐟","🐢","🦋","🌙","⭐","❤️","🔔","⚙️","🎋"];
+    var tiles = [], selectedIndex = null, history = [], timerSeconds = 0, timerInterval = null, gameActive = true, bestKey = "mahjongBest";
+
+    function updateBestDisplay() {
+      var b = localStorage.getItem(bestKey);
+      document.getElementById("bestScore").innerText = b ? b : "—";
+    }
+    function stopTimer() { if(timerInterval) clearInterval(timerInterval); timerInterval=null; }
+    function startTimer() {
+      stopTimer();
+      timerInterval = setInterval(function() {
+        if(gameActive) {
+          timerSeconds++;
+          var m = Math.floor(timerSeconds/60), s = timerSeconds%60;
+          document.getElementById("timer").innerText = (m<10?"0"+m:m)+":"+(s<10?"0"+s:s);
+        }
+      }, 1000);
+    }
+    function initGame() {
+      tiles = [];
+      var pairs = [];
+      for(var i=0;i<16;i++) pairs.push(symbols[i%symbols.length], symbols[i%symbols.length]);
+      for(var i=pairs.length-1;i>0;i--){
+        var j = Math.floor(Math.random()*(i+1));
+        var temp = pairs[i]; pairs[i] = pairs[j]; pairs[j] = temp;
+      }
+      for(var i=0;i<32;i++) tiles.push({symbol:pairs[i], removed:false});
+      renderGrid();
+      document.getElementById("remaining").innerText = tiles.filter(function(t){return !t.removed;}).length;
+      selectedIndex = null;
+      history = [];
+    }
+    function renderGrid() {
+      var container = document.getElementById("grid");
+      container.innerHTML = "";
+      for(var i=0;i<tiles.length;i++) {
+        var tile = document.createElement("div");
+        tile.className = "tile";
+        if(tiles[i].removed) tile.classList.add("removed");
+        else tile.innerText = tiles[i].symbol;
+        if(selectedIndex===i) tile.classList.add("selected");
+        tile.addEventListener("click",(function(idx){return function(){onTileClick(idx);};})(i));
+        container.appendChild(tile);
+      }
+    }
+    function isTileFree(idx) {
+      if(tiles[idx].removed) return false;
+      var row = Math.floor(idx/8), col = idx%8;
+      var leftFree = (col===0) || tiles[idx-1].removed;
+      var rightFree = (col===7) || tiles[idx+1].removed;
+      var topFree = (row===0) || tiles[idx-8].removed;
+      var bottomFree = (row===3) || tiles[idx+8].removed;
+      return (leftFree||rightFree||topFree||bottomFree);
+    }
+    function onTileClick(idx) {
+      if(tiles[idx].removed) return;
+      if(!isTileFree(idx)) { document.getElementById("message").innerText="Bu taş açık değil!"; return; }
+      if(selectedIndex===null) {
+        selectedIndex=idx;
+        renderGrid();
+        document.getElementById("message").innerText="Şimdi eşini seç.";
+      } else {
+        if(selectedIndex===idx) {
+          selectedIndex=null;
+          renderGrid();
+          document.getElementById("message").innerText="Seçim iptal.";
+          return;
+        }
+        if(tiles[selectedIndex].symbol===tiles[idx].symbol && isTileFree(idx)) {
+          history.push([selectedIndex,idx]);
+          tiles[selectedIndex].removed=true;
+          tiles[idx].removed=true;
+          selectedIndex=null;
+          renderGrid();
+          var remaining = tiles.filter(function(t){return !t.removed;}).length;
+          document.getElementById("remaining").innerText=remaining;
+          if(remaining===0){
+            gameActive=false;
+            stopTimer();
+            var best = localStorage.getItem(bestKey);
+            if(!best||timerSeconds<parseInt(best)){
+              localStorage.setItem(bestKey,timerSeconds);
+              updateBestDisplay();
+              document.getElementById("message").innerHTML="🎉 KAZANDIN! YENİ REKOR!<br><button onclick='location.reload()'>Tekrar Oyna</button>";
+            } else {
+              document.getElementById("message").innerHTML="🎉 TEBRİKLER! Oyunu tamamladın!<br><button onclick='location.reload()'>Tekrar Oyna</button>";
+            }
+          } else {
+            document.getElementById("message").innerText="Eşleşti! Devam et.";
+          }
+        } else {
+          document.getElementById("message").innerText="Eşleşme veya açık değil!";
+          selectedIndex=null;
+          renderGrid();
+        }
+      }
+    }
+    function undo() {
+      if(history.length===0) return;
+      var last = history.pop();
+      tiles[last[0]].removed=false;
+      tiles[last[1]].removed=false;
+      renderGrid();
+      document.getElementById("remaining").innerText=tiles.filter(function(t){return !t.removed;}).length;
+      document.getElementById("message").innerText="Geri alındı.";
+    }
+    function resetGame() {
+      stopTimer();
+      timerSeconds=0;
+      document.getElementById("timer").innerText="00:00";
+      gameActive=true;
+      history=[];
+      initGame();
+      startTimer();
+    }
+    document.getElementById("undoBtn").addEventListener("click",undo);
+    document.getElementById("resetBtn").addEventListener("click",resetGame);
+    initGame();
+    startTimer();
+    updateBestDisplay();
+  })();
+</script>
+</body>
+</html>
