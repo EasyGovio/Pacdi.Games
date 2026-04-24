@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Stroop Testi | PACDI Games</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+    body {
+      background: #04162E;
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .game-container {
+      max-width: 550px;
+      width: 100%;
+      background: #1e2a3a;
+      border-radius: 48px;
+      padding: 24px;
+      box-shadow: 0 20px 35px rgba(0,0,0,0.4);
+      border: 1px solid rgba(246,180,95,0.3);
+      text-align: center;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      color: #FFFFFF;
+    }
+    .logo { font-size: 1.4rem; font-weight: bold; }
+    .logo span { color: #F6B45F; }
+    .back-link { color: #F6B45F; text-decoration: none; font-weight: bold; background: #0a1018; padding: 5px 12px; border-radius: 40px; }
+    .stats {
+      display: flex;
+      justify-content: space-between;
+      background: #0a1018;
+      padding: 10px;
+      border-radius: 60px;
+      margin: 15px 0;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .stats div { background: #1e2a3a; padding: 4px 12px; border-radius: 40px; color: #F6B45F; font-weight: bold; }
+    .stats div span { color: #eaf2fb; }
+    button {
+      background: #F6B45F;
+      border: none;
+      padding: 6px 16px;
+      border-radius: 40px;
+      font-weight: bold;
+      cursor: pointer;
+      color: #04162E;
+      font-family: inherit;
+    }
+    .word-display {
+      font-size: 4rem;
+      font-weight: bold;
+      margin: 30px 0;
+      padding: 20px;
+      background: #0a1018;
+      border-radius: 30px;
+      border: 2px solid #F6B45F30;
+    }
+    .color-buttons {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 20px 0;
+    }
+    .color-btn {
+      width: 90px;
+      padding: 15px 0;
+      border-radius: 50px;
+      font-weight: bold;
+      cursor: pointer;
+      text-align: center;
+      transition: 0.05s;
+    }
+    .color-btn:active { transform: scale(0.96); }
+    .message {
+      margin-top: 20px;
+      padding: 8px;
+      background: #0a1018;
+      border-radius: 40px;
+      color: #eaf2fb;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+<div class="game-container">
+  <div class="header">
+    <div class="logo">PACDI<span>Games</span></div>
+    <a href="index.html" class="back-link">← Geri</a>
+  </div>
+  <div class="stats">
+    <div>🎯 Tur: <span id="round">1</span>/20</div>
+    <div>⏱️ Süre: <span id="timer">00:00</span></div>
+    <div>🏆 En İyi: <span id="bestScore">—</span></div>
+    <button id="resetBtn">Yeniden Başla</button>
+  </div>
+  <div id="wordDisplay" class="word-display">KIRMIZI</div>
+  <div class="color-buttons" id="colorBtns"></div>
+  <div class="message" id="message">Yazılan KELİMENİN RENGİNE değil, BOYANDIĞI RENGE tıkla!</div>
+</div>
+
+<script>
+  (function() {
+    var colors = ["KIRMIZI","MAVİ","YEŞİL","SARI"];
+    var colorMap = { "KIRMIZI":"#FF4136", "MAVİ":"#0074D9", "YEŞİL":"#2ECC71", "SARI":"#F6B45F" };
+    var currentRound = 1, totalRounds = 20, startTime = null, timerInterval = null, gameActive = true;
+    var bestKey = "stroopBest";
+    var currentWord = "", currentColor = "";
+
+    function updateBestDisplay() {
+      var b = localStorage.getItem(bestKey);
+      document.getElementById("bestScore").innerText = b ? b : "—";
+    }
+    function stopTimer() { if(timerInterval) clearInterval(timerInterval); timerInterval = null; }
+    function startTimer() {
+      stopTimer();
+      startTime = Date.now();
+      timerInterval = setInterval(function() {
+        if(gameActive) {
+          var elapsed = Math.floor((Date.now() - startTime)/1000);
+          var m = Math.floor(elapsed/60), s = elapsed%60;
+          document.getElementById("timer").innerText = (m<10?"0"+m:m)+":"+(s<10?"0"+s:s);
+        }
+      }, 1000);
+    }
+    function getRandomStroop() {
+      var wordIdx = Math.floor(Math.random()*colors.length);
+      var colorIdx = Math.floor(Math.random()*colors.length);
+      return { word: colors[wordIdx], color: colors[colorIdx] };
+    }
+    function generateRound() {
+      var s = getRandomStroop();
+      currentWord = s.word;
+      currentColor = s.color;
+      var displayDiv = document.getElementById("wordDisplay");
+      displayDiv.innerText = currentWord;
+      displayDiv.style.color = colorMap[currentColor];
+    }
+    function checkAnswer(selectedColorName) {
+      if(!gameActive) return;
+      if(selectedColorName === currentColor) {
+        currentRound++;
+        document.getElementById("round").innerText = currentRound;
+        if(currentRound > totalRounds) {
+          gameActive = false;
+          stopTimer();
+          var elapsed = Math.floor((Date.now() - startTime)/1000);
+          var best = localStorage.getItem(bestKey);
+          if(!best || elapsed < parseInt(best)) {
+            localStorage.setItem(bestKey, elapsed);
+            updateBestDisplay();
+            document.getElementById("message").innerHTML = "🎉 MÜKEMMEL! YENİ REKOR! Süre: "+elapsed+" sn<br><button onclick='location.reload()'>Tekrar Oyna</button>";
+          } else {
+            document.getElementById("message").innerHTML = "🎉 TEST TAMAMLANDI! Süre: "+elapsed+" sn<br><button onclick='location.reload()'>Tekrar Oyna</button>";
+          }
+          return;
+        }
+        generateRound();
+        document.getElementById("message").innerText = "Doğru! Devam et.";
+      } else {
+        document.getElementById("message").innerText = "Yanlış! Doğru renk: "+currentColor;
+        setTimeout(function() {
+          generateRound();
+          document.getElementById("message").innerText = "Devam et, dikkatli ol.";
+        }, 1000);
+      }
+    }
+    function initGame() {
+      currentRound=1;
+      document.getElementById("round").innerText="1";
+      gameActive=true;
+      generateRound();
+      startTimer();
+    }
+    function resetGame() { stopTimer(); initGame(); }
+    var btnContainer = document.getElementById("colorBtns");
+    for(var i=0;i<colors.length;i++) {
+      var btn = document.createElement("div");
+      btn.className = "color-btn";
+      btn.style.backgroundColor = colorMap[colors[i]];
+      btn.style.color = "#04162E";
+      btn.innerText = colors[i];
+      btn.addEventListener("click", (function(col) { return function(){ checkAnswer(col); }; })(colors[i]));
+      btnContainer.appendChild(btn);
+    }
+    document.getElementById("resetBtn").addEventListener("click", resetGame);
+    initGame();
+    updateBestDisplay();
+  })();
+</script>
+</body>
+</html>
