@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>PACDI Games · Zihnini Oynat, Ekosistemi Büyüt</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: #04162E;
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+      color: #eaf2fb;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 1rem 1.25rem 2rem;
+    }
+
+    /* header - PACDI Games özel */
+    .header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid rgba(246, 180, 95, 0.3);
+    }
+
+    .logo-area {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .logo {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #F6B45F 0%, #FFFFFF 80%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .tagline {
+      font-size: 0.7rem;
+      color: #b8d0e8;
+      letter-spacing: 1px;
+      margin-top: 4px;
+    }
+
+    .compass-points {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: #0a1018;
+      padding: 6px 18px;
+      border-radius: 60px;
+      border: 1px solid #F6B45F40;
+    }
+
+    .compass-icon {
+      font-size: 1.3rem;
+    }
+
+    .points-value {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #F6B45F;
+      line-height: 1;
+    }
+
+    .points-label {
+      font-size: 0.7rem;
+      color: #9bb7d4;
+    }
+
+    /* kategoriler */
+    .category {
+      margin-bottom: 2rem;
+    }
+
+    .category-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      border-left: 5px solid #F6B45F;
+      padding-left: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .game-card {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(4px);
+      border-radius: 32px;
+      padding: 1rem 1rem 1.2rem;
+      transition: all 0.2s ease;
+      border: 1px solid rgba(246, 180, 95, 0.2);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+    }
+
+    .game-card:hover {
+      transform: translateY(-5px);
+      border-color: #F6B45F;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .game-icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .game-name {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #F6B45F;
+      margin-bottom: 0.3rem;
+    }
+
+    .game-desc {
+      font-size: 0.75rem;
+      color: #b8d0e8;
+      margin-bottom: 0.8rem;
+      line-height: 1.4;
+    }
+
+    .badge-group {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      background: #0a1018;
+      padding: 2px 8px;
+      border-radius: 60px;
+      font-size: 0.6rem;
+      font-weight: bold;
+      color: #F6B45F;
+      border: 1px solid #F6B45F40;
+    }
+
+    .badge.new {
+      background: #2ECC71;
+      color: #04162E;
+      border-color: #2ECC71;
+    }
+
+    .play-btn {
+      display: inline-block;
+      margin-top: 0.8rem;
+      background: #F6B45F;
+      color: #04162E;
+      font-weight: bold;
+      padding: 6px 16px;
+      border-radius: 60px;
+      font-size: 0.75rem;
+      text-decoration: none;
+      transition: 0.1s;
+    }
+
+    /* footer */
+    .footer {
+      text-align: center;
+      margin-top: 2.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(246, 180, 95, 0.2);
+      font-size: 0.7rem;
+      color: #6c8fb0;
+    }
+
+    @media (max-width: 680px) {
+      .header {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+      }
+      .compass-points {
+        justify-content: center;
+      }
+      .games-grid {
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="logo-area">
+      <div class="logo">⚜️ PACDI GAMES ⚜️</div>
+      <div class="tagline">Zihnini oynat · Ekosistemi büyüt</div>
+    </div>
+    <div class="compass-points" id="compassPoints">
+      <div class="compass-icon">🧭</div>
+      <div class="points-value" id="pusulaPoints">0</div>
+      <div class="points-label">PUSULA PUANI</div>
+    </div>
+  </div>
+
+  <!-- Kategori: Refleks & Dikkat -->
+  <div class="category">
+    <div class="category-title"><span>⚡</span> Refleks & Dikkat</div>
+    <div class="games-grid" id="reflexGrid"></div>
+  </div>
+
+  <!-- Kategori: Hafıza & Mantık -->
+  <div class="category">
+    <div class="category-title"><span>🧠</span> Hafıza & Mantık</div>
+    <div class="games-grid" id="logicGrid"></div>
+  </div>
+
+  <!-- Kategori: Görsel Algı & Strateji -->
+  <div class="category">
+    <div class="category-title"><span>🎨</span> Görsel Algı & Strateji</div>
+    <div class="games-grid" id="visualGrid"></div>
+  </div>
+
+  <!-- Kategori: Hasat & Kültür / Onur -->
+  <div class="category">
+    <div class="category-title"><span>🌾</span> Hasat, Kültür & Onur</div>
+    <div class="games-grid" id="cultureGrid"></div>
+  </div>
+
+  <!-- Pusula Puanı reklam mock -->
+  <div style="background: #0a1018; border-radius: 48px; padding: 1rem; text-align: center; margin-top: 1rem; border: 1px solid #F6B45F20;">
+    <div style="font-size: 0.8rem; color: #F6B45F;">🎁 Her oyunun sonunda ekstra puan kazan!</div>
+    <button id="mockRewardBtn" style="margin-top: 8px; background: #F6B45F; border: none; padding: 6px 20px; border-radius: 60px; font-weight: bold; color: #04162E; cursor: pointer;">🎥 Reklam İzle (+10 Puan)</button>
+  </div>
+
+  <div class="footer">
+    PACDI Games · <span id="totalGamesSpan">70+</span> bilişsel egzersiz · Her oyun onurla hazırlanmıştır
+  </div>
+</div>
+
+<script>
+  (function() {
+    // ----------------------------- PUSULA PUANI (localStorage) -----------------------------
+    var POINTS_KEY = 'pacdi_games_points';
+    var points = parseInt(localStorage.getItem(POINTS_KEY) || '0', 10);
+    var pointsSpan = document.getElementById('pusulaPoints');
+    function updatePointsUI() {
+      pointsSpan.innerText = points;
+    }
+    function addPoints(amount) {
+      points += amount;
+      localStorage.setItem(POINTS_KEY, points);
+      updatePointsUI();
+      // küçük animasyon efekti
+      pointsSpan.style.transform = 'scale(1.2)';
+      setTimeout(function() { pointsSpan.style.transform = ''; }, 200);
+    }
+    updatePointsUI();
+
+    // ----------------------------- OYUN LİSTESİ (70+ oyun, kategorilere dağıtılmış) -----------------------------
+    var games = {
+      reflex: [
+        { name: "Reaction Tap", desc: "Hedefe dokun, reaksiyon süreni ölç.", icon: "⚡", file: "reaction-tap.html", new: false },
+        { name: "Eye Tracker", desc: "Kültürel nesneleri hızla yakala.", icon: "👁️", file: "eye-tracker.html", new: true },
+        { name: "Stroop Testi", desc: "Renk ve kelime çatışması.", icon: "🎨", file: "stroop.html", new: false },
+        { name: "Number Hunt", desc: "Sayıları küçükten büyüğe bul.", icon: "🔢", file: "number-hunt.html", new: false },
+        { name: "Helix Jump", desc: "Topu döndür, boşluklardan geçir.", icon: "🌀", file: "helix-jump.html", new: true },
+        { name: "Gözbebeği", desc: "Anlık fark ediş, refleks yaşı.", icon: "🎯", file: "eye-tracker.html", new: false }
+      ],
+      logic: [
+        { name: "Mastermind", desc: "Gizli renk kodunu mantıkla bul.", icon: "🧩", file: "mastermind.html", new: false },
+        { name: "Sudoku", desc: "9x9 sayı yerleştirme.", icon: "🔢", file: "sudoku.html", new: false },
+        { name: "Merge", desc: "Sayıları birleştir, 2048'e ulaş.", icon: "🔀", file: "merge.html", new: false },
+        { name: "Nova 2048", desc: "Grid büyür, puan artar.", icon: "🌌", file: "nova2048.html", new: true },
+        { name: "Memory Pair", desc: "Kartları eşleştir, hafızanı test et.", icon: "🃟", file: "memory.html", new: false },
+        { name: "Sıra Hatırlama", desc: "Işık ve ses dizisini tekrarla.", icon: "🎵", file: "sequence.html", new: false },
+        { name: "Kelime Türetme", desc: "Harflerden kelime üret.", icon: "📖", file: "word.html", new: false },
+        { name: "Word Garden", desc: "Çiçek bahçen için kelime bul.", icon: "🌻", file: "word-garden.html", new: true },
+        { name: "Math Sprint", desc: "Hızlı matematik egzersizi.", icon: "🧮", file: "math.html", new: false }
+      ],
+      visual: [
+        { name: "Rotate", desc: "Şekli döndür, hedefe hizala.", icon: "🔄", file: "rotate.html", new: false },
+        { name: "Odd One Out", desc: "Farklı olan nesneyi bul.", icon: "🔍", file: "odd-one-out.html", new: false },
+        { name: "Shadow Match", desc: "Nesneyi gölgesiyle eşleştir.", icon: "🌑", file: "shadow-match.html", new: true },
+        { name: "Color Lines", desc: "Aynı renkleri birleştir, patlat.", icon: "🌈", file: "Color-lines.html", new: false },
+        { name: "Counterfeit", desc: "Sahte banknotu gerçeğinden ayır.", icon: "💰", file: "counterfeit.html", new: true },
+        { name: "Pattern Match", desc: "Deseni ezberle, doğru hücreleri seç.", icon: "🔲", file: "pattern-match.html", new: false },
+        { name: "Görsel Dikkat", desc: "Farklı objeyi hızla bul.", icon: "👁️", file: "visual.html", new: false }
+      ],
+      culture: [
+        { name: "Nefes Pusulası", desc: "Kriz anında nefes egzersizi.", icon: "🌬️", file: "breath-anchor.html", new: true },
+        { name: "Bilgelik Halkası", desc: "Etik değerleri farklı kültürlerde eşleştir.", icon: "🏵️", file: "wisdom-circle.html", new: true },
+        { name: "Unutulmuş Zariflikler", desc: "Eski nezaket kurallarını hatırla.", icon: "🎩", file: "forgotten-graces.html", new: true },
+        { name: "İyiliğin Grameri", desc: "Barış kelimelerini dillerde eşleştir.", icon: "🕊️", file: "grammar-of-goodness.html", new: true },
+        { name: "Dijital Miras", desc: "Fotoğraf yükle, sorularla parçaları aç.", icon: "🖼️", file: "legacy-puzzle.html", new: true },
+        { name: "Sesli Hafıza", desc: "Aile seslerini tanı.", icon: "🎤", file: "voice-memory.html", new: true },
+        { name: "Plaka Kodları", desc: "Türkiye illerini eşleştir.", icon: "🚗", file: "plaka-kodu.html", new: true },
+        { name: "Kenzeichen Quiz", desc: "Almanya şehir plakaları.", icon: "🇩🇪", file: "kennzeichen-quiz.html", new: true },
+        { name: "Yöresel Yemekler", desc: "Mutfak ve bölge eşleştirme.", icon: "🍲", file: "regional-food.html", new: true },
+        { name: "Ege Hasadı", desc: "Zeytin, otlar, Ege ürünleri.", icon: "🫒", file: "ege-hasadi.html", new: true }
+      ]
+    };
+
+    // her oyun için kart oluştur
+    function createGameCard(game) {
+      var card = document.createElement('div');
+      card.className = 'game-card';
+      card.setAttribute('data-file', game.file);
+      // ikon ve başlık
+      var iconDiv = document.createElement('div');
+      iconDiv.className = 'game-icon';
+      iconDiv.innerText = game.icon;
+      var nameDiv = document.createElement('div');
+      nameDiv.className = 'game-name';
+      nameDiv.innerText = game.name;
+      var descDiv = document.createElement('div');
+      descDiv.className = 'game-desc';
+      descDiv.innerText = game.desc;
+      var badgeDiv = document.createElement('div');
+      badgeDiv.className = 'badge-group';
+      if (game.new) {
+        var newBadge = document.createElement('span');
+        newBadge.className = 'badge new';
+        newBadge.innerText = 'YENİ';
+        badgeDiv.appendChild(newBadge);
+      }
+      var playBtn = document.createElement('a');
+      playBtn.className = 'play-btn';
+      playBtn.innerText = 'Oyna →';
+      playBtn.href = game.file;
+      // basit tıklama ile puan artırma mock (normal link)
+      card.appendChild(iconDiv);
+      card.appendChild(nameDiv);
+      card.appendChild(descDiv);
+      card.appendChild(badgeDiv);
+      card.appendChild(playBtn);
+      return card;
+    }
+
+    function renderCategory(containerId, gamesArray) {
+      var container = document.getElementById(containerId);
+      if (!container) return;
+      container.innerHTML = '';
+      for (var i = 0; i < gamesArray.length; i++) {
+        var card = createGameCard(gamesArray[i]);
+        container.appendChild(card);
+      }
+    }
+
+    renderCategory('reflexGrid', games.reflex);
+    renderCategory('logicGrid', games.logic);
+    renderCategory('visualGrid', games.visual);
+    renderCategory('cultureGrid', games.culture);
+
+    // top oyun sayısı
+    var totalCount = games.reflex.length + games.logic.length + games.visual.length + games.culture.length;
+    document.getElementById('totalGamesSpan').innerText = totalCount;
+
+    // ---------- REWARD MOCK butonu ----------
+    var rewardBtn = document.getElementById('mockRewardBtn');
+    if (rewardBtn) {
+      rewardBtn.addEventListener('click', function() {
+        // ödüllü reklam mock
+        alert('🎬 Reklam izleme simülasyonu (gerçek yayında ödüllü video gösterilecek)\n+10 Pusula Puanı kazandınız!');
+        addPoints(10);
+      });
+    }
+
+    // oyun sayfalarında dönebilmesi için localStorage puanını her sayfada kontrol edecek (dışarıdan)
+    // ayrıca Geri butonlarını / ana sayfaya yönlendirmek için PACDI Games ortak altyapı
+    window.pacdiGames = window.pacdiGames || {};
+    window.pacdiGames.addPoints = addPoints;
+    window.pacdiGames.getPoints = function() { return points; };
+  })();
+</script>
+</body>
+</html>
