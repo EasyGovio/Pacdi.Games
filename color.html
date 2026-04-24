@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Renk Eşleştirme | PACDI Games</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+    body {
+      background: #04162E;
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .game-container {
+      max-width: 600px;
+      width: 100%;
+      background: #1e2a3a;
+      border-radius: 48px;
+      padding: 24px;
+      box-shadow: 0 20px 35px rgba(0,0,0,0.4);
+      border: 1px solid rgba(246,180,95,0.3);
+      text-align: center;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      color: #FFFFFF;
+    }
+    .logo { font-size: 1.4rem; font-weight: bold; }
+    .logo span { color: #F6B45F; }
+    .back-link { color: #F6B45F; text-decoration: none; font-weight: bold; background: #0a1018; padding: 5px 12px; border-radius: 40px; }
+    .stats {
+      display: flex;
+      justify-content: space-between;
+      background: #0a1018;
+      padding: 10px;
+      border-radius: 60px;
+      margin: 15px 0;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .stats div { background: #1e2a3a; padding: 4px 12px; border-radius: 40px; color: #F6B45F; font-weight: bold; }
+    .stats div span { color: #eaf2fb; }
+    button {
+      background: #F6B45F;
+      border: none;
+      padding: 6px 16px;
+      border-radius: 40px;
+      font-weight: bold;
+      cursor: pointer;
+      color: #04162E;
+      font-family: inherit;
+    }
+    .target-color {
+      width: 120px;
+      height: 120px;
+      border-radius: 60px;
+      margin: 20px auto;
+      border: 3px solid #F6B45F;
+      box-shadow: 0 0 15px rgba(246,180,95,0.3);
+    }
+    .options {
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 20px;
+      margin: 30px 0;
+    }
+    .color-card {
+      aspect-ratio:1/1;
+      border-radius: 24px;
+      cursor: pointer;
+      border: 2px solid #F6B45F;
+      transition: transform 0.05s;
+    }
+    .color-card:active { transform: scale(0.95); }
+    .message {
+      margin-top: 20px;
+      padding: 8px;
+      background: #0a1018;
+      border-radius: 40px;
+      color: #eaf2fb;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+<div class="game-container">
+  <div class="header">
+    <div class="logo">PACDI<span>Games</span></div>
+    <a href="index.html" class="back-link">← Geri</a>
+  </div>
+  <div class="stats">
+    <div>🎯 Skor: <span id="score">0</span>/10</div>
+    <div>⏱️ Süre: <span id="timer">00:00</span></div>
+    <div>🏆 En İyi: <span id="bestScore">—</span></div>
+    <button id="resetBtn">Yeni Oyun</button>
+  </div>
+  <div id="target" class="target-color"></div>
+  <div id="options" class="options"></div>
+  <div class="message" id="message">Hedef rengi bul!</div>
+</div>
+
+<script>
+  (function() {
+    var colorPalette = ["#FF4136","#0074D9","#2ECC71","#F6B45F","#FF851B","#B10DC9","#39CCCC","#FF69B4","#A9A9A9"];
+    var currentTarget = "", currentOptions = [], score = 0;
+    var timerSeconds = 0, timerInterval = null, gameActive = true;
+    var targetScore = 10, bestKey = "colorBest";
+
+    function updateBestDisplay() {
+      var b = localStorage.getItem(bestKey);
+      document.getElementById("bestScore").innerText = b ? b : "—";
+    }
+    function stopTimer() { if(timerInterval) clearInterval(timerInterval); timerInterval = null; }
+    function startTimer() {
+      stopTimer();
+      timerInterval = setInterval(function() {
+        if(gameActive) {
+          timerSeconds++;
+          var m = Math.floor(timerSeconds/60), s = timerSeconds%60;
+          document.getElementById("timer").innerText = (m<10?"0"+m:m)+":"+(s<10?"0"+s:s);
+        }
+      }, 1000);
+    }
+    function generateRound() {
+      var shuffled = colorPalette.slice();
+      for(var i=shuffled.length-1;i>0;i--) {
+        var j = Math.floor(Math.random()*(i+1));
+        var temp = shuffled[i]; shuffled[i] = shuffled[j]; shuffled[j] = temp;
+      }
+      currentTarget = shuffled[0];
+      currentOptions = shuffled.slice(0,4);
+      document.getElementById("target").style.backgroundColor = currentTarget;
+      var container = document.getElementById("options");
+      container.innerHTML = "";
+      for(var k=0;k<currentOptions.length;k++) {
+        var card = document.createElement("div");
+        card.className = "color-card";
+        card.style.backgroundColor = currentOptions[k];
+        card.addEventListener("click", (function(col) { return function() { checkAnswer(col); }; })(currentOptions[k]));
+        container.appendChild(card);
+      }
+    }
+    function checkAnswer(selected) {
+      if(!gameActive) return;
+      if(selected === currentTarget) {
+        score++;
+        document.getElementById("score").innerText = score;
+        document.getElementById("message").innerText = "Doğru! +1";
+        generateRound();
+        if(score === targetScore) {
+          gameActive = false;
+          stopTimer();
+          var best = localStorage.getItem(bestKey);
+          if(!best || timerSeconds < parseInt(best)) {
+            localStorage.setItem(bestKey, timerSeconds);
+            updateBestDisplay();
+            document.getElementById("message").innerHTML = "🏆 MÜKEMMEL! YENİ REKOR! Süre: "+timerSeconds+" sn<br><button onclick='location.reload()'>Tekrar Oyna</button>";
+          } else {
+            document.getElementById("message").innerHTML = "🎉 KAZANDIN! Süre: "+timerSeconds+" sn<br><button onclick='location.reload()'>Tekrar Oyna</button>";
+          }
+        }
+      } else {
+        document.getElementById("message").innerText = "Yanlış! Bu renk değil.";
+        setTimeout(function() {
+          generateRound();
+          document.getElementById("message").innerText = "Yeni tur, dikkat et!";
+        }, 800);
+      }
+    }
+    function resetGame() {
+      stopTimer();
+      timerSeconds = 0;
+      score = 0;
+      document.getElementById("score").innerText = "0";
+      document.getElementById("timer").innerText = "00:00";
+      gameActive = true;
+      generateRound();
+      startTimer();
+    }
+    document.getElementById("resetBtn").addEventListener("click", resetGame);
+    resetGame();
+    updateBestDisplay();
+  })();
+</script>
+</body>
+</html>
