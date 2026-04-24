@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Sayı Dizisi | PACDI Games</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+    body {
+      background: #04162E;
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .game-container {
+      max-width: 550px;
+      width: 100%;
+      background: #1e2a3a;
+      border-radius: 48px;
+      padding: 24px;
+      box-shadow: 0 20px 35px rgba(0,0,0,0.4);
+      border: 1px solid rgba(246,180,95,0.3);
+      text-align: center;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      color: #FFFFFF;
+    }
+    .logo { font-size: 1.4rem; font-weight: bold; }
+    .logo span { color: #F6B45F; }
+    .back-link { color: #F6B45F; text-decoration: none; font-weight: bold; background: #0a1018; padding: 5px 12px; border-radius: 40px; }
+    .stats {
+      display: flex;
+      justify-content: space-between;
+      background: #0a1018;
+      padding: 10px;
+      border-radius: 60px;
+      margin: 15px 0;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .stats div { background: #1e2a3a; padding: 4px 12px; border-radius: 40px; color: #F6B45F; font-weight: bold; }
+    .stats div span { color: #eaf2fb; }
+    button {
+      background: #F6B45F;
+      border: none;
+      padding: 6px 16px;
+      border-radius: 40px;
+      font-weight: bold;
+      cursor: pointer;
+      color: #04162E;
+      font-family: inherit;
+      margin: 5px;
+    }
+    .sequence-box {
+      font-size: 2rem;
+      letter-spacing: 10px;
+      background: #0a1018;
+      padding: 30px;
+      border-radius: 30px;
+      margin: 20px 0;
+      color: #F6B45F;
+      font-weight: bold;
+      font-family: monospace;
+    }
+    input {
+      padding: 12px;
+      font-size: 1rem;
+      text-align: center;
+      border-radius: 60px;
+      border: 2px solid #F6B45F;
+      width: 80%;
+      margin: 15px 0;
+      background: #0a1018;
+      color: #eaf2fb;
+      font-family: monospace;
+    }
+    .message {
+      margin-top: 20px;
+      padding: 8px;
+      background: #0a1018;
+      border-radius: 40px;
+      color: #eaf2fb;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+<div class="game-container">
+  <div class="header">
+    <div class="logo">PACDI<span>Games</span></div>
+    <a href="index.html" class="back-link">← Geri</a>
+  </div>
+  <div class="stats">
+    <div>📏 Uzunluk: <span id="length">1</span></div>
+    <div>🏆 En Uzun: <span id="bestScore">—</span></div>
+    <button id="resetBtn">Yeni Oyun</button>
+  </div>
+  <div id="sequenceDisplay" class="sequence-box">???</div>
+  <input type="text" id="userInput" placeholder="Diziyi boşlukla ayırarak girin (örn: 3 5 1)">
+  <button id="submitBtn">Kontrol Et</button>
+  <div class="message" id="message">Diziyi izle ve hatırla!</div>
+</div>
+
+<script>
+  (function() {
+    var currentSequence = [], currentLength = 1, maxLength = 0;
+    var gameActive = true, showing = false, timeoutId = null;
+    var bestKey = "numbersBest";
+
+    function updateBestDisplay() {
+      var b = localStorage.getItem(bestKey);
+      document.getElementById("bestScore").innerText = b ? b : "—";
+    }
+    function saveBest() {
+      if(currentLength-1 > maxLength) maxLength = currentLength-1;
+      var best = localStorage.getItem(bestKey);
+      if(!best || maxLength > parseInt(best)) {
+        localStorage.setItem(bestKey, maxLength);
+        updateBestDisplay();
+      }
+    }
+    function generateRandomSequence(len) {
+      var arr = [];
+      for(var i=0;i<len;i++) arr.push(Math.floor(Math.random()*9)+1);
+      return arr;
+    }
+    function showSequence() {
+      if(timeoutId) clearTimeout(timeoutId);
+      showing = true;
+      document.getElementById("sequenceDisplay").innerText = currentSequence.join(" ");
+      timeoutId = setTimeout(function() {
+        document.getElementById("sequenceDisplay").innerText = "???";
+        showing = false;
+        document.getElementById("message").innerText = "Şimdi diziyi aynen gir (boşlukla ayırarak)";
+        timeoutId = null;
+      }, 2000);
+    }
+    function nextRound() {
+      currentLength++;
+      document.getElementById("length").innerText = currentLength;
+      currentSequence = generateRandomSequence(currentLength);
+      showSequence();
+    }
+    function checkAnswer() {
+      if(showing) {
+        document.getElementById("message").innerText = "Lütfen dizinin gösterilmesini bekle.";
+        return;
+      }
+      var input = document.getElementById("userInput").value.trim().split(/\s+/).map(Number);
+      if(input.length !== currentSequence.length) {
+        document.getElementById("message").innerText = "Yanlış uzunluk! ("+currentSequence.length+" sayı girmelisiniz)";
+        return;
+      }
+      var correct = true;
+      for(var i=0;i<input.length;i++) if(input[i] !== currentSequence[i]) correct = false;
+      if(correct) {
+        document.getElementById("message").innerText = "Doğru! Sonraki tur...";
+        document.getElementById("userInput").value = "";
+        if(currentLength > maxLength) maxLength = currentLength;
+        saveBest();
+        nextRound();
+      } else {
+        gameActive = false;
+        saveBest();
+        document.getElementById("message").innerHTML = "❌ Oyun bitti! En uzun doğru dizi uzunluğu: "+maxLength+"<br><button onclick='location.reload()'>Tekrar Oyna</button>";
+        document.getElementById("submitBtn").disabled = true;
+      }
+    }
+    function resetGame() {
+      if(timeoutId) clearTimeout(timeoutId);
+      gameActive = true;
+      currentLength = 1;
+      maxLength = 0;
+      document.getElementById("length").innerText = "1";
+      currentSequence = generateRandomSequence(1);
+      showSequence();
+      document.getElementById("userInput").value = "";
+      document.getElementById("submitBtn").disabled = false;
+      updateBestDisplay();
+      document.getElementById("message").innerText = "Yeni oyun! Diziyi izle.";
+    }
+    document.getElementById("submitBtn").addEventListener("click", checkAnswer);
+    document.getElementById("resetBtn").addEventListener("click", resetGame);
+    resetGame();
+  })();
+</script>
+</body>
+</html>

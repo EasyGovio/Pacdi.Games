@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Görsel Dikkat | PACDI Games</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+    body {
+      background: #04162E;
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .game-container {
+      max-width: 700px;
+      width: 100%;
+      background: #1e2a3a;
+      border-radius: 48px;
+      padding: 24px;
+      box-shadow: 0 20px 35px rgba(0,0,0,0.4);
+      border: 1px solid rgba(246,180,95,0.3);
+      text-align: center;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      color: #FFFFFF;
+    }
+    .logo { font-size: 1.4rem; font-weight: bold; }
+    .logo span { color: #F6B45F; }
+    .back-link { color: #F6B45F; text-decoration: none; font-weight: bold; background: #0a1018; padding: 5px 12px; border-radius: 40px; }
+    .stats {
+      display: flex;
+      justify-content: space-between;
+      background: #0a1018;
+      padding: 10px;
+      border-radius: 60px;
+      margin: 15px 0;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .stats div { background: #1e2a3a; padding: 4px 12px; border-radius: 40px; color: #F6B45F; font-weight: bold; }
+    .stats div span { color: #eaf2fb; }
+    button {
+      background: #F6B45F;
+      border: none;
+      padding: 6px 16px;
+      border-radius: 40px;
+      font-weight: bold;
+      cursor: pointer;
+      color: #04162E;
+      font-family: inherit;
+    }
+    .grid {
+      display: grid;
+      gap: 10px;
+      margin: 20px auto;
+      justify-content: center;
+    }
+    .grid-item {
+      aspect-ratio:1/1;
+      background: #0a1018;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      cursor: pointer;
+      border: 2px solid #F6B45F;
+      transition: transform 0.05s;
+    }
+    .grid-item:active { transform: scale(0.95); }
+    .message {
+      margin-top: 20px;
+      padding: 8px;
+      background: #0a1018;
+      border-radius: 40px;
+      color: #eaf2fb;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+<div class="game-container">
+  <div class="header">
+    <div class="logo">PACDI<span>Games</span></div>
+    <a href="index.html" class="back-link">← Geri</a>
+  </div>
+  <div class="stats">
+    <div>🎯 Tur: <span id="round">1</span>/15</div>
+    <div>⏱️ Süre: <span id="timer">00:00</span></div>
+    <div>🏆 En İyi: <span id="bestScore">—</span></div>
+    <button id="resetBtn">Yeniden Başla</button>
+  </div>
+  <div id="grid" class="grid"></div>
+  <div class="message" id="message">Farklı olan nesneyi bul!</div>
+</div>
+
+<script>
+  (function() {
+    var emojis = ["🐶","🐱","🐭","🐹","🐰","🦊","🐻","🐼","🐨","🐯","🦁","🐮"];
+    var currentRound = 1, totalRounds = 15, gridSize = 2;
+    var timerSeconds = 0, timerInterval = null, gameActive = true;
+    var bestKey = "visualBest";
+    var currentDiffIndex = -1;
+
+    function updateBestDisplay() {
+      var b = localStorage.getItem(bestKey);
+      document.getElementById("bestScore").innerText = b ? b : "—";
+    }
+    function stopTimer() { if(timerInterval) clearInterval(timerInterval); timerInterval = null; }
+    function startTimer() {
+      stopTimer();
+      timerInterval = setInterval(function() {
+        if(gameActive) {
+          timerSeconds++;
+          var m = Math.floor(timerSeconds/60), s = timerSeconds%60;
+          document.getElementById("timer").innerText = (m<10?"0"+m:m)+":"+(s<10?"0"+s:s);
+        }
+      }, 1000);
+    }
+    function generateGrid() {
+      gridSize = Math.min(2 + Math.floor(currentRound/3), 6);
+      var total = gridSize * gridSize;
+      var commonEmoji = emojis[Math.floor(Math.random()*emojis.length)];
+      var differentEmoji;
+      do { differentEmoji = emojis[Math.floor(Math.random()*emojis.length)]; } while(differentEmoji === commonEmoji);
+      var diffIndex = Math.floor(Math.random()*total);
+      var gridArray = [];
+      for(var i=0;i<total;i++) gridArray.push(i===diffIndex ? differentEmoji : commonEmoji);
+      return { items: gridArray, cols: gridSize, diffIndex: diffIndex };
+    }
+    function renderGrid() {
+      var data = generateGrid();
+      var container = document.getElementById("grid");
+      container.style.gridTemplateColumns = "repeat("+data.cols+", 1fr)";
+      container.style.gap = "10px";
+      container.innerHTML = "";
+      for(var i=0;i<data.items.length;i++) {
+        var cell = document.createElement("div");
+        cell.className = "grid-item";
+        cell.innerText = data.items[i];
+        cell.addEventListener("click", (function(idx) {
+          return function() { checkAnswer(idx, data.diffIndex); };
+        })(i));
+        container.appendChild(cell);
+      }
+      currentDiffIndex = data.diffIndex;
+      return data.diffIndex;
+    }
+    function checkAnswer(clickedIdx, correctIdx) {
+      if(!gameActive) return;
+      if(clickedIdx === correctIdx) {
+        currentRound++;
+        document.getElementById("round").innerText = currentRound;
+        if(currentRound > totalRounds) {
+          gameActive = false;
+          stopTimer();
+          var best = localStorage.getItem(bestKey);
+          if(!best || timerSeconds < parseInt(best)) {
+            localStorage.setItem(bestKey, timerSeconds);
+            updateBestDisplay();
+            document.getElementById("message").innerHTML = "🎉 TEBRİKLER! YENİ REKOR! Süre: "+timerSeconds+" sn<br><button onclick='location.reload()'>Tekrar Oyna</button>";
+          } else {
+            document.getElementById("message").innerHTML = "🎉 OYUN TAMAMLANDI! Süre: "+timerSeconds+" sn<br><button onclick='location.reload()'>Tekrar Oyna</button>";
+          }
+          return;
+        }
+        renderGrid();
+        document.getElementById("message").innerText = "Doğru! Sonraki tur.";
+      } else {
+        document.getElementById("message").innerText = "Yanlış! Tekrar dene.";
+        setTimeout(function(){
+          renderGrid();
+          document.getElementById("message").innerText = "Farklı olanı bul!";
+        }, 800);
+      }
+    }
+    function resetGame() {
+      stopTimer();
+      timerSeconds = 0;
+      currentRound = 1;
+      document.getElementById("round").innerText = "1";
+      gameActive = true;
+      document.getElementById("timer").innerText = "00:00";
+      renderGrid();
+      startTimer();
+    }
+    document.getElementById("resetBtn").addEventListener("click", resetGame);
+    resetGame();
+    updateBestDisplay();
+  })();
+</script>
+</body>
+</html>
