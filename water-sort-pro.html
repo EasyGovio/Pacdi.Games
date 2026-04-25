@@ -5,25 +5,200 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Water Sort Pro | PACDI Games</title>
   <style>
-    * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
-    body { background: #04162E; font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 16px; }
-    .game-container { max-width: 650px; width: 100%; background: #1e2a3a; border-radius: 48px; padding: 20px 16px 24px; box-shadow: 0 20px 35px rgba(0,0,0,0.4); border: 1px solid rgba(246,180,95,0.3); }
-    .header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px; }
-    .logo { font-size: 1.5rem; font-weight: bold; color: #F6B45F; }
-    .sub { font-size: 0.62rem; color: #9bb7d4; margin-top: 2px; }
-    .back-link { color: #F6B45F; text-decoration: none; font-weight: bold; font-size: 0.78rem; background: #0a1018; padding: 5px 12px; border-radius: 40px; }
-    .info-bar { display: flex; justify-content: space-between; background: #0a1018; border-radius: 40px; padding: 7px 16px; margin-bottom: 14px; }
-    .info-box { color: #F6B45F; font-weight: bold; font-size: 0.78rem; }
-    .info-box span { color: #eaf2fb; }
-    .new-btn { background: #F6B45F; border: none; font-weight: bold; padding: 5px 14px; border-radius: 40px; color: #04162E; cursor: pointer; font-size: 0.78rem; }
-    .tubes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; justify-items: center; margin: 20px 0; }
-    .tube { width: 85px; background: #0a1018; border-radius: 40px; padding: 8px 6px; display: flex; flex-direction: column-reverse; align-items: center; gap: 6px; cursor: pointer; border: 2px solid #F6B45F40; transition: all 0.1s ease; }
-    .tube.selected { border: 3px solid #F6B45F; background: rgba(246,180,95,0.1); transform: scale(1.02); }
-    .color-unit { width: 100%; height: 24px; border-radius: 20px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.2); }
-    .empty-slot { width: 100%; height: 24px; background: rgba(255,255,255,0.04); border-radius: 20px; border: 1px dashed #F6B45F30; }
-    .message { text-align: center; margin-top: 15px; padding: 8px; background: #0a1018; border-radius: 40px; color: #eaf2fb; font-size: 0.8rem; }
-    .footer { text-align: center; font-size: 0.6rem; color: #6c8fb0; margin-top: 12px; }
-    @media (max-width: 550px) { .tube { width: 70px; } .color-unit, .empty-slot { height: 20px; } .tubes-grid { gap: 10px; } }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: #04162E;
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+
+    .game-container {
+      max-width: 650px;
+      width: 100%;
+      background: #1e2a3a;
+      border-radius: 48px;
+      padding: 20px 16px 24px;
+      box-shadow: 0 20px 35px rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(246, 180, 95, 0.3);
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 14px;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #F6B45F;
+    }
+
+    .sub {
+      font-size: 0.62rem;
+      color: #9bb7d4;
+      margin-top: 2px;
+    }
+
+    .back-link {
+      color: #F6B45F;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 0.78rem;
+      background: #0a1018;
+      padding: 5px 12px;
+      border-radius: 40px;
+    }
+
+    .info-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #0a1018;
+      border-radius: 40px;
+      padding: 7px 16px;
+      margin-bottom: 14px;
+    }
+
+    .info-box {
+      color: #F6B45F;
+      font-weight: bold;
+      font-size: 0.78rem;
+    }
+
+    .info-box span {
+      color: #eaf2fb;
+    }
+
+    .new-btn {
+      background: #F6B45F;
+      border: none;
+      font-weight: bold;
+      padding: 5px 14px;
+      border-radius: 40px;
+      color: #04162E;
+      cursor: pointer;
+      font-size: 0.78rem;
+    }
+
+    .difficulty-row {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .diff-btn {
+      background: #0a1018;
+      border: 1px solid #F6B45F;
+      color: #F6B45F;
+      padding: 4px 14px;
+      border-radius: 40px;
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+
+    .diff-btn.active {
+      background: #F6B45F;
+      color: #04162E;
+    }
+
+    .tubes-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      justify-items: center;
+      margin: 20px 0;
+    }
+
+    .tube {
+      width: 80px;
+      background: #0a1018;
+      border-radius: 40px;
+      padding: 8px 6px;
+      display: flex;
+      flex-direction: column-reverse;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      border: 2px solid #F6B45F40;
+      transition: all 0.1s;
+    }
+
+    .tube.selected {
+      border: 3px solid #F6B45F;
+      background: rgba(246, 180, 95, 0.1);
+      transform: scale(1.02);
+    }
+
+    .color-unit {
+      width: 100%;
+      height: 24px;
+      border-radius: 20px;
+      transition: transform 0.08s;
+    }
+
+    .empty-slot {
+      width: 100%;
+      height: 24px;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 20px;
+      border: 1px dashed #F6B45F30;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      margin: 10px 0;
+      gap: 10px;
+    }
+
+    .info-row button {
+      flex: 1;
+      background: #1e2a3a;
+      border: 1px solid #F6B45F;
+      color: #F6B45F;
+      padding: 8px;
+      border-radius: 40px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .message {
+      text-align: center;
+      margin-top: 15px;
+      padding: 8px;
+      background: #0a1018;
+      border-radius: 40px;
+      color: #eaf2fb;
+      font-weight: bold;
+      font-size: 0.8rem;
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 0.6rem;
+      color: #6c8fb0;
+      margin-top: 12px;
+    }
+
+    @media (max-width: 550px) {
+      .tube { width: 70px; }
+      .color-unit, .empty-slot { height: 20px; }
+      .tubes-grid { gap: 10px; }
+    }
   </style>
 </head>
 <body>
@@ -39,22 +214,42 @@
     <button class="new-btn" id="newGameBtn">↺ Yeni Oyun</button>
   </div>
 
+  <div class="difficulty-row">
+    <div class="diff-btn active" data-diff="easy">Kolay (4 renk)</div>
+    <div class="diff-btn" data-diff="medium">Orta (5 renk)</div>
+    <div class="diff-btn" data-diff="hard">Zor (6 renk)</div>
+  </div>
+
   <div id="tubesContainer" class="tubes-grid"></div>
+
+  <div class="info-row">
+    <button id="hintBtn">💡 İpucu (Reklam)</button>
+    <button id="extraTubeBtn">🧪 +Boş Tüp (Reklam)</button>
+  </div>
+
   <div class="message" id="gameMsg">Bir tüpe dokun → top seç → başka tüpe taşı</div>
-  <div class="footer">✔ Aynı renk üst üste eklenir · Boş tüpe her renk gider · Kazanmak için tüm tüpleri tek renk yap</div>
+  <div class="footer">✔ Aynı renk üst üste eklenir · Boş tüpe her renk gider · Kazanmak için her tüp tek renk</div>
 </div>
 
 <script>
   (function() {
-    var COLOR_LIST = ["#F6B45F", "#2ECC71", "#E74C3C", "#3498DB", "#9B59B6", "#1ABC9C"];
-    var TUBE_COUNT = 6;
+    var COLOR_SETS = {
+      easy: ["#F6B45F", "#2ECC71", "#E74C3C", "#3498DB"],
+      medium: ["#F6B45F", "#2ECC71", "#E74C3C", "#3498DB", "#9B59B6"],
+      hard: ["#F6B45F", "#2ECC71", "#E74C3C", "#3498DB", "#9B59B6", "#1ABC9C"]
+    };
+
+    var TUBE_COUNT_BASE = { easy: 6, medium: 7, hard: 8 };
+    var UNITS_PER_COLOR = 3;   // her renkten 3 birim
     var TUBE_CAP = 4;
+
+    var currentDiff = "easy";
     var tubes = [];
     var selectedTube = null;
     var moves = 0;
     var bestScore = 0;
     var gameActive = true;
-    var bestKey = "watersort_best_pacdi";
+    var bestKey = "watersort_pro_best";
 
     var container = document.getElementById('tubesContainer');
     var moveSpan = document.getElementById('moveCount');
@@ -62,59 +257,99 @@
     var newGameBtn = document.getElementById('newGameBtn');
     var gameMsgDiv = document.getElementById('gameMsg');
 
-    function loadBest() { var s = localStorage.getItem(bestKey); bestScore = s ? parseInt(s) : 0; bestSpan.innerText = bestScore || '—'; }
-    function saveBest() { if (moves < bestScore || bestScore === 0) { bestScore = moves; localStorage.setItem(bestKey, bestScore); bestSpan.innerText = bestScore; } }
+    function loadBest() {
+      var saved = localStorage.getItem(bestKey + "_" + currentDiff);
+      bestScore = saved ? parseInt(saved, 10) : 0;
+      bestSpan.innerText = bestScore || '—';
+    }
+    function saveBest() {
+      if (moves < bestScore || bestScore === 0) {
+        bestScore = moves;
+        localStorage.setItem(bestKey + "_" + currentDiff, bestScore);
+        bestSpan.innerText = bestScore;
+      }
+    }
 
-    function initGame() {
-      // 6 renk × 4 = 24 birim, 6 tüp, her tüpte ortalama 4 birim
+    function getColorList() { return COLOR_SETS[currentDiff]; }
+    function getTubeCount() { return TUBE_COUNT_BASE[currentDiff]; }
+
+    function generatePlayableLayout() {
+      var colors = getColorList();
+      var colorCount = colors.length;
+      var totalUnits = colorCount * UNITS_PER_COLOR;
+      var tubeCount = getTubeCount();
       var colorPool = [];
-      for (var c = 0; c < COLOR_LIST.length; c++) {
-        for (var q = 0; q < 4; q++) colorPool.push(COLOR_LIST[c]);
+      for (var i = 0; i < colorCount; i++) {
+        for (var j = 0; j < UNITS_PER_COLOR; j++) {
+          colorPool.push(colors[i]);
+        }
       }
       // karıştır
       for (var i = colorPool.length - 1; i > 0; i--) {
         var j = Math.floor(Math.random() * (i + 1));
-        var temp = colorPool[i];
-        colorPool[i] = colorPool[j];
-        colorPool[j] = temp;
+        var t = colorPool[i]; colorPool[i] = colorPool[j]; colorPool[j] = t;
       }
-      tubes = [];
-      for (var t = 0; t < TUBE_COUNT; t++) tubes.push([]);
-      // dağıt (tüplerin bazıları dolu, bazıları boş – oynanabilir)
+      var newTubes = [];
+      for (var t = 0; t < tubeCount; t++) newTubes.push([]);
       for (var idx = 0; idx < colorPool.length; idx++) {
         var placed = false;
-        for (var attempt = 0; attempt < 30; attempt++) {
-          var rand = Math.floor(Math.random() * TUBE_COUNT);
-          if (tubes[rand].length < TUBE_CAP) {
-            tubes[rand].push(colorPool[idx]);
+        var attempts = 0;
+        while (!placed && attempts < 50) {
+          var r = Math.floor(Math.random() * tubeCount);
+          if (newTubes[r].length < TUBE_CAP) {
+            newTubes[r].push(colorPool[idx]);
             placed = true;
-            break;
           }
+          attempts++;
         }
         if (!placed) {
-          for (var k = 0; k < TUBE_COUNT; k++) {
-            if (tubes[k].length < TUBE_CAP) {
-              tubes[k].push(colorPool[idx]);
+          for (var k = 0; k < tubeCount; k++) {
+            if (newTubes[k].length < TUBE_CAP) {
+              newTubes[k].push(colorPool[idx]);
               break;
             }
           }
         }
       }
-      // oyunun oynanabilir olması için en az iki boş tüp olmalı (bazen tüm tüpler dolu olabiliyor)
-      // ekstra güvence: eğer hiç boş tüp yoksa, rastgele bir tüpü boşalt
-      var emptyCount = 0;
-      for (var i = 0; i < TUBE_COUNT; i++) if (tubes[i].length === 0) emptyCount++;
-      if (emptyCount === 0) {
-        // rastgele bir tüpün renklerini temizle (ama hepsini değil, 3 top bırak)
-        var rndTube = Math.floor(Math.random() * TUBE_COUNT);
-        tubes[rndTube] = [];  // tamamen boş
+      return newTubes;
+    }
+
+    function isGameWon() {
+      for (var i = 0; i < tubes.length; i++) {
+        var tube = tubes[i];
+        if (tube.length === 0) continue;
+        var first = tube[0];
+        for (var j = 1; j < tube.length; j++) if (tube[j] !== first) return false;
       }
+      return true;
+    }
+
+    function isValidMove(from, to) {
+      if (from === to) return false;
+      var src = tubes[from];
+      var dst = tubes[to];
+      if (src.length === 0) return false;
+      if (dst.length === TUBE_CAP) return false;
+      if (dst.length === 0) return true;
+      return src[src.length - 1] === dst[dst.length - 1];
+    }
+
+    function applyMove(from, to) {
+      if (!isValidMove(from, to)) return false;
+      var ball = tubes[from].pop();
+      tubes[to].push(ball);
+      moves++;
+      moveSpan.innerText = moves;
       selectedTube = null;
-      moves = 0;
-      moveSpan.innerText = "0";
-      gameActive = true;
       renderGame();
-      gameMsgDiv.innerHTML = "Bir tüpe dokun → top seç → başka tüpe taşı";
+      if (isGameWon()) {
+        gameActive = false;
+        saveBest();
+        gameMsgDiv.innerHTML = "🎉 KAZANDINIZ! YENİ OYUN için butona basınız.";
+      } else {
+        gameMsgDiv.innerHTML = "✔️ Hamle yapıldı.";
+      }
+      return true;
     }
 
     function renderGame() {
@@ -139,43 +374,6 @@
       }
     }
 
-    function isValidMove(from, to) {
-      if (from === to) return false;
-      var src = tubes[from];
-      var dst = tubes[to];
-      if (src.length === 0) return false;
-      if (dst.length === TUBE_CAP) return false;
-      if (dst.length === 0) return true;
-      var srcTop = src[src.length - 1];
-      var dstTop = dst[dst.length - 1];
-      return srcTop === dstTop;
-    }
-
-    function applyMove(from, to) {
-      if (!isValidMove(from, to)) return false;
-      var moved = tubes[from].pop();
-      tubes[to].push(moved);
-      moves++;
-      moveSpan.innerText = moves;
-      selectedTube = null;
-      renderGame();
-      return true;
-    }
-
-    function isGameWon() {
-      var totalUnits = 0;
-      for (var i = 0; i < tubes.length; i++) {
-        var tube = tubes[i];
-        if (tube.length === 0) continue;
-        var first = tube[0];
-        for (var j = 1; j < tube.length; j++) {
-          if (tube[j] !== first) return false;
-        }
-        totalUnits += tube.length;
-      }
-      return totalUnits === 24;
-    }
-
     function onTubeClick(idx) {
       if (!gameActive) return;
       if (selectedTube === null) {
@@ -184,30 +382,84 @@
           renderGame();
           gameMsgDiv.innerHTML = "✅ Top seçildi. Hedef tüpe dokun.";
         } else {
-          gameMsgDiv.innerHTML = "⚠️ Boş tüp seçemezsin. Önce dolu bir tüp seç.";
-        }
-        return;
-      }
-      var success = applyMove(selectedTube, idx);
-      if (success) {
-        if (isGameWon()) {
-          gameActive = false;
-          saveBest();
-          gameMsgDiv.innerHTML = "🎉 TEBRİKLER! OYUNU KAZANDINIZ! 🎉";
-        } else {
-          gameMsgDiv.innerHTML = "✔️ Hamle yapıldı. Devam et.";
+          gameMsgDiv.innerHTML = "⚠️ Boş tüp seçilemez. Önce dolu tüp seç.";
         }
       } else {
-        gameMsgDiv.innerHTML = "❌ Geçersiz hamle! Aynı renk üst üste olmalı veya hedef boş olmalı.";
-        selectedTube = null;
-        renderGame();
+        var success = applyMove(selectedTube, idx);
+        if (!success) {
+          gameMsgDiv.innerHTML = "❌ Geçersiz hamle! Aynı renk üst üste veya hedef boş olmalı.";
+          selectedTube = null;
+          renderGame();
+        }
       }
     }
 
-    function newGame() { initGame(); gameMsgDiv.innerHTML = "🔄 Yeni oyun başladı."; }
+    function newGame() {
+      gameActive = true;
+      selectedTube = null;
+      tubes = generatePlayableLayout();
+      moves = 0;
+      moveSpan.innerText = "0";
+      loadBest();
+      renderGame();
+      gameMsgDiv.innerHTML = "Yeni oyun başladı. İyi şanslar!";
+    }
+
+    function setDifficulty(diff) {
+      currentDiff = diff;
+      // aktif buton görünümü
+      var btns = document.querySelectorAll('.diff-btn');
+      for (var i = 0; i < btns.length; i++) {
+        if (btns[i].getAttribute('data-diff') === diff) btns[i].classList.add('active');
+        else btns[i].classList.remove('active');
+      }
+      newGame();
+    }
+
+    // İpucu: yapılabilecek bir hamle öner (ödüllü video mock)
+    function giveHint() {
+      if (!gameActive) return;
+      for (var i = 0; i < tubes.length; i++) {
+        for (var j = 0; j < tubes.length; j++) {
+          if (isValidMove(i, j)) {
+            gameMsgDiv.innerHTML = "💡 İpucu: " + (i+1) + ". tüpten " + (j+1) + ". tüpe taşıyabilirsin.";
+            alert("🎥 İpucu için reklam izleniyor (simülasyon)\nÖnerilen hamle: " + (i+1) + " → " + (j+1));
+            return;
+          }
+        }
+      }
+      gameMsgDiv.innerHTML = "⚠️ Şu anda yapılabilecek hamle yok. Karıştırmayı dene.";
+    }
+
+    // Ek boş tüp ekle (ödüllü video)
+    function addExtraTube() {
+      if (!gameActive) return;
+      if (tubes.length >= 9) {
+        gameMsgDiv.innerHTML = "❌ Daha fazla tüp eklenemez (max 9).";
+        return;
+      }
+      alert("🎥 Ekstra tüp için reklam izleniyor (simülasyon)");
+      tubes.push([]);
+      renderGame();
+      gameMsgDiv.innerHTML = "🧪 Yeni boş tüp eklendi!";
+    }
+
+    // Event listener'lar
     newGameBtn.addEventListener('click', newGame);
+    document.getElementById('hintBtn').addEventListener('click', giveHint);
+    document.getElementById('extraTubeBtn').addEventListener('click', addExtraTube);
+
+    var diffBtns = document.querySelectorAll('.diff-btn');
+    for (var i = 0; i < diffBtns.length; i++) {
+      diffBtns[i].addEventListener('click', function() {
+        var diff = this.getAttribute('data-diff');
+        if (diff === currentDiff) return;
+        setDifficulty(diff);
+      });
+    }
+
     loadBest();
-    initGame();
+    newGame();
   })();
 </script>
 </body>
