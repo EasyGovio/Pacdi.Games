@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>2048 | PACDI Games</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+    body {
+      background: #04162E;
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .game-container {
+      max-width: 600px;
+      width: 100%;
+      background: #1e2a3a;
+      border-radius: 48px;
+      padding: 20px 16px 24px;
+      box-shadow: 0 20px 35px rgba(0,0,0,0.4);
+      border: 1px solid rgba(246,180,95,0.3);
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 16px;
+    }
+    .logo { font-size: 1.5rem; font-weight: bold; color: #F6B45F; }
+    .sub { font-size: 0.62rem; color: #9bb7d4; margin-top: 2px; }
+    .back-link { color: #F6B45F; text-decoration: none; font-weight: bold; font-size: 0.78rem; background: #0a1018; padding: 5px 12px; border-radius: 40px; }
+    .score-panel {
+      display: flex;
+      justify-content: space-between;
+      background: #0a1018;
+      border-radius: 60px;
+      padding: 8px 16px;
+      margin: 12px 0;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .score-box { background: #1e2a3a; padding: 4px 14px; border-radius: 40px; color: #F6B45F; font-weight: bold; font-size: 0.85rem; }
+    .score-box span { color: #eaf2fb; }
+    button {
+      background: #F6B45F;
+      border: none;
+      font-weight: bold;
+      padding: 6px 16px;
+      border-radius: 40px;
+      color: #04162E;
+      cursor: pointer;
+      font-family: inherit;
+      transition: 0.05s;
+    }
+    button:active { transform: scale(0.96); }
+    .board-size { display: flex; justify-content: center; gap: 10px; margin: 12px 0; }
+    .size-btn { background: #0a1018; color: #F6B45F; border: 1px solid #F6B45F; padding: 4px 14px; border-radius: 40px; font-size: 0.75rem; cursor: pointer; }
+    .size-btn.active { background: #F6B45F; color: #04162E; border: none; }
+    .controls { display: flex; gap: 12px; justify-content: center; margin: 12px 0; }
+    .grid {
+      display: grid;
+      gap: 10px;
+      background: #0a1018;
+      border-radius: 32px;
+      padding: 14px;
+      margin: 16px 0;
+      justify-content: center;
+    }
+    .cell {
+      aspect-ratio: 1/1;
+      background: #2a3a4a;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 1.5rem;
+      transition: 0.05s;
+      color: #04162E;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.1), 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .cell[data-value="2"] { background: #fdf0d8; color: #1e2a3a; }
+    .cell[data-value="4"] { background: #fae6b3; color: #1e2a3a; }
+    .cell[data-value="8"] { background: #F6B45F; color: #04162E; }
+    .cell[data-value="16"] { background: #f0a030; color: white; }
+    .cell[data-value="32"] { background: #e88820; color: white; }
+    .cell[data-value="64"] { background: #e07010; color: white; }
+    .cell[data-value="128"] { background: #e8c84a; color: #04162E; }
+    .cell[data-value="256"] { background: #d9b83a; color: #04162E; }
+    .cell[data-value="512"] { background: #c9a828; color: white; }
+    .cell[data-value="1024"] { background: #b88e18; color: white; }
+    .cell[data-value="2048"] { background: #a67c08; color: white; }
+    @keyframes pop { 0% { transform: scale(0.9); opacity: 0.5; } 100% { transform: scale(1); opacity: 1; } }
+    .cell-new { animation: pop 0.12s ease-out; }
+    .footer { text-align: center; font-size: 0.6rem; color: #6c8fb0; margin-top: 12px; }
+  </style>
+</head>
+<body>
+<div class="game-container">
+  <div class="header">
+    <div><div class="logo">2048</div><div class="sub">PACDI Games · Zihin Egzersizi</div></div>
+    <a href="index.html" class="back-link">← Geri</a>
+  </div>
+
+  <div class="score-panel">
+    <div class="score-box">🎯 SKOR: <span id="currentScore">0</span></div>
+    <div class="score-box">🏆 EN İYİ: <span id="bestScore">0</span></div>
+  </div>
+
+  <div class="board-size">
+    <div data-size="4" class="size-btn active">4x4</div>
+    <div data-size="5" class="size-btn">5x5</div>
+    <div data-size="6" class="size-btn">6x6</div>
+  </div>
+
+  <div class="controls">
+    <button id="undoBtn">↩️ GERİ AL</button>
+    <button id="resetBtn">🔄 SIFIRLA</button>
+  </div>
+
+  <div id="gridContainer" class="grid"></div>
+  <div class="footer">← ↑ ↓ → veya kaydır · Birleştir</div>
+</div>
+
+<script>
+  (function() {
+    var boardSize = 4;
+    var grid = [], score = 0, bestScore = 0, history = null;
+    var container = document.getElementById('gridContainer');
+    var currentScoreSpan = document.getElementById('currentScore');
+    var bestScoreSpan = document.getElementById('bestScore');
+    var resetBtn = document.getElementById('resetBtn');
+    var undoBtn = document.getElementById('undoBtn');
+    var sizeBtns = document.querySelectorAll('.size-btn');
+
+    function loadBestScore() { var s = localStorage.getItem('2048_best'); bestScore = s ? parseInt(s,10) : 0; bestScoreSpan.innerText = bestScore; }
+    function updateBestScore() { if (score > bestScore) { bestScore = score; bestScoreSpan.innerText = bestScore; localStorage.setItem('2048_best', bestScore); } }
+    function initEmptyGrid() { var g = []; for(var i=0;i<boardSize;i++) { g[i]=[]; for(var j=0;j<boardSize;j++) g[i][j]=0; } return g; }
+    function addRandomTile(g) { var empty = []; for(var i=0;i<boardSize;i++) for(var j=0;j<boardSize;j++) if(g[i][j]===0) empty.push({x:i,y:j}); if(!empty.length) return false; var pos = empty[Math.floor(Math.random()*empty.length)]; var val = Math.random()<0.9?2:4; g[pos.x][pos.y]=val; return true; }
+    function saveState() { var copy = []; for(var i=0;i<boardSize;i++) copy[i]=grid[i].slice(); history = { grid: copy, score: score }; }
+    function undoMove() { if(!history) return; grid = history.grid; score = history.score; currentScoreSpan.innerText = score; renderBoard(false); history = null; }
+    function move(direction) {
+      var oldGrid = []; for(var i=0;i<boardSize;i++) oldGrid[i]=grid[i].slice();
+      var changed = false, newScoreGain = 0;
+      if(direction==='left') {
+        for(var row=0;row<boardSize;row++) {
+          var newRow = [];
+          for(var col=0;col<boardSize;col++) if(grid[row][col]!==0) newRow.push(grid[row][col]);
+          for(var k=0;k<newRow.length-1;k++) if(newRow[k]===newRow[k+1]) { newRow[k]*=2; newScoreGain+=newRow[k]; newRow.splice(k+1,1); }
+          while(newRow.length<boardSize) newRow.push(0);
+          for(var c=0;c<boardSize;c++) if(grid[row][c]!==newRow[c]) changed=true;
+          grid[row]=newRow;
+        }
+      } else if(direction==='right') {
+        for(var row=0;row<boardSize;row++) {
+          var newRow = [];
+          for(var col=boardSize-1;col>=0;col--) if(grid[row][col]!==0) newRow.push(grid[row][col]);
+          for(var k=0;k<newRow.length-1;k++) if(newRow[k]===newRow[k+1]) { newRow[k]*=2; newScoreGain+=newRow[k]; newRow.splice(k+1,1); }
+          while(newRow.length<boardSize) newRow.push(0);
+          newRow.reverse();
+          for(var c=0;c<boardSize;c++) if(grid[row][c]!==newRow[c]) changed=true;
+          grid[row]=newRow;
+        }
+      } else if(direction==='up') {
+        for(var col=0;col<boardSize;col++) {
+          var newCol = [];
+          for(var row=0;row<boardSize;row++) if(grid[row][col]!==0) newCol.push(grid[row][col]);
+          for(var k=0;k<newCol.length-1;k++) if(newCol[k]===newCol[k+1]) { newCol[k]*=2; newScoreGain+=newCol[k]; newCol.splice(k+1,1); }
+          while(newCol.length<boardSize) newCol.push(0);
+          for(var r=0;r<boardSize;r++) if(grid[r][col]!==newCol[r]) changed=true;
+          for(var r=0;r<boardSize;r++) grid[r][col]=newCol[r];
+        }
+      } else if(direction==='down') {
+        for(var col=0;col<boardSize;col++) {
+          var newCol = [];
+          for(var row=boardSize-1;row>=0;row--) if(grid[row][col]!==0) newCol.push(grid[row][col]);
+          for(var k=0;k<newCol.length-1;k++) if(newCol[k]===newCol[k+1]) { newCol[k]*=2; newScoreGain+=newCol[k]; newCol.splice(k+1,1); }
+          while(newCol.length<boardSize) newCol.push(0);
+          newCol.reverse();
+          for(var r=0;r<boardSize;r++) if(grid[r][col]!==newCol[r]) changed=true;
+          for(var r=0;r<boardSize;r++) grid[r][col]=newCol[r];
+        }
+      }
+      if(!changed) return;
+      saveState();
+      score += newScoreGain;
+      currentScoreSpan.innerText = score;
+      updateBestScore();
+      addRandomTile(grid);
+      renderBoard(true);
+      if(isGameOver()) showGameOver();
+    }
+    function isGameOver() {
+      for(var i=0;i<boardSize;i++) for(var j=0;j<boardSize;j++) if(grid[i][j]===0) return false;
+      for(var i=0;i<boardSize;i++) for(var j=0;j<boardSize-1;j++) if(grid[i][j]===grid[i][j+1]) return false;
+      for(var i=0;i<boardSize-1;i++) for(var j=0;j<boardSize;j++) if(grid[i][j]===grid[i+1][j]) return false;
+      return true;
+    }
+    function showGameOver() {
+      var overlay = document.createElement('div');
+      overlay.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(4,22,46,0.95);display:flex;align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(6px);";
+      overlay.innerHTML = '<div style="background:#0A1F3A;border-radius:56px;padding:32px;text-align:center;width:280px;border:2px solid #F6B45F;"><h2 style="color:#F6B45F;">🏁 OYUN BİTTİ</h2><p style="color:white;margin:16px 0;">Skor: '+score+'</p><button id="restartGameBtn" style="background:#F6B45F;border:none;padding:8px 20px;border-radius:40px;font-weight:bold;">YENİDEN BAŞLA</button></div>';
+      document.body.appendChild(overlay);
+      document.getElementById('restartGameBtn').addEventListener('click',function(){ overlay.remove(); resetGame(); });
+    }
+    function renderBoard(animate) {
+      var size = Math.min(Math.floor((window.innerWidth-80)/boardSize), 80);
+      container.style.gridTemplateColumns = 'repeat('+boardSize+', 1fr)';
+      container.style.gap = '10px';
+      container.innerHTML = '';
+      for(var i=0;i<boardSize;i++) {
+        for(var j=0;j<boardSize;j++) {
+          var val = grid[i][j];
+          var cell = document.createElement('div');
+          cell.className = 'cell';
+          cell.style.fontSize = Math.max(size*0.35, 14)+'px';
+          if(val !== 0) { cell.setAttribute('data-value', val); cell.innerText = val; }
+          if(animate && val!==0) { cell.classList.add('cell-new'); setTimeout(function(el){ el.classList.remove('cell-new'); }.bind(null,cell),150); }
+          container.appendChild(cell);
+        }
+      }
+    }
+    function resetGame() { grid = initEmptyGrid(); addRandomTile(grid); addRandomTile(grid); score = 0; currentScoreSpan.innerText = score; history = null; renderBoard(false); }
+    function setBoardSize(newSize) { boardSize = newSize; resetGame(); for(var i=0;i<sizeBtns.length;i++){ var btn=sizeBtns[i]; var sz=parseInt(btn.getAttribute('data-size'),10); if(sz===boardSize) btn.classList.add('active'); else btn.classList.remove('active'); } }
+    var touchStartX=0,touchStartY=0;
+    function handleKey(e){ var key=e.key; if(key==='ArrowLeft'){ e.preventDefault(); move('left'); } else if(key==='ArrowRight'){ e.preventDefault(); move('right'); } else if(key==='ArrowUp'){ e.preventDefault(); move('up'); } else if(key==='ArrowDown'){ e.preventDefault(); move('down'); } }
+    function handleTouchStart(e){ var t=e.touches[0]; touchStartX=t.clientX; touchStartY=t.clientY; e.preventDefault(); }
+    function handleTouchEnd(e){ if(touchStartX===0&&touchStartY===0) return; var dx=e.changedTouches[0].clientX-touchStartX; var dy=e.changedTouches[0].clientY-touchStartY; if(Math.abs(dx)<20&&Math.abs(dy)<20) return; if(Math.abs(dx)>Math.abs(dy)) move(dx>0?'right':'left'); else move(dy>0?'down':'up'); touchStartX=0; touchStartY=0; e.preventDefault(); }
+    window.addEventListener('keydown',handleKey); container.addEventListener('touchstart',handleTouchStart); container.addEventListener('touchend',handleTouchEnd);
+    resetBtn.addEventListener('click',resetGame); undoBtn.addEventListener('click',undoMove);
+    for(var idx=0;idx<sizeBtns.length;idx++){ sizeBtns[idx].addEventListener('click',function(){ var newSize=parseInt(this.getAttribute('data-size'),10); if(newSize===boardSize) return; setBoardSize(newSize); }); }
+    loadBestScore(); setBoardSize(4);
+  })();
+</script>
+</body>
+</html>
