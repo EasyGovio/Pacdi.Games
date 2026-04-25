@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Dünya Şehirleri | PACDI Games</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+        body { background:#04162E; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
+        .game-container { max-width:550px; width:100%; background:rgba(4,22,46,0.85); border-radius:56px; padding:20px 16px 24px; box-shadow:0 20px 35px rgba(0,0,0,0.5); backdrop-filter:blur(2px); border:1px solid rgba(246,180,95,0.3); text-align:center; }
+        .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+        .logo { font-size:1.3rem; font-weight:800; color:#F6B45F; }
+        .sub { font-size:0.62rem; color:#9bb7d4; }
+        .back-link { color:#F6B45F; text-decoration:none; font-weight:bold; font-size:0.78rem; background:#0a1018; padding:5px 12px; border-radius:40px; border:1px solid rgba(246,180,95,0.3); }
+        .lang-selector { display:flex; gap:6px; margin-bottom:12px; justify-content:flex-end; }
+        .lang-btn { background:#0a1018; border:1px solid #F6B45F; color:#F6B45F; font-size:0.7rem; padding:3px 10px; border-radius:30px; cursor:pointer; }
+        .lang-btn.active { background:#F6B45F; color:#04162E; }
+        .info-bar { display:flex; justify-content:space-between; align-items:center; background:#0a1018; border-radius:40px; padding:7px 16px; margin-bottom:14px; }
+        .info-box { color:#F6B45F; font-weight:bold; font-size:0.78rem; }
+        .new-btn { background:#F6B45F; border:none; font-weight:bold; padding:5px 14px; border-radius:40px; color:#04162E; cursor:pointer; font-size:0.78rem; }
+        .question-area { background:#0a1018; border-radius:28px; padding:20px; margin:12px 0; }
+        .feature-text { font-size:1.2rem; font-weight:bold; color:#F6B45F; margin-bottom:16px; }
+        .options-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+        .opt-btn { background:#1e2a3a; border:2px solid #1ABC9C; border-radius:60px; padding:12px; font-weight:bold; color:#1ABC9C; cursor:pointer; font-size:0.85rem; }
+        .opt-btn:active { background:#1ABC9C; color:#04162E; transform:scale(0.96); }
+        .feedback { margin:12px 0; font-size:0.9rem; font-weight:bold; min-height:40px; color:#2ECC71; }
+        .feedback.error { color:#E74C3C; }
+        .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:12px; }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="top-bar">
+        <div><div class="logo" id="gameTitle">DÜNYA ŞEHİRLERİ</div><div class="sub" id="gameSub">Keşfet · Eşleştir</div></div>
+        <a href="index.html" class="back-link" id="backLink">← Geri</a>
+    </div>
+    <div class="lang-selector"><button class="lang-btn active" data-lang="tr">TR</button><button class="lang-btn" data-lang="de">DE</button><button class="lang-btn" data-lang="en">EN</button></div>
+    <div class="info-bar">
+        <div class="info-box"><span id="scoreLabel">🎯 Skor:</span> <span id="scoreNum">0</span></div>
+        <div class="info-box"><span id="bestLabel">🏆 En İyi:</span> <span id="bestNum">—</span></div>
+        <button class="new-btn" id="resetBtn"><span id="resetText">↺ Yeniden</span></button>
+    </div>
+    <div class="question-area">
+        <div class="feature-text" id="featureText">🗼 Eyfel Kulesi</div>
+        <div class="options-grid" id="optionsGrid"></div>
+    </div>
+    <div class="feedback" id="feedbackMsg"></div>
+    <div class="footer" id="footerText">Dünyayı gez, şehirleri tanı.</div>
+</div>
+<script>
+(function(){
+    var cities = [
+        { feature:"🗼 Eyfel Kulesi", city:"Paris" },
+        { feature:"🏟️ Kolezyum", city:"Roma" },
+        { feature:"🗽 Özgürlük Heykeli", city:"New York" },
+        { feature:"⛩️ Kızıl Tapınak", city:"Tokyo" },
+        { feature:"🕋 Kabe", city:"Mekke" },
+        { feature:"🏰 Kremlin", city:"Moskova" },
+        { feature:"🎡 London Eye", city:"Londra" },
+        { feature:"🕌 Sultan Ahmet Camii", city:"İstanbul" },
+        { feature:"🏛️ Akropolis", city:"Atina" },
+        { feature:"🗼 Burç Halife", city:"Dubai" },
+        { feature:"🌉 Golden Gate", city:"San Francisco" },
+        { feature:"🏯 Çin Seddi", city:"Pekin" }
+    ];
+    var langData = {
+        tr:{ title:"DÜNYA ŞEHİRLERİ", sub:"Keşfet · Eşleştir", back:"← Geri", score:"🎯 Skor:", best:"🏆 En İyi:", reset:"↺ Yeniden", question:"Bu simge hangi şehre aittir?", correct:"✅ Doğru! +1", wrong:"❌ Yanlış! Doğru: ", gameOver:"🎉 TEBRİKLER! Tüm şehirleri bildin!", footer:"Dünyayı gez, şehirleri tanı." },
+        de:{ title:"WELTSTÄDTE", sub:"Entdecken · Zuordnen", back:"← Zurück", score:"🎯 Punkt:", best:"🏆 Beste:", reset:"↺ Neustart", question:"Zu welcher Stadt gehört dieses Wahrzeichen?", correct:"✅ Richtig! +1", wrong:"❌ Falsch! Richtig: ", gameOver:"🎉 GLÜCKWUNSCH! Alle Städte erkannt!", footer:"Reise um die Welt, lerne Städte kennen." },
+        en:{ title:"WORLD CITIES", sub:"Explore · Match", back:"← Back", score:"🎯 Score:", best:"🏆 Best:", reset:"↺ Reset", question:"Which city does this landmark belong to?", correct:"✅ Correct! +1", wrong:"❌ Wrong! Correct: ", gameOver:"🎉 CONGRATULATIONS! You know all cities!", footer:"Travel the world, discover cities." }
+    };
+    var currentLang = "tr";
+    var score = 0, bestScore = 0, currentIndex = 0, gameActive = true, timeoutId = null;
+    var cityOrder = [];
+
+    function loadBest() { var s=localStorage.getItem('cities_best_'+currentLang); bestScore=s?parseInt(s):0; document.getElementById('bestNum').innerText=bestScore||'—'; }
+    function saveBest() { if(score>bestScore){ bestScore=score; localStorage.setItem('cities_best_'+currentLang,bestScore); document.getElementById('bestNum').innerText=bestScore; } }
+    function updateLanguage() {
+        var t=langData[currentLang];
+        document.getElementById('gameTitle').innerText=t.title;
+        document.getElementById('gameSub').innerText=t.sub;
+        document.getElementById('backLink').innerText=t.back;
+        document.getElementById('scoreLabel').innerText=t.score;
+        document.getElementById('bestLabel').innerText=t.best;
+        document.getElementById('resetText').innerText=t.reset;
+        document.getElementById('footerText').innerText=t.footer;
+    }
+    function setLanguage(lang) {
+        currentLang=lang; updateLanguage(); loadBest();
+        var btns=document.querySelectorAll('.lang-btn');
+        for(var i=0;i<btns.length;i++) btns[i].classList.toggle('active', btns[i].getAttribute('data-lang')===lang);
+        resetGame();
+    }
+    function shuffle(a) { for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i];a[i]=a[j];a[j]=t; } return a; }
+    function loadQuestion() {
+        if(currentIndex>=cityOrder.length) { endGame(); return; }
+        var q = cities[cityOrder[currentIndex]];
+        document.getElementById('featureText').innerText = q.feature;
+        var opts = [q.city];
+        var allCities = cities.map(function(c){ return c.city; });
+        while(opts.length<4) {
+            var r = allCities[Math.floor(Math.random()*allCities.length)];
+            if(opts.indexOf(r)===-1) opts.push(r);
+        }
+        opts = shuffle(opts);
+        var grid = document.getElementById('optionsGrid'); grid.innerHTML='';
+        for(var i=0;i<opts.length;i++) {
+            var btn = document.createElement('button'); btn.className='opt-btn'; btn.innerText=opts[i];
+            btn.addEventListener('click', (function(correct){ return function(){ checkAnswer(this.innerText, correct); }; })(q.city));
+            grid.appendChild(btn);
+        }
+    }
+    function checkAnswer(selected, correct) {
+        if(!gameActive || timeoutId) return;
+        var t = langData[currentLang];
+        if(selected===correct) {
+            score++; document.getElementById('scoreNum').innerText=score; saveBest();
+            document.getElementById('feedbackMsg').innerHTML=t.correct; document.getElementById('feedbackMsg').style.color='#2ECC71';
+            currentIndex++;
+            if(currentIndex>=cityOrder.length) { endGame(); return; }
+            timeoutId = setTimeout(function(){ timeoutId=null; loadQuestion(); }, 800);
+        } else {
+            document.getElementById('feedbackMsg').innerHTML=t.wrong+correct; document.getElementById('feedbackMsg').style.color='#E74C3C';
+            var btns = document.querySelectorAll('.opt-btn');
+            for(var i=0;i<btns.length;i++) btns[i].style.pointerEvents='none';
+            timeoutId = setTimeout(function(){
+                document.getElementById('feedbackMsg').innerHTML='';
+                for(var j=0;j<btns.length;j++) btns[j].style.pointerEvents='';
+                timeoutId=null; loadQuestion();
+            }, 1500);
+        }
+    }
+    function endGame() {
+        gameActive=false;
+        var t=langData[currentLang]; document.getElementById('feedbackMsg').innerHTML=t.gameOver; document.getElementById('feedbackMsg').style.color='#2ECC71';
+        document.getElementById('optionsGrid').innerHTML='';
+    }
+    function resetGame() {
+        if(timeoutId) clearTimeout(timeoutId);
+        gameActive=true; score=0; currentIndex=0; document.getElementById('scoreNum').innerText='0';
+        document.getElementById('feedbackMsg').innerHTML='';
+        cityOrder = shuffle(cities.map(function(_,i){ return i; }));
+        loadQuestion(); loadBest();
+    }
+    document.getElementById('resetBtn').addEventListener('click', resetGame);
+    var langBtns=document.querySelectorAll('.lang-btn');
+    for(var i=0;i<langBtns.length;i++) langBtns[i].addEventListener('click', function(){ var l=this.getAttribute('data-lang'); if(l!==currentLang) setLanguage(l); });
+    setLanguage('tr'); loadBest(); resetGame();
+})();
+</script>
+</body>
+</html>

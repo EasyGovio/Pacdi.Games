@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Water Sort X | PACDI Games</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            background: #04162E;
+            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+        }
+        .game-container {
+            max-width: 650px;
+            width: 100%;
+            background: rgba(4, 22, 46, 0.85);
+            border-radius: 56px;
+            padding: 20px 16px 24px;
+            box-shadow: 0 20px 35px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(2px);
+            border: 1px solid rgba(246, 180, 95, 0.3);
+            text-align: center;
+        }
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .logo-area {
+            text-align: left;
+        }
+        .logo {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #F6B45F;
+            letter-spacing: -0.3px;
+        }
+        .sub {
+            font-size: 0.62rem;
+            color: #9bb7d4;
+            margin-top: 2px;
+        }
+        .back-link {
+            color: #F6B45F;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.78rem;
+            background: #0a1018;
+            padding: 5px 12px;
+            border-radius: 40px;
+            border: 1px solid rgba(246,180,95,0.3);
+        }
+        .lang-selector {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 10px;
+            justify-content: flex-end;
+        }
+        .lang-btn {
+            background: #0a1018;
+            border: 1px solid #F6B45F;
+            color: #F6B45F;
+            font-size: 0.7rem;
+            padding: 3px 10px;
+            border-radius: 30px;
+            cursor: pointer;
+        }
+        .lang-btn.active {
+            background: #F6B45F;
+            color: #04162E;
+        }
+        .info-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #0a1018;
+            border-radius: 60px;
+            padding: 6px 14px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+            gap: 8px;
+            border: 1px solid rgba(246,180,95,0.2);
+        }
+        .info-box {
+            color: #F6B45F;
+            font-weight: bold;
+            font-size: 0.8rem;
+            background: #1e2a3a;
+            padding: 4px 12px;
+            border-radius: 40px;
+        }
+        .info-box span {
+            color: #eaf2fb;
+        }
+        button {
+            background: #F6B45F;
+            border: none;
+            font-weight: bold;
+            padding: 6px 16px;
+            border-radius: 40px;
+            color: #04162E;
+            font-size: 0.8rem;
+            cursor: pointer;
+            font-family: inherit;
+            transition: 0.05s linear;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        button:active {
+            transform: scale(0.96);
+        }
+        .tubes-grid {
+            display: grid;
+            gap: 14px;
+            justify-items: center;
+            margin-bottom: 20px;
+            grid-template-columns: repeat(4, 1fr);
+        }
+        @media (max-width: 480px) {
+            .tubes-grid {
+                gap: 10px;
+            }
+        }
+        .tube {
+            width: 100%;
+            max-width: 85px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 40px;
+            padding: 8px 6px;
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            border: 2px solid rgba(246,180,95,0.4);
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.2), 0 8px 12px rgba(0,0,0,0.3);
+            backdrop-filter: blur(4px);
+        }
+        .tube.selected {
+            border: 3px solid #F6B45F;
+            background: rgba(246,180,95,0.15);
+            transform: scale(1.02);
+        }
+        .color-unit {
+            width: 100%;
+            height: 22px;
+            border-radius: 20px;
+            transition: all 0.12s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,200,0.3);
+        }
+        .empty-slot {
+            width: 100%;
+            height: 22px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            border: 1px dashed rgba(246,180,95,0.3);
+        }
+        @media (max-width: 550px) {
+            .color-unit, .empty-slot { height: 18px; }
+            .tube { padding: 6px 4px; }
+        }
+        .win-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(4, 22, 46, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+        .win-card {
+            background: #0A1F3A;
+            border-radius: 56px;
+            padding: 32px 24px;
+            text-align: center;
+            width: 280px;
+            border: 2px solid #F6B45F;
+            box-shadow: 0 20px 35px black;
+        }
+        .win-card h2 {
+            color: #F6B45F;
+            font-size: 2rem;
+            margin-bottom: 12px;
+        }
+        .win-card p {
+            color: #eaf2fb;
+            margin-bottom: 24px;
+            font-size: 1.1rem;
+        }
+        .next-btn {
+            background: #F6B45F;
+            font-size: 1.2rem;
+            padding: 10px 24px;
+            border: none;
+            border-radius: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #04162E;
+        }
+        .footer {
+            text-align: center;
+            font-size: 0.6rem;
+            color: #6c8fb0;
+            margin-top: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="top-bar">
+            <div class="logo-area">
+                <div class="logo" id="gameTitle">WATER SORT X</div>
+                <div class="sub" id="gameSub">6 Renk · Progresif Zorluk</div>
+            </div>
+            <a href="index.html" class="back-link" id="backLink">← Geri</a>
+        </div>
+        <div class="lang-selector" id="langSelector">
+            <button class="lang-btn active" data-lang="tr">TR</button>
+            <button class="lang-btn" data-lang="de">DE</button>
+            <button class="lang-btn" data-lang="en">EN</button>
+        </div>
+        <div class="info-bar">
+            <div class="info-box"><span id="levelLabel">🔹 SEVİYE</span> <span id="levelValue">1</span></div>
+            <div class="info-box"><span id="bestLabel">🏆 En İyi:</span> <span id="bestLevel">—</span></div>
+            <button id="restartBtn"><span id="restartText">⟳ Yeniden</span></button>
+        </div>
+        <div id="tubesContainer" class="tubes-grid"></div>
+        <div class="footer" id="footerText">Tüm renkleri ayrı tüplere topla. Zihnini dinlendir.</div>
+    </div>
+    <script>
+        (function() {
+            var langData = {
+                tr: {
+                    title: "WATER SORT X",
+                    sub: "6 Renk · Progresif Zorluk",
+                    back: "← Geri",
+                    level: "🔹 SEVİYE",
+                    best: "🏆 En İyi:",
+                    restart: "⟳ Yeniden",
+                    winTitle: "🎉 KAZANDIN!",
+                    winText: "Harika hamle! İlerliyorsun.",
+                    nextBtn: "▶ SONRAKİ SEVİYE",
+                    footer: "Tüm renkleri ayrı tüplere topla. Zihnini dinlendir."
+                },
+                de: {
+                    title: "WATER SORT X",
+                    sub: "6 Farben · Progressiver Schwierigkeitsgrad",
+                    back: "← Zurück",
+                    level: "🔹 LEVEL",
+                    best: "🏆 Beste:",
+                    restart: "⟳ Neustart",
+                    winTitle: "🎉 GEWONNEN!",
+                    winText: "Großartiger Zug! Du kommst voran.",
+                    nextBtn: "▶ NÄCHSTES LEVEL",
+                    footer: "Sammle alle Farben in getrennten Röhren. Entspanne deinen Geist."
+                },
+                en: {
+                    title: "WATER SORT X",
+                    sub: "6 Colors · Progressive Difficulty",
+                    back: "← Back",
+                    level: "🔹 LEVEL",
+                    best: "🏆 Best:",
+                    restart: "⟳ Restart",
+                    winTitle: "🎉 YOU WIN!",
+                    winText: "Great move! You're progressing.",
+                    nextBtn: "▶ NEXT LEVEL",
+                    footer: "Collect all colors in separate tubes. Rest your mind."
+                }
+            };
+
+            var currentLang = "tr";
+            var BASE_COLORS = ["#F6B45F", "#2ECC71", "#E74C3C", "#3498DB", "#9B59B6", "#1ABC9C"];
+            var tubes = [];
+            var initialTubes = [];
+            var selectedTubeIndex = null;
+            var currentLevel = 1;
+            var winActive = false;
+            var bestLevel = 0;
+
+            var container = document.getElementById("tubesContainer");
+            var levelSpan = document.getElementById("levelValue");
+            var bestSpan = document.getElementById("bestLevel");
+            var restartBtn = document.getElementById("restartBtn");
+            var gameTitle = document.getElementById("gameTitle");
+            var gameSub = document.getElementById("gameSub");
+            var backLink = document.getElementById("backLink");
+            var levelLabel = document.getElementById("levelLabel");
+            var bestLabel = document.getElementById("bestLabel");
+            var restartText = document.getElementById("restartText");
+            var footerText = document.getElementById("footerText");
+
+            function loadBest() {
+                var saved = localStorage.getItem('watersortx_best_' + currentLang);
+                bestLevel = saved ? parseInt(saved) : 0;
+                bestSpan.textContent = bestLevel || '—';
+            }
+
+            function saveBest() {
+                if (currentLevel > bestLevel) {
+                    bestLevel = currentLevel;
+                    localStorage.setItem('watersortx_best_' + currentLang, bestLevel);
+                    bestSpan.textContent = bestLevel;
+                }
+            }
+
+            function updateLanguage() {
+                var t = langData[currentLang];
+                if (!t) return;
+                gameTitle.innerText = t.title;
+                gameSub.innerText = t.sub;
+                backLink.innerText = t.back;
+                levelLabel.innerText = t.level;
+                bestLabel.innerText = t.best;
+                restartText.innerText = t.restart;
+                footerText.innerText = t.footer;
+            }
+
+            function setLanguage(lang) {
+                currentLang = lang;
+                updateLanguage();
+                loadBest();
+                var btns = document.querySelectorAll('.lang-btn');
+                for (var i = 0; i < btns.length; i++) {
+                    if (btns[i].getAttribute('data-lang') === lang) btns[i].classList.add('active');
+                    else btns[i].classList.remove('active');
+                }
+            }
+
+            function copyTubes(arr) {
+                var copy = [];
+                for (var i = 0; i < arr.length; i++) copy.push(arr[i].slice());
+                return copy;
+            }
+
+            function isGameWon() {
+                var total = 0;
+                for (var i = 0; i < tubes.length; i++) {
+                    var t = tubes[i];
+                    if (t.length === 0) continue;
+                    var first = t[0];
+                    for (var j = 1; j < t.length; j++) { if (t[j] !== first) return false; }
+                    total += t.length;
+                }
+                return total === 24;
+            }
+
+            function tryPour(srcIdx, dstIdx) {
+                if (srcIdx === dstIdx) return false;
+                var src = tubes[srcIdx];
+                var dst = tubes[dstIdx];
+                if (src.length === 0 || dst.length === 4) return false;
+                var srcTop = src[src.length - 1];
+                if (dst.length > 0 && dst[dst.length - 1] !== srcTop) return false;
+                dst.push(src.pop());
+                return true;
+            }
+
+            function renderGame() {
+                container.innerHTML = '';
+                for (var i = 0; i < tubes.length; i++) {
+                    var tubeDiv = document.createElement('div');
+                    tubeDiv.className = 'tube' + (selectedTubeIndex === i ? ' selected' : '');
+                    tubeDiv.setAttribute('data-index', i);
+                    for (var s = 0; s < 4; s++) {
+                        var unit = document.createElement('div');
+                        if (s < tubes[i].length) {
+                            unit.className = 'color-unit';
+                            unit.style.backgroundColor = tubes[i][s];
+                        } else {
+                            unit.className = 'empty-slot';
+                        }
+                        tubeDiv.appendChild(unit);
+                    }
+                    tubeDiv.addEventListener('click', (function(idx) {
+                        return function() { onTubeClick(idx); };
+                    })(i));
+                    tubeDiv.addEventListener('touchstart', (function(idx) {
+                        return function(e) { e.preventDefault();
+                            onTubeClick(idx); };
+                    })(i));
+                    container.appendChild(tubeDiv);
+                }
+            }
+
+            function onTubeClick(index) {
+                if (winActive) return;
+                if (selectedTubeIndex === null) {
+                    if (tubes[index].length > 0) { selectedTubeIndex = index;
+                        renderGame(); }
+                    return;
+                }
+                var success = tryPour(selectedTubeIndex, index);
+                selectedTubeIndex = null;
+                renderGame();
+                if (success && isGameWon()) {
+                    winActive = true;
+                    saveBest();
+                    showWinScreen();
+                }
+            }
+
+            function generateLayout() {
+                var pool = [];
+                for (var c = 0; c < 6; c++) { for (var q = 0; q < 4; q++) pool.push(BASE_COLORS[c]); }
+                for (var i = pool.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1));
+                    var t = pool[i];
+                    pool[i] = pool[j];
+                    pool[j] = t; }
+                var layout = [
+                    [],
+                    [],
+                    [],
+                    [],
+                    [],
+                    [],
+                    [],
+                    []
+                ];
+                for (var k = 0; k < pool.length; k++) {
+                    var placed = false;
+                    var tries = 0;
+                    while (!placed && tries < 60) {
+                        var r = Math.floor(Math.random() * 8);
+                        if (layout[r].length < 4) { layout[r].push(pool[k]);
+                            placed = true; }
+                        tries++;
+                    }
+                    if (!placed) { for (var m = 0; m < 8; m++) { if (layout[m].length < 4) { layout[m].push(
+                                pool[k]); break; } } }
+                }
+                return layout;
+            }
+
+            function isSolved(layout) {
+                for (var i = 0; i < layout.length; i++) {
+                    var t = layout[i];
+                    if (t.length === 0) continue;
+                    var f = t[0];
+                    for (var j = 1; j < t.length; j++) { if (t[j] !== f) return false; }
+                }
+                var total = 0;
+                for (var k = 0; k < layout.length; k++) total += layout[k].length;
+                return total === 24;
+            }
+
+            function setupLevel() {
+                var layout;
+                var attempts = 0;
+                do { layout = generateLayout();
+                    attempts++; } while (isSolved(layout) && attempts < 40);
+                tubes = copyTubes(layout);
+                initialTubes = copyTubes(layout);
+                selectedTubeIndex = null;
+                winActive = false;
+                removeWinOverlay();
+                renderGame();
+            }
+
+            function restartLevel() {
+                if (winActive) return;
+                tubes = copyTubes(initialTubes);
+                selectedTubeIndex = null;
+                renderGame();
+            }
+
+            function nextLevel() {
+                currentLevel++;
+                levelSpan.textContent = currentLevel;
+                setupLevel();
+            }
+
+            function showWinScreen() {
+                var t = langData[currentLang];
+                var overlay = document.createElement('div');
+                overlay.className = 'win-overlay';
+                overlay.id = 'winOverlay';
+                overlay.innerHTML =
+                    '<div class="win-card"><h2>' + t.winTitle + '</h2><p>' + t.winText + '</p><button id="nextLevelBtn" class="next-btn">' +
+                    t.nextBtn + '</button></div>';
+                document.body.appendChild(overlay);
+                document.getElementById('nextLevelBtn').addEventListener('click', nextLevel);
+                document.getElementById('nextLevelBtn').addEventListener('touchstart', function(e) { e
+                    .preventDefault();
+                    nextLevel(); });
+            }
+
+            function removeWinOverlay() {
+                var ov = document.getElementById('winOverlay');
+                if (ov) ov.remove();
+            }
+
+            restartBtn.addEventListener('click', restartLevel);
+            restartBtn.addEventListener('touchstart', function(e) { e.preventDefault();
+                restartLevel(); });
+
+            var langBtns = document.querySelectorAll('.lang-btn');
+            for (var i = 0; i < langBtns.length; i++) {
+                langBtns[i].addEventListener('click', function() {
+                    var lang = this.getAttribute('data-lang');
+                    if (lang !== currentLang) setLanguage(lang);
+                });
+            }
+
+            setLanguage('tr');
+            loadBest();
+            setupLevel();
+        })();
+    </script>
+</body>
+</html>

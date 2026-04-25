@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Kelime Avı | PACDI Games</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+        body { background:#04162E; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
+        .game-container { max-width:500px; width:100%; background:rgba(4,22,46,0.85); border-radius:56px; padding:20px 16px 24px; box-shadow:0 20px 35px rgba(0,0,0,0.5); backdrop-filter:blur(2px); border:1px solid rgba(246,180,95,0.3); text-align:center; }
+        .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+        .logo { font-size:1.3rem; font-weight:800; color:#F6B45F; }
+        .sub { font-size:0.62rem; color:#9bb7d4; }
+        .back-link { color:#F6B45F; text-decoration:none; font-weight:bold; font-size:0.78rem; background:#0a1018; padding:5px 12px; border-radius:40px; border:1px solid rgba(246,180,95,0.3); }
+        .lang-selector { display:flex; gap:6px; margin-bottom:12px; justify-content:flex-end; }
+        .lang-btn { background:#0a1018; border:1px solid #F6B45F; color:#F6B45F; font-size:0.7rem; padding:3px 10px; border-radius:30px; cursor:pointer; }
+        .lang-btn.active { background:#F6B45F; color:#04162E; }
+        .info-bar { display:flex; justify-content:space-between; align-items:center; background:#0a1018; border-radius:40px; padding:7px 16px; margin-bottom:14px; }
+        .info-box { color:#F6B45F; font-weight:bold; font-size:0.78rem; }
+        .new-btn { background:#F6B45F; border:none; font-weight:bold; padding:5px 14px; border-radius:40px; color:#04162E; cursor:pointer; font-size:0.78rem; }
+        .grid { display:flex; flex-direction:column; gap:6px; margin:20px 0; align-items:center; }
+        .row { display:flex; gap:6px; }
+        .cell { width:48px; height:48px; background:#0a1018; border:2px solid #1e2a3a; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.5rem; font-weight:bold; color:#eaf2fb; text-transform:uppercase; }
+        .cell.correct { background:#2ECC71; border-color:#2ECC71; color:#04162E; }
+        .cell.present { background:#F6B45F; border-color:#F6B45F; color:#04162E; }
+        .cell.absent { background:#1e2a3a; border-color:#1e2a3a; color:#6c8fb0; }
+        .keyboard { display:flex; flex-direction:column; gap:6px; margin-top:16px; }
+        .key-row { display:flex; gap:4px; justify-content:center; }
+        .key { min-width:28px; height:36px; background:#0a1018; border:1px solid #F6B45F; border-radius:8px; color:#F6B45F; font-weight:bold; font-size:0.8rem; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0 4px; }
+        .key:active { background:#F6B45F; color:#04162E; }
+        .key.wide { min-width:48px; }
+        .key.used-correct { background:#2ECC71; border-color:#2ECC71; color:#04162E; }
+        .key.used-present { background:#F6B45F; border-color:#F6B45F; color:#04162E; }
+        .key.used-absent { background:#1e2a3a; border-color:#1e2a3a; color:#6c8fb0; }
+        .feedback { margin:12px 0; font-size:0.9rem; font-weight:bold; min-height:30px; color:#2ECC71; }
+        .feedback.error { color:#E74C3C; }
+        .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:12px; }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="top-bar">
+        <div><div class="logo" id="gameTitle">KELİME AVI</div><div class="sub" id="gameSub">5 Harf · 6 Deneme</div></div>
+        <a href="index.html" class="back-link" id="backLink">← Geri</a>
+    </div>
+    <div class="lang-selector"><button class="lang-btn active" data-lang="tr">TR</button><button class="lang-btn" data-lang="de">DE</button><button class="lang-btn" data-lang="en">EN</button></div>
+    <div class="info-bar">
+        <div class="info-box"><span id="scoreLabel">🎯 Skor:</span> <span id="scoreNum">0</span></div>
+        <button class="new-btn" id="resetBtn"><span id="resetText">↺ Yeni Oyun</span></button>
+    </div>
+    <div class="grid" id="gameGrid"></div>
+    <div class="keyboard" id="keyboard"></div>
+    <div class="feedback" id="feedbackMsg"></div>
+    <div class="footer">Her gün yeni bir kelime. PACDI Games.</div>
+</div>
+<script>
+(function(){
+    var wordsTR = ["KALEM","SANDI","MASA","GÜNEŞ","DENİZ","TOPRA","KİTAP","EVRAK","YOLCU","ÇİÇEK","KEDİ","FİLİZ","KUMRU","SOKAK","BALIK","KAPI","PENCERE","AYNA","KÜPE","HALI"];
+    var wordsDE = ["BLUME","STERN","WASSER","LICHT","NACHT","STUHL","TISCH","WELT","FREUDE","MUTIG"];
+    var wordsEN = ["TABLE","CHAIR","LIGHT","WATER","PLANT","HAPPY","SMILE","CLOUD","STONE","BRAIN"];
+    var wordLists = { tr: wordsTR, de: wordsDE, en: wordsEN };
+    var langData = {
+        tr:{ title:"KELİME AVI", sub:"5 Harf · 6 Deneme", back:"← Geri", score:"🎯 Skor:", reset:"↺ Yeni Oyun", win:"🎉 TEBRİKLER! Kelimeyi buldun!", lose:"😔 Oyun bitti. Kelime: ", invalid:"Geçersiz kelime!", footer:"Her gün yeni bir kelime. PACDI Games." },
+        de:{ title:"WORTJAGD", sub:"5 Buchstaben · 6 Versuche", back:"← Zurück", score:"🎯 Punkt:", reset:"↺ Neues Spiel", win:"🎉 GLÜCKWUNSCH! Wort gefunden!", lose:"😔 Spiel vorbei. Wort: ", invalid:"Ungültiges Wort!", footer:"Jeden Tag ein neues Wort. PACDI Games." },
+        en:{ title:"WORD HUNT", sub:"5 Letters · 6 Tries", back:"← Back", score:"🎯 Score:", reset:"↺ New Game", win:"🎉 CONGRATULATIONS! Word found!", lose:"😔 Game over. Word: ", invalid:"Invalid word!", footer:"A new word every day. PACDI Games." }
+    };
+    var currentLang = "tr";
+    var targetWord = "";
+    var guesses = [];
+    var maxGuesses = 6;
+    var gameActive = true;
+    var currentGuess = "";
+    var score = 0;
+    var bestScore = 0;
+
+    function updateLanguage() {
+        var t = langData[currentLang];
+        document.getElementById('gameTitle').innerText = t.title;
+        document.getElementById('gameSub').innerText = t.sub;
+        document.getElementById('backLink').innerText = t.back;
+        document.getElementById('scoreLabel').innerText = t.score;
+        document.getElementById('resetText').innerText = t.reset;
+        document.querySelector('.footer').innerText = t.footer;
+    }
+    function setLanguage(lang) {
+        currentLang = lang; updateLanguage();
+        var btns = document.querySelectorAll('.lang-btn');
+        for(var i=0;i<btns.length;i++) btns[i].classList.toggle('active', btns[i].getAttribute('data-lang')===lang);
+        resetGame();
+    }
+    function getDailyWord() {
+        var list = wordLists[currentLang];
+        var d = new Date(); var idx = (d.getFullYear()*10000 + (d.getMonth()+1)*100 + d.getDate()) % list.length;
+        return list[idx];
+    }
+    function loadBest() { var s = localStorage.getItem('wordhunt_best_'+currentLang); bestScore = s?parseInt(s):0; }
+    function saveBest() { if(score>bestScore){ bestScore=score; localStorage.setItem('wordhunt_best_'+currentLang,bestScore); } }
+    function resetGame() {
+        gameActive = true; guesses = []; currentGuess = ""; score = 0;
+        document.getElementById('scoreNum').innerText = score;
+        document.getElementById('feedbackMsg').innerHTML = '';
+        targetWord = getDailyWord();
+        renderGrid(); renderKeyboard();
+    }
+    function renderGrid() {
+        var grid = document.getElementById('gameGrid'); grid.innerHTML = '';
+        for(var r=0; r<maxGuesses; r++) {
+            var row = document.createElement('div'); row.className='row';
+            for(var c=0; c<5; c++) {
+                var cell = document.createElement('div'); cell.className='cell';
+                if(r < guesses.length) {
+                    var g = guesses[r]; cell.innerText = g.word[c];
+                    if(g.result[c]==='c') cell.classList.add('correct');
+                    else if(g.result[c]==='p') cell.classList.add('present');
+                    else cell.classList.add('absent');
+                } else if(r === guesses.length && c < currentGuess.length) {
+                    cell.innerText = currentGuess[c].toUpperCase();
+                }
+                row.appendChild(cell);
+            }
+            grid.appendChild(row);
+        }
+    }
+    function renderKeyboard() {
+        var kb = document.getElementById('keyboard'); kb.innerHTML = '';
+        var rows = ['QWERTZUIOPÜ'.split(''), 'ASDFGHJKLŞİ'.split(''), ['DEL','YXCVBNMÖÇ','ENT']];
+        var keyStates = {};
+        for(var i=0;i<guesses.length;i++) {
+            for(var j=0;j<5;j++) {
+                var letter = guesses[i].word[j];
+                var r = guesses[i].result[j];
+                if(r==='c') keyStates[letter] = 'c';
+                else if(r==='p' && keyStates[letter]!=='c') keyStates[letter] = 'p';
+                else if(r==='a' && !keyStates[letter]) keyStates[letter] = 'a';
+            }
+        }
+        for(var ri=0; ri<rows.length; ri++) {
+            var keyRow = document.createElement('div'); keyRow.className='key-row';
+            for(var ki=0; ki<rows[ri].length; ki++) {
+                var key = rows[ri][ki];
+                var btn = document.createElement('button'); btn.className='key';
+                if(key==='DEL') { btn.innerText='⌫'; btn.classList.add('wide'); btn.onclick=function(){ deleteLetter(); }; }
+                else if(key==='ENT') { btn.innerText='↵'; btn.classList.add('wide'); btn.onclick=function(){ submitGuess(); }; }
+                else {
+                    btn.innerText = key;
+                    if(keyStates[key]==='c') btn.classList.add('used-correct');
+                    else if(keyStates[key]==='p') btn.classList.add('used-present');
+                    else if(keyStates[key]==='a') btn.classList.add('used-absent');
+                    btn.onclick = (function(l){ return function(){ addLetter(l); }; })(key);
+                }
+                keyRow.appendChild(btn);
+            }
+            kb.appendChild(keyRow);
+        }
+    }
+    function addLetter(l) {
+        if(!gameActive || currentGuess.length>=5) return;
+        currentGuess += l.toLowerCase();
+        renderGrid();
+    }
+    function deleteLetter() {
+        if(!gameActive || currentGuess.length===0) return;
+        currentGuess = currentGuess.slice(0,-1);
+        renderGrid();
+    }
+    function submitGuess() {
+        if(!gameActive || currentGuess.length!==5) return;
+        var guess = currentGuess.toLowerCase();
+        var list = wordLists[currentLang].map(function(w){ return w.toLowerCase(); });
+        if(list.indexOf(guess)===-1) {
+            document.getElementById('feedbackMsg').innerHTML = langData[currentLang].invalid;
+            document.getElementById('feedbackMsg').style.color = '#E74C3C';
+            setTimeout(function(){ document.getElementById('feedbackMsg').innerHTML=''; }, 1000);
+            return;
+        }
+        var result = [];
+        var targetArr = targetWord.toLowerCase().split('');
+        var guessArr = guess.split('');
+        var targetCopy = targetArr.slice();
+        for(var i=0;i<5;i++) {
+            if(guessArr[i]===targetArr[i]) { result[i]='c'; targetCopy[i]=null; }
+        }
+        for(var i=0;i<5;i++) {
+            if(result[i]==='c') continue;
+            var idx = targetCopy.indexOf(guessArr[i]);
+            if(idx!==-1) { result[i]='p'; targetCopy[idx]=null; }
+            else result[i]='a';
+        }
+        guesses.push({ word: guessArr, result: result });
+        currentGuess = '';
+        if(guess===targetWord.toLowerCase()) {
+            gameActive = false; score++; saveBest();
+            document.getElementById('scoreNum').innerText = score;
+            document.getElementById('feedbackMsg').innerHTML = langData[currentLang].win;
+            document.getElementById('feedbackMsg').style.color = '#2ECC71';
+        } else if(guesses.length >= maxGuesses) {
+            gameActive = false;
+            document.getElementById('feedbackMsg').innerHTML = langData[currentLang].lose + targetWord;
+            document.getElementById('feedbackMsg').style.color = '#E74C3C';
+        }
+        renderGrid(); renderKeyboard();
+    }
+    document.getElementById('resetBtn').addEventListener('click', resetGame);
+    var langBtns = document.querySelectorAll('.lang-btn');
+    for(var i=0;i<langBtns.length;i++) langBtns[i].addEventListener('click', function(){ var l=this.getAttribute('data-lang'); if(l!==currentLang) setLanguage(l); });
+    // fiziksel klavye desteği
+    document.addEventListener('keydown', function(e){
+        if(!gameActive) return;
+        if(e.key.length===1 && e.key.match(/[a-zA-ZçğıöşüÇĞİÖŞÜ]/)) { addLetter(e.key); e.preventDefault(); }
+        else if(e.key==='Backspace') { deleteLetter(); e.preventDefault(); }
+        else if(e.key==='Enter') { submitGuess(); e.preventDefault(); }
+    });
+    setLanguage('tr'); loadBest(); resetGame();
+})();
+</script>
+</body>
+</html>

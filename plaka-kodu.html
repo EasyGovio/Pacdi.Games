@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Plaka Kodları | PACDI Games</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+        body { background:#04162E; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
+        .game-container { max-width:550px; width:100%; background:rgba(4,22,46,0.85); border-radius:56px; padding:20px 16px 24px; box-shadow:0 20px 35px rgba(0,0,0,0.5); backdrop-filter:blur(2px); border:1px solid rgba(246,180,95,0.3); text-align:center; }
+        .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+        .logo { font-size:1.3rem; font-weight:800; color:#F6B45F; }
+        .sub { font-size:0.62rem; color:#9bb7d4; }
+        .back-link { color:#F6B45F; text-decoration:none; font-weight:bold; font-size:0.78rem; background:#0a1018; padding:5px 12px; border-radius:40px; border:1px solid rgba(246,180,95,0.3); }
+        .difficulty { display:flex; gap:6px; justify-content:center; margin:10px 0; }
+        .diff-btn { background:#0a1018; border:1px solid #F6B45F; color:#F6B45F; padding:4px 12px; border-radius:30px; font-size:0.7rem; cursor:pointer; }
+        .diff-btn.active { background:#F6B45F; color:#04162E; }
+        .info-bar { display:flex; justify-content:space-between; align-items:center; background:#0a1018; border-radius:40px; padding:7px 16px; margin-bottom:14px; flex-wrap:wrap; gap:6px; }
+        .info-box { color:#F6B45F; font-weight:bold; font-size:0.78rem; }
+        .new-btn { background:#F6B45F; border:none; font-weight:bold; padding:5px 14px; border-radius:40px; color:#04162E; cursor:pointer; }
+        .plate-display { background:#0a1018; border-radius:28px; padding:20px; margin:16px 0; }
+        .plate-number { font-size:3rem; font-weight:800; color:#F6B45F; letter-spacing:3px; }
+        .question { font-size:0.9rem; color:#eaf2fb; margin:8px 0; }
+        .options-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:12px; }
+        .opt-btn { background:#1e2a3a; border:2px solid #1ABC9C; border-radius:60px; padding:12px; font-weight:bold; color:#1ABC9C; cursor:pointer; font-size:0.85rem; }
+        .opt-btn:active { background:#1ABC9C; color:#04162E; transform:scale(0.96); }
+        .feedback { margin:12px 0; font-size:0.9rem; font-weight:bold; min-height:40px; color:#2ECC71; }
+        .feedback.error { color:#E74C3C; }
+        .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:12px; }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="top-bar">
+        <div><div class="logo" id="gameTitle">PLAKA KODLARI</div><div class="sub" id="gameSub">Türkiye · 81 İl</div></div>
+        <a href="index.html" class="back-link" id="backLink">← Geri</a>
+    </div>
+    <div class="difficulty">
+        <button class="diff-btn active" data-diff="easy">Kolay</button>
+        <button class="diff-btn" data-diff="medium">Orta</button>
+        <button class="diff-btn" data-diff="hard">Zor</button>
+    </div>
+    <div class="info-bar">
+        <div class="info-box"><span id="scoreLabel">🎯 Skor:</span> <span id="scoreNum">0</span></div>
+        <div class="info-box"><span id="bestLabel">🏆 En İyi:</span> <span id="bestNum">—</span></div>
+        <button class="new-btn" id="resetBtn"><span id="resetText">↺ Yeniden</span></button>
+    </div>
+    <div class="plate-display">
+        <div class="plate-number" id="plateNumber">06</div>
+        <div class="question" id="questionText">Bu plaka hangi ile ait?</div>
+    </div>
+    <div class="options-grid" id="optionsGrid"></div>
+    <div class="feedback" id="feedbackMsg"></div>
+    <div class="footer" id="footerText">Plaka kodlarını öğren, Türkiye'yi tanı.</div>
+</div>
+<script>
+(function(){
+    var provinces = [
+        "01-Adana","02-Adıyaman","03-Afyon","04-Ağrı","05-Amasya","06-Ankara","07-Antalya","08-Artvin","09-Aydın","10-Balıkesir",
+        "11-Bilecik","12-Bingöl","13-Bitlis","14-Bolu","15-Burdur","16-Bursa","17-Çanakkale","18-Çankırı","19-Çorum","20-Denizli",
+        "21-Diyarbakır","22-Edirne","23-Elazığ","24-Erzincan","25-Erzurum","26-Eskişehir","27-Gaziantep","28-Giresun","29-Gümüşhane","30-Hakkari",
+        "31-Hatay","32-Isparta","33-Mersin","34-İstanbul","35-İzmir","36-Kars","37-Kastamonu","38-Kayseri","39-Kırklareli","40-Kırşehir",
+        "41-Kocaeli","42-Konya","43-Kütahya","44-Malatya","45-Manisa","46-Kahramanmaraş","47-Mardin","48-Muğla","49-Muş","50-Nevşehir",
+        "51-Niğde","52-Ordu","53-Rize","54-Sakarya","55-Samsun","56-Siirt","57-Sinop","58-Sivas","59-Tekirdağ","60-Tokat",
+        "61-Trabzon","62-Tunceli","63-Şanlıurfa","64-Uşak","65-Van","66-Yozgat","67-Zonguldak","68-Aksaray","69-Bayburt","70-Karaman",
+        "71-Kırıkkale","72-Batman","73-Şırnak","74-Bartın","75-Ardahan","76-Iğdır","77-Yalova","78-Karabük","79-Kilis","80-Osmaniye","81-Düzce"
+    ];
+    var langData = {
+        tr:{ title:"PLAKA KODLARI", sub:"Türkiye · 81 İl", back:"← Geri", score:"🎯 Skor:", best:"🏆 En İyi:", reset:"↺ Yeniden", question:"Bu plaka hangi ile ait?", correct:"✅ Doğru! +1", wrong:"❌ Yanlış! Doğru: ", footer:"Plaka kodlarını öğren, Türkiye'yi tanı." },
+        de:{ title:"KENNZEICHEN", sub:"Türkei · 81 Provinzen", back:"← Zurück", score:"🎯 Punkt:", best:"🏆 Beste:", reset:"↺ Neustart", question:"Zu welcher Provinz gehört dieses Kennzeichen?", correct:"✅ Richtig! +1", wrong:"❌ Falsch! Richtig: ", footer:"Lerne die Kennzeichen, entdecke die Türkei." },
+        en:{ title:"PLATE CODES", sub:"Turkey · 81 Provinces", back:"← Back", score:"🎯 Score:", best:"🏆 Best:", reset:"↺ Reset", question:"Which province does this plate belong to?", correct:"✅ Correct! +1", wrong:"❌ Wrong! Correct: ", footer:"Learn plate codes, discover Turkey." }
+    };
+    var currentLang = "tr";
+    var difficulty = "easy";
+    var score = 0;
+    var bestScore = 0;
+    var currentPlate = "";
+    var currentCity = "";
+    var gameActive = true;
+
+    function updateLanguage() {
+        var t = langData[currentLang];
+        document.getElementById('gameTitle').innerText = t.title;
+        document.getElementById('gameSub').innerText = t.sub;
+        document.getElementById('backLink').innerText = t.back;
+        document.getElementById('scoreLabel').innerText = t.score;
+        document.getElementById('bestLabel').innerText = t.best;
+        document.getElementById('resetText').innerText = t.reset;
+        document.getElementById('questionText').innerText = t.question;
+        document.getElementById('footerText').innerText = t.footer;
+    }
+    function loadBest() { var s = localStorage.getItem('plaka_best_'+difficulty+'_'+currentLang); bestScore = s?parseInt(s):0; document.getElementById('bestNum').innerText = bestScore||'—'; }
+    function saveBest() { if(score>bestScore){ bestScore=score; localStorage.setItem('plaka_best_'+difficulty+'_'+currentLang,bestScore); document.getElementById('bestNum').innerText = bestScore; } }
+    function shuffle(a) { for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i];a[i]=a[j];a[j]=t; } return a; }
+    function loadQuestion() {
+        gameActive = true;
+        var idx = Math.floor(Math.random()*provinces.length);
+        var p = provinces[idx];
+        currentPlate = p.split('-')[0];
+        currentCity = p.split('-')[1];
+        document.getElementById('plateNumber').innerText = currentPlate;
+        var opts = [currentCity];
+        while(opts.length < 4) {
+            var r = provinces[Math.floor(Math.random()*provinces.length)].split('-')[1];
+            if(opts.indexOf(r)===-1) opts.push(r);
+        }
+        opts = shuffle(opts);
+        var grid = document.getElementById('optionsGrid');
+        grid.innerHTML = '';
+        for(var i=0;i<opts.length;i++) {
+            var btn = document.createElement('button'); btn.className='opt-btn'; btn.innerText=opts[i];
+            btn.addEventListener('click', (function(correct){ return function(){ checkAnswer(this.innerText, correct); }; })(currentCity));
+            grid.appendChild(btn);
+        }
+        document.getElementById('feedbackMsg').innerHTML = '';
+    }
+    function checkAnswer(selected, correct) {
+        if(!gameActive) return;
+        var t = langData[currentLang];
+        if(selected===correct) {
+            score++; document.getElementById('scoreNum').innerText = score; saveBest();
+            document.getElementById('feedbackMsg').innerHTML = t.correct; document.getElementById('feedbackMsg').style.color='#2ECC71';
+        } else {
+            document.getElementById('feedbackMsg').innerHTML = t.wrong + correct; document.getElementById('feedbackMsg').style.color='#E74C3C';
+        }
+        gameActive = false;
+        setTimeout(function(){ loadQuestion(); }, 1000);
+    }
+    function setDifficulty(diff) {
+        difficulty = diff; loadBest(); score=0; document.getElementById('scoreNum').innerText='0';
+        var btns = document.querySelectorAll('.diff-btn');
+        for(var i=0;i<btns.length;i++) btns[i].classList.toggle('active', btns[i].getAttribute('data-diff')===diff);
+        loadQuestion();
+    }
+    var diffBtns = document.querySelectorAll('.diff-btn');
+    for(var i=0;i<diffBtns.length;i++) diffBtns[i].addEventListener('click', function(){ var d=this.getAttribute('data-diff'); if(d!==difficulty) setDifficulty(d); });
+    document.getElementById('resetBtn').addEventListener('click', function(){ score=0; document.getElementById('scoreNum').innerText='0'; loadQuestion(); });
+    setLanguage('tr'); loadBest(); loadQuestion();
+})();
+</script>
+</body>
+</html>
