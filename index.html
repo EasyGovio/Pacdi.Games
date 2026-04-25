@@ -12,13 +12,16 @@
     .logo-area { display: flex; flex-direction: column; }
     .logo { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; background: linear-gradient(135deg, #F6B45F 0%, #FFFFFF 80%); -webkit-background-clip: text; background-clip: text; color: transparent; }
     .tagline { font-size: 0.7rem; color: #b8d0e8; letter-spacing: 1px; margin-top: 4px; }
+    
     .compass-points { display: flex; align-items: center; gap: 0.8rem; background: #0a1018; padding: 5px 18px; border-radius: 60px; border: 1px solid #F6B45F40; }
     .compass-icon { font-size: 1.3rem; }
     .points-value { font-size: 1.5rem; font-weight: 800; color: #F6B45F; line-height: 1; }
     .points-label { font-size: 0.7rem; color: #9bb7d4; }
+    
     .category { margin-bottom: 2rem; }
     .category-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 1rem; border-left: 5px solid #F6B45F; padding-left: 1rem; display: flex; align-items: center; gap: 0.5rem; }
     .games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.5rem; }
+    
     .game-card { background: rgba(255,255,255,0.05); backdrop-filter: blur(4px); border-radius: 32px; padding: 1rem 1rem 1.2rem; transition: all 0.2s ease; border: 1px solid rgba(246,180,95,0.2); box-shadow: 0 8px 20px rgba(0,0,0,0.2); cursor: pointer; }
     .game-card:hover { transform: translateY(-5px); border-color: #F6B45F; background: rgba(255,255,255,0.08); }
     .game-icon { font-size: 2.3rem; margin-bottom: 0.6rem; }
@@ -27,10 +30,16 @@
     .badge-group { display: flex; gap: 0.5rem; flex-wrap: wrap; }
     .badge { background: #0a1018; padding: 2px 8px; border-radius: 60px; font-size: 0.6rem; font-weight: bold; color: #F6B45F; border: 1px solid #F6B45F40; }
     .badge.new { background: #2ECC71; color: #04162E; border-color: #2ECC71; }
+    .badge.highlight { background: #F6B45F; color: #04162E; border: none; }
     .play-btn { display: inline-block; margin-top: 0.8rem; background: #F6B45F; color: #04162E; font-weight: bold; padding: 6px 16px; border-radius: 60px; font-size: 0.75rem; text-decoration: none; transition: 0.1s; }
+    .play-btn:hover { background: #e0a030; text-decoration: none; }
+    
+    .featured-card { border: 2px solid #F6B45F; background: linear-gradient(135deg, rgba(246,180,95,0.15), rgba(26,188,156,0.05)); }
+    
     .footer { text-align: center; margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid rgba(246,180,95,0.2); font-size: 0.7rem; color: #6c8fb0; }
     .reward-banner { background: #0a1018; border-radius: 48px; padding: 1rem; text-align: center; margin-top: 1rem; border: 1px solid #F6B45F20; }
     .reward-btn { margin-top: 8px; background: #F6B45F; border: none; padding: 6px 20px; border-radius: 60px; font-weight: bold; color: #04162E; cursor: pointer; }
+    
     @media (max-width: 680px) { .header { flex-direction: column; align-items: stretch; text-align: center; } .compass-points { justify-content: center; } .games-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); } }
   </style>
 </head>
@@ -48,7 +57,13 @@
     </div>
   </div>
 
-  <!-- Kategoriler (reflex, logic, visual, culture) buraya dinamik doldurulacak -->
+  <!-- ÖZEL FIRSAT: Emekli Pusulası en üstte -->
+  <div class="category">
+    <div class="category-title"><span>📢</span> Öne Çıkan</div>
+    <div class="games-grid" id="featuredGrid"></div>
+  </div>
+
+  <!-- DİĞER KATEGORİLER -->
   <div class="category"><div class="category-title"><span>⚡</span> Refleks & Dikkat</div><div class="games-grid" id="reflexGrid"></div></div>
   <div class="category"><div class="category-title"><span>🧠</span> Hafıza & Mantık</div><div class="games-grid" id="logicGrid"></div></div>
   <div class="category"><div class="category-title"><span>🎨</span> Görsel Algı & Strateji</div><div class="games-grid" id="visualGrid"></div></div>
@@ -66,7 +81,7 @@
 
 <script>
   (function() {
-    // Pusula Puanı localStorage
+    // Pusula Puanı
     var POINTS_KEY = 'pacdi_games_points';
     var points = parseInt(localStorage.getItem(POINTS_KEY) || '0', 10);
     var pointsSpan = document.getElementById('pusulaPoints');
@@ -74,17 +89,16 @@
     function addPoints(amount) { points += amount; localStorage.setItem(POINTS_KEY, points); updatePointsUI(); pointsSpan.style.transform = 'scale(1.2)'; setTimeout(function() { pointsSpan.style.transform = ''; }, 200); }
     updatePointsUI();
 
-    // ---------- OYUN LİSTESİ (tüm 70+ oyun, her yeni eklenen buraya eklenmeli) ----------
-    var games = {
+    // ---------- TÜM OYUN TANIMLARI (33 mevcut + eksiklere "Yakında" dummy) ----------
+    // Mevcut ve kesin olan oyunlar (dosya adlarına göre)
+    var EXISTING = {
       reflex: [
         { name: "Reaction Tap", desc: "Hedefe dokun, reaksiyon süreni ölç.", icon: "⚡", file: "reaction-tap.html", new: false },
         { name: "Eye Tracker", desc: "Kültürel nesneleri hızla yakala.", icon: "👁️", file: "eye-tracker.html", new: true },
         { name: "Stroop Testi", desc: "Renk ve kelime çatışması.", icon: "🎨", file: "stroop.html", new: false },
         { name: "Number Hunt", desc: "Sayıları küçükten büyüğe bul.", icon: "🔢", file: "number-hunt.html", new: false },
         { name: "Helix Jump", desc: "Topu döndür, boşluklardan geçir.", icon: "🌀", file: "helix-jump.html", new: true },
-        { name: "Gözbebeği", desc: "Anlık fark ediş, refleks yaşı.", icon: "🎯", file: "eye-tracker.html", new: false },
-        { name: "Odd One Out", desc: "Farklı olan nesneyi bul.", icon: "🔍", file: "odd-one-out.html", new: false },
-        { name: "Visual Hunt", desc: "İzgarada farklı olanı bul.", icon: "👀", file: "visual.html", new: false }
+        { name: "Odd One Out", desc: "Farklı olan nesneyi bul.", icon: "🔍", file: "odd-one-out.html", new: true }
       ],
       logic: [
         { name: "Logic Compass", desc: "Gizli renk kodunu mantıkla bul.", icon: "🧩", file: "logic-compass.html", new: false },
@@ -102,9 +116,9 @@
         { name: "Color Lines", desc: "Aynı renkleri birleştir, patlat.", icon: "🌈", file: "color-lines.html", new: false },
         { name: "Counterfeit", desc: "Sahte banknotu gerçeğinden ayır.", icon: "💰", file: "counterfeit.html", new: true },
         { name: "Pattern Match", desc: "Deseni ezberle, doğru hücreleri seç.", icon: "🔲", file: "pattern-match.html", new: false },
-        { name: "Spot the Diff", desc: "İki resim arasındaki farkları bul.", icon: "🔎", file: "spot-the-diff.html", new: true },
         { name: "Peg Solitaire", desc: "Tek çivi kalana kadar zıpla.", icon: "⚪", file: "peg.html", new: false },
-        { name: "Water Sort Pro", desc: "Renkleri tüpte düzenle.", icon: "💧", file: "water-sort-pro.html", new: false }
+        { name: "Water Sort Pro", desc: "Renkleri tüpte düzenle.", icon: "💧", file: "water-sort-pro.html", new: false },
+        { name: "Hidden Object", desc: "Gizli nesneleri bul.", icon: "🔎", file: "hidden-object.html", new: false }
       ],
       culture: [
         { name: "Nefes Pusulası", desc: "Kriz anında nefes egzersizi.", icon: "🌬️", file: "breath-anchor.html", new: true },
@@ -118,13 +132,25 @@
       ]
     };
 
-    function createGameCard(game) {
-      var card = document.createElement('div'); card.className = 'game-card';
+    // Öne çıkan (Emekli Pusulası) özel kart
+    var featuredGame = {
+      name: "Emekli Pusulası",
+      desc: "Banka promosyonlarını karşılaştır, en yüksek ödemeyi bul, banka değiştirme maliyetini hesapla.",
+      icon: "👵",
+      file: "emekli-pusulasi.html",
+      new: true
+    };
+
+    function createGameCard(game, isFeatured) {
+      var card = document.createElement('div');
+      card.className = 'game-card';
+      if (isFeatured) card.classList.add('featured-card');
       var iconDiv = document.createElement('div'); iconDiv.className = 'game-icon'; iconDiv.innerText = game.icon;
       var nameDiv = document.createElement('div'); nameDiv.className = 'game-name'; nameDiv.innerText = game.name;
       var descDiv = document.createElement('div'); descDiv.className = 'game-desc'; descDiv.innerText = game.desc;
       var badgeDiv = document.createElement('div'); badgeDiv.className = 'badge-group';
       if (game.new) { var newBadge = document.createElement('span'); newBadge.className = 'badge new'; newBadge.innerText = 'YENİ'; badgeDiv.appendChild(newBadge); }
+      if (isFeatured) { var featuredBadge = document.createElement('span'); featuredBadge.className = 'badge highlight'; featuredBadge.innerText = 'ÖNE ÇIKAN'; badgeDiv.appendChild(featuredBadge); }
       var playBtn = document.createElement('a'); playBtn.className = 'play-btn'; playBtn.innerText = 'Oyna →'; playBtn.href = game.file;
       card.appendChild(iconDiv); card.appendChild(nameDiv); card.appendChild(descDiv); card.appendChild(badgeDiv); card.appendChild(playBtn);
       return card;
@@ -134,19 +160,27 @@
       var container = document.getElementById(containerId);
       if (!container) return;
       container.innerHTML = '';
-      for (var i = 0; i < gamesArray.length; i++) container.appendChild(createGameCard(gamesArray[i]));
+      for (var i = 0; i < gamesArray.length; i++) container.appendChild(createGameCard(gamesArray[i], false));
     }
 
-    renderCategory('reflexGrid', games.reflex);
-    renderCategory('logicGrid', games.logic);
-    renderCategory('visualGrid', games.visual);
-    renderCategory('cultureGrid', games.culture);
+    // Featured (tek kart)
+    var featuredContainer = document.getElementById('featuredGrid');
+    if (featuredContainer) {
+      featuredContainer.innerHTML = '';
+      featuredContainer.appendChild(createGameCard(featuredGame, true));
+    }
 
-    // Toplam oyun sayısını göster
-    var total = games.reflex.length + games.logic.length + games.visual.length + games.culture.length;
+    // Diğer kategoriler
+    renderCategory('reflexGrid', EXISTING.reflex);
+    renderCategory('logicGrid', EXISTING.logic);
+    renderCategory('visualGrid', EXISTING.visual);
+    renderCategory('cultureGrid', EXISTING.culture);
+
+    // Toplam oyun sayısını hesapla (featured + diğerleri)
+    var total = 1 + EXISTING.reflex.length + EXISTING.logic.length + EXISTING.visual.length + EXISTING.culture.length;
     document.getElementById('totalGamesSpan').innerText = total;
 
-    // Reklam mock butonu
+    // Reklam mock
     var rewardBtn = document.getElementById('mockRewardBtn');
     if (rewardBtn) rewardBtn.addEventListener('click', function() { alert('🎬 Reklam izleme simülasyonu\n+10 Pusula Puanı'); addPoints(10); });
 
