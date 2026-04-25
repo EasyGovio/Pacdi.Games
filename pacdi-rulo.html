@@ -28,15 +28,8 @@
 </head>
 <body>
 <div class="game-container">
-  <div class="header">
-    <div><div class="logo">PACDI RULO</div><div class="sub">Kule Dizme · Denge Oyunu</div></div>
-    <a href="index.html" class="back-link">← Geri</a>
-  </div>
-  <div class="info-bar">
-    <div class="info-box">🎯 Skor: <span id="scoreNum">0</span></div>
-    <div class="info-box">🏆 En İyi: <span id="bestNum">—</span></div>
-    <button class="new-btn" id="resetBtn">↺ Yeni Oyun</button>
-  </div>
+  <div class="header"><div><div class="logo">PACDI RULO</div><div class="sub">Kule Dizme · Denge Oyunu</div></div><a href="index.html" class="back-link">← Geri</a></div>
+  <div class="info-bar"><div class="info-box">🎯 Skor: <span id="scoreNum">0</span></div><div class="info-box">🏆 En İyi: <span id="bestNum">—</span></div><button class="new-btn" id="resetBtn">↺ Yeni Oyun</button></div>
   <div class="canvas-wrap"><canvas id="gameCanvas" width="500" height="500"></canvas></div>
   <div class="status" id="statusMsg">⚡ Hareket eden bloğu durdurmak için dokun</div>
   <div class="controls"><button class="action-btn" id="leftBtn">◀ Sol</button><button class="action-btn" id="rightBtn">Sağ ▶</button></div>
@@ -50,7 +43,6 @@
     var BLOCK_H = 40;
     var BLOCK_W_START = 80;
     var MOVE_SPEED = 3.5;
-    var FALL_SPEED = 6;
     var gameActive = true;
     var score = 0;
     var bestScore = 0;
@@ -88,8 +80,10 @@
     function placeBlock(){
       if(!gameActive||!movingBlock) return;
       var lastBlock=blocks[blocks.length-1];
-      var overlapLeft=Math.max(movingBlock.x, lastBlock.x);
-      var overlapRight=Math.min(movingBlock.x+movingBlock.width, lastBlock.x+lastBlock.width);
+      var movingLeft=movingBlock.x, movingRight=movingBlock.x+movingBlock.width;
+      var lastLeft=lastBlock.x, lastRight=lastBlock.x+lastBlock.width;
+      var overlapLeft=Math.max(movingLeft,lastLeft);
+      var overlapRight=Math.min(movingRight,lastRight);
       var overlap=overlapRight-overlapLeft;
       if(overlap<=0){ gameOver(); return; }
       var newWidth=overlap, newX=overlapLeft;
@@ -97,15 +91,18 @@
       var newBlock={x:newX, y:lastBlock.y-BLOCK_H, width:newWidth, color:newColor};
       blocks.push(newBlock);
       score++; updateScoreUI(); saveBest();
-      if(movingBlock.x<lastBlock.x){
-        fallingBlock={x:movingBlock.x, y:movingBlock.y, width:lastBlock.x-movingBlock.x, color:movingBlock.color, vy:0};
-      }else if(movingBlock.x+movingBlock.width>lastBlock.x+lastBlock.width){
-        fallingBlock={x:lastBlock.x+lastBlock.width, y:movingBlock.y, width:movingBlock.x+movingBlock.width-(lastBlock.x+lastBlock.width), color:movingBlock.color, vy:0};
+      // kesilen parça (düşen)
+      if(movingLeft<lastLeft){
+        fallingBlock={x:movingLeft, y:movingBlock.y, width:lastLeft-movingLeft, color:movingBlock.color, vy:0};
+      } else if(movingRight>lastRight){
+        fallingBlock={x:lastRight, y:movingBlock.y, width:movingRight-lastRight, color:movingBlock.color, vy:0};
       }
+      // yeni hareketli blok (sonraki kat)
       var nextDir=(blocks.length%2===1)?1:-1;
       movingBlock={x:newX, y:newBlock.y-BLOCK_H, width:newWidth, color:getBlockColor(blocks.length+1), direction:nextDir};
       movingDirection=nextDir;
-      if(fallingBlock) gameActive=false;
+      if(fallingBlock) gameActive=false;  // düşüş başladı, hareketli blok durdurulur
+      drawCanvas();
     }
     function updateMoving(){
       if(!gameActive||!movingBlock) return;
@@ -130,13 +127,23 @@
       document.getElementById('statusMsg').innerHTML='💥 Kule devrildi! Yeni oyun başlat.';
       drawCanvas();
     }
-    function onTap(){ if(gameActive&&!fallingBlock){ placeBlock(); drawCanvas(); if(fallingBlock){ document.getElementById('statusMsg').innerHTML='⚠️ Düşüş...'; } } }
+    function onTap(){
+      if(gameActive&&!fallingBlock){
+        placeBlock();
+        drawCanvas();
+        if(fallingBlock){
+          document.getElementById('statusMsg').innerHTML='⚠️ Düşüş...';
+        } else {
+          document.getElementById('statusMsg').innerHTML='Blok yerleşti. Devam et.';
+        }
+      }
+    }
     function moveLeft(){ if(gameActive&&!fallingBlock){ movingDirection=-1; if(movingBlock) movingBlock.direction=-1; } }
     function moveRight(){ if(gameActive&&!fallingBlock){ movingDirection=1; if(movingBlock) movingBlock.direction=1; } }
     function gameLoop(){
       if(!gameActive&&!fallingBlock){ drawCanvas(); animationId=requestAnimationFrame(gameLoop); return; }
       if(gameActive&&!fallingBlock) updateMoving();
-      if(fallingBlock){ var still=updateFalling(); if(!still){ fallingBlock=null; drawCanvas(); animationId=requestAnimationFrame(gameLoop); return; } }
+      if(fallingBlock){ var still=updateFalling(); if(!still){ fallingBlock=null; drawCanvas(); gameActive=false; document.getElementById('statusMsg').innerHTML='💥 Kule devrildi! Yeni oyun başlat.'; animationId=requestAnimationFrame(gameLoop); return; } }
       drawCanvas();
       animationId=requestAnimationFrame(gameLoop);
     }
