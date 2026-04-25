@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Rotate | PACDI Games</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+    body {
+      background: #04162E;
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+    .game-container {
+      max-width: 500px;
+      width: 100%;
+      background: #1e2a3a;
+      border-radius: 48px;
+      padding: 22px 20px 28px;
+      box-shadow: 0 20px 35px rgba(0,0,0,0.4);
+      border: 1px solid rgba(246,180,95,0.3);
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 14px;
+    }
+    .logo { font-size: 1.5rem; font-weight: bold; color: #F6B45F; }
+    .sub  { font-size: 0.62rem; color: #9bb7d4; margin-top: 1px; }
+    .back-link { color: #F6B45F; text-decoration: none; font-weight: bold; font-size: 0.78rem; background: #0a1018; padding: 5px 12px; border-radius: 40px; }
+    .diff-row { display: flex; justify-content: center; gap: 8px; margin-bottom: 12px; }
+    .diff-btn { background: #0a1018; color: #F6B45F; border: 1px solid #F6B45F; padding: 4px 14px; border-radius: 40px; font-size: 0.75rem; cursor: pointer; }
+    .diff-btn.active { background: #F6B45F; color: #04162E; border-color: #F6B45F; }
+    .info-bar { display: flex; justify-content: space-between; background: #0a1018; border-radius: 40px; padding: 7px 16px; margin-bottom: 16px; }
+    .info-box { color: #F6B45F; font-weight: bold; font-size: 0.78rem; }
+    .info-box span { color: #eaf2fb; }
+    .new-btn { background: #F6B45F; border: none; font-weight: bold; padding: 5px 14px; border-radius: 40px; color: #04162E; cursor: pointer; font-size: 0.78rem; }
+    .stage { display: flex; gap: 12px; justify-content: center; align-items: center; margin-bottom: 16px; }
+    .stage-box { flex: 1; background: #0a1018; border-radius: 24px; padding: 12px; text-align: center; }
+    .stage-label { font-size: 0.6rem; letter-spacing: 2px; color: #6c8fb0; text-transform: uppercase; margin-bottom: 8px; }
+    .stage-canvas { display: block; margin: 0 auto; border-radius: 16px; }
+    .vs-label { color: #F6B45F; font-weight: bold; font-size: 1.1rem; flex-shrink: 0; }
+    .match-wrap { background: #0a1018; border-radius: 40px; padding: 10px 18px; margin-bottom: 14px; display: flex; align-items: center; gap: 12px; }
+    .match-label { font-size: 0.72rem; color: #F6B45F; font-weight: bold; flex-shrink: 0; }
+    .match-track { flex: 1; height: 8px; background: #1e2a3a; border-radius: 4px; overflow: hidden; }
+    .match-fill { height: 100%; background: linear-gradient(90deg, #E74C3C, #F6B45F, #2ECC71); border-radius: 4px; transition: width 0.2s; width: 0%; }
+    .match-pct { font-size: 0.78rem; color: #eaf2fb; font-weight: bold; flex-shrink: 0; width: 36px; text-align: right; }
+    .controls { display: flex; gap: 10px; justify-content: center; margin-bottom: 14px; flex-wrap: wrap; }
+    .rot-btn { background: #1e2a3a; border: 2px solid #F6B45F; color: #F6B45F; font-weight: bold; font-size: 1rem; width: 60px; height: 60px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.05s; }
+    .rot-btn:active { background: #F6B45F; color: #04162E; transform: scale(0.93); }
+    .rot-btn.big { width: 72px; height: 72px; font-size: 1.3rem; }
+    .submit-btn { background: #F6B45F; border: none; font-weight: bold; padding: 10px 28px; border-radius: 40px; color: #04162E; cursor: pointer; font-size: 0.9rem; display: block; margin: 0 auto; }
+    .submit-btn:disabled { opacity: 0.35; cursor: default; }
+    .overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(4,22,46,0.95); display: flex; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(6px); opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+    .overlay.show { opacity: 1; pointer-events: all; }
+    .overlay-box { background: #0A1F3A; border-radius: 56px; padding: 32px 24px; text-align: center; border: 2px solid #F6B45F; max-width: 300px; width: 90%; }
+    .overlay-icon { font-size: 3rem; margin-bottom: 10px; }
+    .overlay-title { font-size: 1.5rem; font-weight: bold; color: #F6B45F; letter-spacing: 2px; margin-bottom: 8px; }
+    .overlay-msg { color: #eaf2fb; font-size: 0.85rem; margin-bottom: 18px; line-height: 1.6; }
+    .overlay-btn { background: #F6B45F; border: none; font-weight: bold; padding: 10px 28px; border-radius: 40px; color: #04162E; cursor: pointer; font-size: 0.9rem; }
+    .footer { text-align: center; font-size: 0.6rem; color: #6c8fb0; margin-top: 10px; }
+  </style>
+</head>
+<body>
+<div class="game-container">
+  <div class="header">
+    <div><div class="logo">ROTATE</div><div class="sub">PACDI Games · Uzamsal Algı</div></div>
+    <a href="index.html" class="back-link">← Geri</a>
+  </div>
+
+  <div class="diff-row">
+    <div class="diff-btn active" data-diff="easy">Kolay</div>
+    <div class="diff-btn" data-diff="medium">Orta</div>
+    <div class="diff-btn" data-diff="hard">Zor</div>
+  </div>
+
+  <div class="info-bar">
+    <div class="info-box">Seviye: <span id="levelNum">1</span></div>
+    <div class="info-box">Skor: <span id="scoreNum">0</span></div>
+    <button class="new-btn" id="newBtn">↺ Yeni</button>
+  </div>
+
+  <div class="stage">
+    <div class="stage-box"><div class="stage-label">Hedef</div><canvas class="stage-canvas" id="targetCanvas" width="140" height="140"></canvas></div>
+    <div class="vs-label">vs</div>
+    <div class="stage-box"><div class="stage-label">Senin Şeklin</div><canvas class="stage-canvas" id="playerCanvas" width="140" height="140"></canvas></div>
+  </div>
+
+  <div class="match-wrap"><div class="match-label">Eşleşme</div><div class="match-track"><div class="match-fill" id="matchFill"></div></div><div class="match-pct" id="matchPct">0%</div></div>
+
+  <div class="controls">
+    <button class="rot-btn" id="rotCCW45">↺ 45°</button>
+    <button class="rot-btn big" id="rotCCW90">↺ 90°</button>
+    <button class="rot-btn big" id="rotCW90">↻ 90°</button>
+    <button class="rot-btn" id="rotCW45">↻ 45°</button>
+  </div>
+
+  <button class="submit-btn" id="submitBtn" disabled>✓ Onayla</button>
+  <div class="footer">Şekli döndür · Hedefle eşleştir · %80+ eşleşme = başarı</div>
+</div>
+
+<div class="overlay" id="overlay"><div class="overlay-box"><div class="overlay-icon" id="overlayIcon">⭐</div><div class="overlay-title" id="overlayTitle">MÜKEMMEL!</div><div class="overlay-msg" id="overlayMsg"></div><button class="overlay-btn" id="overlayBtn">Devam</button></div></div>
+
+<script>
+(function() {
+  var DIFF = 'easy';
+  var DIFF_CONFIG = { easy: { steps: [90,180,270], tolerance: 10, shapes: ['arrow','L','T','house'] }, medium: { steps: [45,90,135,180,225,270,315], tolerance: 8, shapes: ['arrow','L','T','house','star4','cross'] }, hard: { steps: [30,60,90,120,150,180,210,240,270,300,330], tolerance: 6, shapes: ['arrow','L','T','house','star4','cross','zigzag','hexL'] } };
+  var targetAngle=0, playerAngle=0, currentShape='arrow', level=1, score=0, gameActive=true;
+  var targetCanvas=document.getElementById('targetCanvas'), playerCanvas=document.getElementById('playerCanvas'), tctx=targetCanvas.getContext('2d'), pctx=playerCanvas.getContext('2d');
+  var SHAPES = {
+    arrow: function(ctx,s){ var a=s*0.38; ctx.moveTo(0,-a*1.1); ctx.lineTo(a*0.9,0); ctx.lineTo(a*0.38,0); ctx.lineTo(a*0.38,a*1.0); ctx.lineTo(-a*0.38,a*1.0); ctx.lineTo(-a*0.38,0); ctx.lineTo(-a*0.9,0); ctx.closePath(); },
+    L: function(ctx,s){ var a=s*0.38; ctx.moveTo(-a*0.9,-a*1.0); ctx.lineTo(-a*0.9,a*1.0); ctx.lineTo(a*0.9,a*1.0); ctx.lineTo(a*0.9,a*0.35); ctx.lineTo(-a*0.2,a*0.35); ctx.lineTo(-a*0.2,-a*1.0); ctx.closePath(); },
+    T: function(ctx,s){ var a=s*0.38; ctx.moveTo(-a*1.0,-a*1.0); ctx.lineTo(a*1.0,-a*1.0); ctx.lineTo(a*1.0,-a*0.3); ctx.lineTo(a*0.32,-a*0.3); ctx.lineTo(a*0.32,a*1.0); ctx.lineTo(-a*0.32,a*1.0); ctx.lineTo(-a*0.32,-a*0.3); ctx.lineTo(-a*1.0,-a*0.3); ctx.closePath(); },
+    house: function(ctx,s){ var a=s*0.38; ctx.moveTo(0,-a*1.1); ctx.lineTo(a*1.0,-a*0.15); ctx.lineTo(a*1.0,a*1.0); ctx.lineTo(-a*1.0,a*1.0); ctx.lineTo(-a*1.0,-a*0.15); ctx.closePath(); },
+    star4: function(ctx,s){ var a=s*0.42, b=a*0.4; for(var i=0;i<8;i++){ var r=(i%2===0)?a:b; var aa=(i*Math.PI/4)-Math.PI/2; if(i===0) ctx.moveTo(Math.cos(aa)*r,Math.sin(aa)*r); else ctx.lineTo(Math.cos(aa)*r,Math.sin(aa)*r); } ctx.closePath(); },
+    cross: function(ctx,s){ var a=s*0.42, t=a*0.35; ctx.moveTo(-t,-a); ctx.lineTo(t,-a); ctx.lineTo(t,-t); ctx.lineTo(a,-t); ctx.lineTo(a,t); ctx.lineTo(t,t); ctx.lineTo(t,a); ctx.lineTo(-t,a); ctx.lineTo(-t,t); ctx.lineTo(-a,t); ctx.lineTo(-a,-t); ctx.lineTo(-t,-t); ctx.closePath(); },
+    zigzag: function(ctx,s){ var a=s*0.38; ctx.moveTo(-a,-a*0.6); ctx.lineTo(-a*0.2,-a*0.6); ctx.lineTo(-a*0.2,-a*1.0); ctx.lineTo(a*0.5,-a*1.0); ctx.lineTo(a*0.5,-a*0.6); ctx.lineTo(a,-a*0.6); ctx.lineTo(a,a*0.6); ctx.lineTo(a*0.2,a*0.6); ctx.lineTo(a*0.2,a*1.0); ctx.lineTo(-a*0.5,a*1.0); ctx.lineTo(-a*0.5,a*0.6); ctx.lineTo(-a,a*0.6); ctx.closePath(); },
+    hexL: function(ctx,s){ var a=s*0.42, pts=[]; for(var i=0;i<6;i++){ var aa=(i*Math.PI/3)-Math.PI/2; pts.push([Math.cos(aa)*a,Math.sin(aa)*a]); } ctx.moveTo(pts[0][0],pts[0][1]); ctx.lineTo(pts[1][0],pts[1][1]); ctx.lineTo(pts[2][0],pts[2][1]); ctx.lineTo(pts[2][0],0); ctx.lineTo(pts[3][0],pts[3][1]); ctx.lineTo(pts[4][0],pts[4][1]); ctx.lineTo(pts[5][0],pts[5][1]); ctx.closePath(); }
+  };
+  function drawShape(ctx,size,angleDeg,isTarget){
+    ctx.clearRect(0,0,size,size);
+    ctx.fillStyle='#0a1018'; ctx.fillRect(0,0,size,size);
+    ctx.beginPath(); ctx.arc(size/2,size/2,size*0.44,0,Math.PI*2); ctx.strokeStyle=isTarget?'rgba(246,180,95,0.15)':'rgba(46,204,113,0.15)'; ctx.lineWidth=1; ctx.stroke();
+    ctx.save(); ctx.translate(size/2,size/2); ctx.rotate(angleDeg*Math.PI/180);
+    ctx.beginPath(); SHAPES[currentShape](ctx,size);
+    ctx.fillStyle=isTarget?'rgba(246,180,95,0.25)':'rgba(46,204,113,0.3)'; ctx.strokeStyle=isTarget?'#F6B45F':'#2ECC71'; ctx.lineWidth=2.5; ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0,-size*0.4); ctx.lineTo(0,-size*0.44); ctx.strokeStyle=isTarget?'rgba(246,180,95,0.5)':'rgba(46,204,113,0.5)'; ctx.lineWidth=2; ctx.stroke();
+    ctx.restore();
+    ctx.fillStyle=isTarget?'rgba(246,180,95,0.5)':'rgba(46,204,113,0.6)'; ctx.font='bold '+Math.round(size*0.09)+'px monospace'; ctx.textAlign='center'; ctx.fillText(Math.round(angleDeg)+'°',size/2,size-8);
+  }
+  function redraw(){ var sz=targetCanvas.width; drawShape(tctx,sz,targetAngle,true); drawShape(pctx,sz,playerAngle,false); updateMatch(); }
+  function angularDiff(a,b){ var d=Math.abs(a-b)%360; if(d>180) d=360-d; return d; }
+  function updateMatch(){ var d=angularDiff(targetAngle,playerAngle), tol=DIFF_CONFIG[DIFF].tolerance, pct=Math.max(0,Math.round((1-d/180)*100)); document.getElementById('matchFill').style.width=pct+'%'; document.getElementById('matchPct').textContent=pct+'%'; document.getElementById('submitBtn').disabled=(d>tol*4); }
+  function rotate(deg){ playerAngle=(playerAngle+deg+360)%360; redraw(); }
+  function submitAnswer(){ var d=angularDiff(targetAngle,playerAngle), tol=DIFF_CONFIG[DIFF].tolerance*4; if(d<=DIFF_CONFIG[DIFF].tolerance){ score+=100; showResult(true,'Mükemmel! +100 puan',d); } else if(d<=tol){ var pts=Math.round(100*(1-d/tol)); score+=pts; showResult(true,'Güzel! +'+pts+' puan ('+Math.round(d)+'° fark)',d); } else { showResult(false,'Fark: '+Math.round(d)+'° — tekrar dene',d); } document.getElementById('scoreNum').textContent=score; }
+  function showResult(success,msg,diff){ document.getElementById('overlayIcon').textContent=success?(diff<=DIFF_CONFIG[DIFF].tolerance?'🌟':'⭐'):'🔄'; document.getElementById('overlayTitle').textContent=success?'BAŞARILI!':'YAKLAŞ!'; document.getElementById('overlayMsg').textContent=msg; document.getElementById('overlayBtn').textContent=success?'Sonraki Seviye':'Tekrar Dene'; document.getElementById('overlay').classList.add('show'); if(success) level++; document.getElementById('levelNum').textContent=level; }
+  function newLevel(){ var cfg=DIFF_CONFIG[DIFF], shapes=cfg.shapes; currentShape=shapes[Math.floor(Math.random()*shapes.length)]; var steps=cfg.steps; targetAngle=steps[Math.floor(Math.random()*steps.length)]; playerAngle=0; gameActive=true; document.getElementById('overlay').classList.remove('show'); redraw(); }
+  function newGame(){ level=1; score=0; document.getElementById('levelNum').textContent=level; document.getElementById('scoreNum').textContent=score; newLevel(); }
+  function resizeCanvases(){ var wrap=document.querySelector('.stage-box'), available=wrap.offsetWidth-24, sz=Math.min(available,160); sz=Math.max(sz,110); targetCanvas.width=targetCanvas.height=sz; playerCanvas.width=playerCanvas.height=sz; redraw(); }
+  document.getElementById('rotCCW45').addEventListener('click',function(){ rotate(-45); }); document.getElementById('rotCCW90').addEventListener('click',function(){ rotate(-90); }); document.getElementById('rotCW90').addEventListener('click',function(){ rotate(90); }); document.getElementById('rotCW45').addEventListener('click',function(){ rotate(45); }); document.getElementById('submitBtn').addEventListener('click',submitAnswer); document.getElementById('newBtn').addEventListener('click',newGame); document.getElementById('overlayBtn').addEventListener('click',function(){ var success=document.getElementById('overlayBtn').textContent==='Sonraki Seviye'; if(success) newLevel(); else { document.getElementById('overlay').classList.remove('show'); redraw(); } });
+  var diffBtns=document.querySelectorAll('.diff-btn'); for(var i=0;i<diffBtns.length;i++){ diffBtns[i].addEventListener('click',function(){ for(var j=0;j<diffBtns.length;j++) diffBtns[j].classList.remove('active'); this.classList.add('active'); DIFF=this.getAttribute('data-diff'); newGame(); }); }
+  var dragStartX=null; playerCanvas.addEventListener('mousedown',function(e){ dragStartX=e.clientX; }); playerCanvas.addEventListener('touchstart',function(e){ dragStartX=e.touches[0].clientX; },{passive:true}); playerCanvas.addEventListener('mousemove',function(e){ if(dragStartX===null||!(e.buttons&1)){ dragStartX=null; return; } var dx=e.clientX-dragStartX; if(Math.abs(dx)>4){ playerAngle=(playerAngle+dx*0.6+360)%360; dragStartX=e.clientX; redraw(); } }); playerCanvas.addEventListener('touchmove',function(e){ if(dragStartX===null) return; var dx=e.touches[0].clientX-dragStartX; if(Math.abs(dx)>4){ playerAngle=(playerAngle+dx*0.6+360)%360; dragStartX=e.touches[0].clientX; redraw(); } e.preventDefault(); },{passive:false}); playerCanvas.addEventListener('mouseup',function(){ dragStartX=null; }); playerCanvas.addEventListener('touchend',function(){ dragStartX=null; });
+  window.addEventListener('resize',resizeCanvases); resizeCanvases(); newGame();
+})();
+</script>
+</body>
+</html>
