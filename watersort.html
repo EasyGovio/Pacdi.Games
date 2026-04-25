@@ -192,27 +192,23 @@
 
 <script>
   (function() {
-    // RENKLER (gold, yeşil, kırmızı, mavi, mor, turkuaz)
-    var COLOR_LIST = ["#F6B45F", "#2ECC71", "#E74C3C", "#3498DB", "#9B59B6", "#1ABC9C"];
+    var COLORS = ["#F6B45F", "#2ECC71", "#E74C3C", "#3498DB"];  // 4 renk
+    var TUBE_COUNT = 6;      // 6 tüp
+    var TUBE_CAP = 4;        // her tüp 4 top alır
 
-    var TUBE_COUNT = 6;
-    var TUBE_CAP   = 4;
-
-    var tubes = [];          // her tüp bir dizi (renk kodları)
-    var selectedTube = null; // seçili tüp indeksi
+    var tubes = [];
+    var selectedTube = null;
     var moves = 0;
     var bestScore = 0;
     var gameActive = true;
     var bestKey = "watersort_best_pacdi";
 
-    // DOM elementleri
     var container = document.getElementById('tubesContainer');
     var moveSpan = document.getElementById('moveCount');
     var bestSpan = document.getElementById('bestScore');
     var newGameBtn = document.getElementById('newGameBtn');
     var gameMsgDiv = document.getElementById('gameMsg');
 
-    // En iyi skoru yükle/kaydet
     function loadBest() {
       var saved = localStorage.getItem(bestKey);
       bestScore = saved ? parseInt(saved, 10) : 0;
@@ -226,13 +222,13 @@
       }
     }
 
-    // Başlangıç dizilimi (rastgele ama çözülebilir olma ihtimali yüksek)
+    // Başlangıç dizilimi: 4 renk, her renkten 4 top, 6 tüp, 2 tüp tamamen boş
     function initGame() {
-      // renk havuzu: her renkten 4 adet (toplam 24 birim)
+      // renk havuzu: her renkten 4 top
       var colorPool = [];
-      for (var c = 0; c < COLOR_LIST.length; c++) {
+      for (var c = 0; c < COLORS.length; c++) {
         for (var q = 0; q < 4; q++) {
-          colorPool.push(COLOR_LIST[c]);
+          colorPool.push(COLORS[c]);
         }
       }
       // karıştır
@@ -243,30 +239,28 @@
         colorPool[j] = temp;
       }
 
-      // tüpleri oluştur (6 tüp, her biri max 4)
+      // Tüpleri başlat (6 tüp)
       tubes = [];
       for (var t = 0; t < TUBE_COUNT; t++) tubes.push([]);
 
-      // rastgele dağıt (tüplerin 4 kapasitesini aşmadan)
+      // Topları ilk 4 tüpe dağıt (her tüp en fazla 4 top olacak şekilde)
+      // Son 2 tüp boş kalacak
+      var tubeIndex = 0;
       for (var idx = 0; idx < colorPool.length; idx++) {
-        var placed = false;
-        var deneme = 0;
-        while (!placed && deneme < 50) {
-          var rnd = Math.floor(Math.random() * TUBE_COUNT);
-          if (tubes[rnd].length < TUBE_CAP) {
-            tubes[rnd].push(colorPool[idx]);
-            placed = true;
-          }
-          deneme++;
+        if (tubeIndex >= TUBE_COUNT - 2) tubeIndex = 0;  // aslında manuel kontrol: ilk 4 tüp doldurulacak
+        // Düzgün dağıtım: ilk 4 tüpe sırayla ekle
+        if (tubes[tubeIndex].length < TUBE_CAP) {
+          tubes[tubeIndex].push(colorPool[idx]);
+        } else {
+          tubeIndex++;
+          if (tubeIndex >= TUBE_COUNT - 2) tubeIndex = 0; // 4 tüp yetmezse devam
+          tubes[tubeIndex].push(colorPool[idx]);
         }
-        if (!placed) {
-          for (var k = 0; k < TUBE_COUNT; k++) {
-            if (tubes[k].length < TUBE_CAP) {
-              tubes[k].push(colorPool[idx]);
-              break;
-            }
-          }
-        }
+      }
+
+      // Son iki tüp zaten boş, kontrol et
+      for (var t = 0; t < TUBE_COUNT; t++) {
+        if (tubes[t].length > TUBE_CAP) tubes[t] = tubes[t].slice(0, TUBE_CAP);
       }
 
       selectedTube = null;
@@ -277,7 +271,6 @@
       gameMsgDiv.innerHTML = "Bir tüpe dokun → top seç → başka tüpe taşı";
     }
 
-    // Görsel güncelleme
     function renderGame() {
       container.innerHTML = '';
       for (var i = 0; i < tubes.length; i++) {
@@ -286,7 +279,6 @@
         tubeDiv.className = 'tube';
         if (selectedTube === i) tubeDiv.classList.add('selected');
         tubeDiv.setAttribute('data-idx', i);
-        // tüpün içindeki renkleri göster (alttan üste)
         for (var slot = 0; slot < TUBE_CAP; slot++) {
           var unitDiv = document.createElement('div');
           if (slot < tubeData.length) {
@@ -304,20 +296,18 @@
       }
     }
 
-    // Hamle geçerlilik kontrolü
     function isValidMove(fromIdx, toIdx) {
       if (fromIdx === toIdx) return false;
       var srcTube = tubes[fromIdx];
       var dstTube = tubes[toIdx];
-      if (srcTube.length === 0) return false;          // kaynak boş olamaz
-      if (dstTube.length === TUBE_CAP) return false;    // hedef dolu
-      if (dstTube.length === 0) return true;            // boş hedefe her şey taşınabilir
+      if (srcTube.length === 0) return false;
+      if (dstTube.length === TUBE_CAP) return false;
+      if (dstTube.length === 0) return true;
       var srcTop = srcTube[srcTube.length - 1];
       var dstTop = dstTube[dstTube.length - 1];
-      return (srcTop === dstTop);                       // sadece aynı renk üst üste gelebilir
+      return (srcTop === dstTop);
     }
 
-    // Hamleyi uygula
     function applyMove(fromIdx, toIdx) {
       if (!isValidMove(fromIdx, toIdx)) return false;
       var movedColor = tubes[fromIdx].pop();
@@ -329,7 +319,6 @@
       return true;
     }
 
-    // Kazanma kontrolü: her dolu tüpün tüm birimleri aynı renk
     function isGameWon() {
       var totalUnits = 0;
       for (var i = 0; i < tubes.length; i++) {
@@ -341,15 +330,12 @@
         }
         totalUnits += tube.length;
       }
-      // toplam birim sayısı 24 olmalı (6 renk × 4)
-      return totalUnits === 24;
+      return totalUnits === 16; // 4 renk × 4 = 16
     }
 
-    // Tüpe tıklama olayı
     function onTubeClick(idx) {
       if (!gameActive) return;
 
-      // seçim yoksa
       if (selectedTube === null) {
         if (tubes[idx].length > 0) {
           selectedTube = idx;
@@ -361,7 +347,6 @@
         return;
       }
 
-      // zaten seçili var → taşımayı dene
       var success = applyMove(selectedTube, idx);
       if (success) {
         if (isGameWon()) {
@@ -373,14 +358,12 @@
           gameMsgDiv.innerHTML = "✔️ Hamle yapıldı. Devam et.";
         }
       } else {
-        // geçersiz hamle
         gameMsgDiv.innerHTML = "❌ Geçersiz hamle! Aynı renk üst üste olmalı veya hedef boş olmalı.";
         selectedTube = null;
         renderGame();
       }
     }
 
-    // Yeni oyun (sıfırla)
     function newGame() {
       initGame();
       gameMsgDiv.innerHTML = "🔄 Yeni oyun başladı. İyi şanslar!";
