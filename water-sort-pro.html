@@ -6,105 +6,24 @@
   <title>Water Sort Pro | PACDI Games</title>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
-    body {
-      background: #04162E;
-      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 16px;
-    }
-    .game-container {
-      max-width: 650px;
-      width: 100%;
-      background: #1e2a3a;
-      border-radius: 48px;
-      padding: 20px 16px 24px;
-      box-shadow: 0 20px 35px rgba(0,0,0,0.4);
-      border: 1px solid rgba(246,180,95,0.3);
-    }
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 14px;
-    }
+    body { background: #04162E; font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 16px; }
+    .game-container { max-width: 650px; width: 100%; background: #1e2a3a; border-radius: 48px; padding: 20px 16px 24px; box-shadow: 0 20px 35px rgba(0,0,0,0.4); border: 1px solid rgba(246,180,95,0.3); }
+    .header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px; }
     .logo { font-size: 1.5rem; font-weight: bold; color: #F6B45F; }
     .sub { font-size: 0.62rem; color: #9bb7d4; margin-top: 2px; }
     .back-link { color: #F6B45F; text-decoration: none; font-weight: bold; font-size: 0.78rem; background: #0a1018; padding: 5px 12px; border-radius: 40px; }
-    .info-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #0a1018;
-      border-radius: 60px;
-      padding: 7px 16px;
-      margin-bottom: 14px;
-    }
-    .info-box { color: #F6B45F; font-weight: bold; font-size: 0.8rem; }
+    .info-bar { display: flex; justify-content: space-between; background: #0a1018; border-radius: 40px; padding: 7px 16px; margin-bottom: 14px; }
+    .info-box { color: #F6B45F; font-weight: bold; font-size: 0.78rem; }
     .info-box span { color: #eaf2fb; }
     .new-btn { background: #F6B45F; border: none; font-weight: bold; padding: 5px 14px; border-radius: 40px; color: #04162E; cursor: pointer; font-size: 0.78rem; }
-    .tubes-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
-      justify-items: center;
-      margin: 20px 0;
-    }
-    .tube {
-      width: 85px;
-      background: #0a1018;
-      border-radius: 40px;
-      padding: 8px 6px;
-      display: flex;
-      flex-direction: column-reverse;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-      border: 2px solid #F6B45F40;
-      transition: all 0.1s ease;
-    }
-    .tube.selected {
-      border: 3px solid #F6B45F;
-      background: rgba(246,180,95,0.1);
-      transform: scale(1.02);
-    }
-    .color-unit {
-      width: 100%;
-      height: 24px;
-      border-radius: 20px;
-      transition: transform 0.08s;
-      box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
-    }
-    .empty-slot {
-      width: 100%;
-      height: 24px;
-      background: rgba(255,255,255,0.04);
-      border-radius: 20px;
-      border: 1px dashed #F6B45F30;
-    }
-    .message {
-      text-align: center;
-      margin-top: 15px;
-      padding: 8px;
-      background: #0a1018;
-      border-radius: 40px;
-      color: #eaf2fb;
-      font-weight: bold;
-      font-size: 0.8rem;
-    }
-    .footer {
-      text-align: center;
-      font-size: 0.6rem;
-      color: #6c8fb0;
-      margin-top: 12px;
-    }
-    @media (max-width: 550px) {
-      .tube { width: 70px; }
-      .color-unit, .empty-slot { height: 20px; }
-      .tubes-grid { gap: 10px; }
-    }
+    .tubes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; justify-items: center; margin: 20px 0; }
+    .tube { width: 85px; background: #0a1018; border-radius: 40px; padding: 8px 6px; display: flex; flex-direction: column-reverse; align-items: center; gap: 6px; cursor: pointer; border: 2px solid #F6B45F40; transition: all 0.1s ease; }
+    .tube.selected { border: 3px solid #F6B45F; background: rgba(246,180,95,0.1); transform: scale(1.02); }
+    .color-unit { width: 100%; height: 24px; border-radius: 20px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.2); }
+    .empty-slot { width: 100%; height: 24px; background: rgba(255,255,255,0.04); border-radius: 20px; border: 1px dashed #F6B45F30; }
+    .message { text-align: center; margin-top: 15px; padding: 8px; background: #0a1018; border-radius: 40px; color: #eaf2fb; font-size: 0.8rem; }
+    .footer { text-align: center; font-size: 0.6rem; color: #6c8fb0; margin-top: 12px; }
+    @media (max-width: 550px) { .tube { width: 70px; } .color-unit, .empty-slot { height: 20px; } .tubes-grid { gap: 10px; } }
   </style>
 </head>
 <body>
@@ -129,8 +48,7 @@
   (function() {
     var COLOR_LIST = ["#F6B45F", "#2ECC71", "#E74C3C", "#3498DB", "#9B59B6", "#1ABC9C"];
     var TUBE_COUNT = 6;
-    var TUBE_CAP   = 4;
-
+    var TUBE_CAP = 4;
     var tubes = [];
     var selectedTube = null;
     var moves = 0;
@@ -144,24 +62,16 @@
     var newGameBtn = document.getElementById('newGameBtn');
     var gameMsgDiv = document.getElementById('gameMsg');
 
-    function loadBest() {
-      var saved = localStorage.getItem(bestKey);
-      bestScore = saved ? parseInt(saved, 10) : 0;
-      bestSpan.innerText = bestScore || '—';
-    }
-    function saveBest() {
-      if (moves < bestScore || bestScore === 0) {
-        bestScore = moves;
-        localStorage.setItem(bestKey, bestScore);
-        bestSpan.innerText = bestScore;
-      }
-    }
+    function loadBest() { var s = localStorage.getItem(bestKey); bestScore = s ? parseInt(s) : 0; bestSpan.innerText = bestScore || '—'; }
+    function saveBest() { if (moves < bestScore || bestScore === 0) { bestScore = moves; localStorage.setItem(bestKey, bestScore); bestSpan.innerText = bestScore; } }
 
     function initGame() {
+      // 6 renk × 4 = 24 birim, 6 tüp, her tüpte ortalama 4 birim
       var colorPool = [];
       for (var c = 0; c < COLOR_LIST.length; c++) {
         for (var q = 0; q < 4; q++) colorPool.push(COLOR_LIST[c]);
       }
+      // karıştır
       for (var i = colorPool.length - 1; i > 0; i--) {
         var j = Math.floor(Math.random() * (i + 1));
         var temp = colorPool[i];
@@ -170,16 +80,16 @@
       }
       tubes = [];
       for (var t = 0; t < TUBE_COUNT; t++) tubes.push([]);
+      // dağıt (tüplerin bazıları dolu, bazıları boş – oynanabilir)
       for (var idx = 0; idx < colorPool.length; idx++) {
         var placed = false;
-        var attempts = 0;
-        while (!placed && attempts < 60) {
-          var rnd = Math.floor(Math.random() * TUBE_COUNT);
-          if (tubes[rnd].length < TUBE_CAP) {
-            tubes[rnd].push(colorPool[idx]);
+        for (var attempt = 0; attempt < 30; attempt++) {
+          var rand = Math.floor(Math.random() * TUBE_COUNT);
+          if (tubes[rand].length < TUBE_CAP) {
+            tubes[rand].push(colorPool[idx]);
             placed = true;
+            break;
           }
-          attempts++;
         }
         if (!placed) {
           for (var k = 0; k < TUBE_COUNT; k++) {
@@ -189,6 +99,15 @@
             }
           }
         }
+      }
+      // oyunun oynanabilir olması için en az iki boş tüp olmalı (bazen tüm tüpler dolu olabiliyor)
+      // ekstra güvence: eğer hiç boş tüp yoksa, rastgele bir tüpü boşalt
+      var emptyCount = 0;
+      for (var i = 0; i < TUBE_COUNT; i++) if (tubes[i].length === 0) emptyCount++;
+      if (emptyCount === 0) {
+        // rastgele bir tüpün renklerini temizle (ama hepsini değil, 3 top bırak)
+        var rndTube = Math.floor(Math.random() * TUBE_COUNT);
+        tubes[rndTube] = [];  // tamamen boş
       }
       selectedTube = null;
       moves = 0;
@@ -206,24 +125,24 @@
         tubeDiv.className = 'tube';
         if (selectedTube === i) tubeDiv.classList.add('selected');
         for (var slot = 0; slot < TUBE_CAP; slot++) {
-          var unitDiv = document.createElement('div');
+          var unit = document.createElement('div');
           if (slot < tubeData.length) {
-            unitDiv.className = 'color-unit';
-            unitDiv.style.backgroundColor = tubeData[slot];
+            unit.className = 'color-unit';
+            unit.style.backgroundColor = tubeData[slot];
           } else {
-            unitDiv.className = 'empty-slot';
+            unit.className = 'empty-slot';
           }
-          tubeDiv.appendChild(unitDiv);
+          tubeDiv.appendChild(unit);
         }
         tubeDiv.addEventListener('click', (function(idx) { return function() { onTubeClick(idx); }; })(i));
         container.appendChild(tubeDiv);
       }
     }
 
-    function isValidMove(fromIdx, toIdx) {
-      if (fromIdx === toIdx) return false;
-      var src = tubes[fromIdx];
-      var dst = tubes[toIdx];
+    function isValidMove(from, to) {
+      if (from === to) return false;
+      var src = tubes[from];
+      var dst = tubes[to];
       if (src.length === 0) return false;
       if (dst.length === TUBE_CAP) return false;
       if (dst.length === 0) return true;
@@ -232,10 +151,10 @@
       return srcTop === dstTop;
     }
 
-    function applyMove(fromIdx, toIdx) {
-      if (!isValidMove(fromIdx, toIdx)) return false;
-      var moved = tubes[fromIdx].pop();
-      tubes[toIdx].push(moved);
+    function applyMove(from, to) {
+      if (!isValidMove(from, to)) return false;
+      var moved = tubes[from].pop();
+      tubes[to].push(moved);
       moves++;
       moveSpan.innerText = moves;
       selectedTube = null;
@@ -275,7 +194,6 @@
           gameActive = false;
           saveBest();
           gameMsgDiv.innerHTML = "🎉 TEBRİKLER! OYUNU KAZANDINIZ! 🎉";
-          renderGame();
         } else {
           gameMsgDiv.innerHTML = "✔️ Hamle yapıldı. Devam et.";
         }
@@ -286,7 +204,7 @@
       }
     }
 
-    function newGame() { initGame(); }
+    function newGame() { initGame(); gameMsgDiv.innerHTML = "🔄 Yeni oyun başladı."; }
     newGameBtn.addEventListener('click', newGame);
     loadBest();
     initGame();
