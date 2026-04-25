@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Fark Avcısı | PACDI Games</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            background: #04162E;
+            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+        }
+        .game-container {
+            max-width: 600px;
+            width: 100%;
+            background: rgba(4, 22, 46, 0.85);
+            border-radius: 56px;
+            padding: 20px 16px 24px;
+            box-shadow: 0 20px 35px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(2px);
+            border: 1px solid rgba(246, 180, 95, 0.3);
+            text-align: center;
+        }
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+        .logo-area {
+            text-align: left;
+        }
+        .logo {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #F6B45F;
+            letter-spacing: -0.3px;
+        }
+        .sub {
+            font-size: 0.62rem;
+            color: #9bb7d4;
+            margin-top: 2px;
+        }
+        .back-link {
+            color: #F6B45F;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.78rem;
+            background: #0a1018;
+            padding: 5px 12px;
+            border-radius: 40px;
+            border: 1px solid rgba(246,180,95,0.3);
+        }
+        .lang-selector {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+            justify-content: flex-end;
+        }
+        .lang-btn {
+            background: #0a1018;
+            border: 1px solid #F6B45F;
+            color: #F6B45F;
+            font-size: 0.7rem;
+            padding: 3px 10px;
+            border-radius: 30px;
+            cursor: pointer;
+        }
+        .lang-btn.active {
+            background: #F6B45F;
+            color: #04162E;
+        }
+        .info-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #0a1018;
+            border-radius: 40px;
+            padding: 7px 16px;
+            margin-bottom: 14px;
+        }
+        .info-box {
+            color: #F6B45F;
+            font-weight: bold;
+            font-size: 0.78rem;
+        }
+        .info-box span {
+            color: #eaf2fb;
+        }
+        .new-btn {
+            background: #F6B45F;
+            border: none;
+            font-weight: bold;
+            padding: 5px 14px;
+            border-radius: 40px;
+            color: #04162E;
+            cursor: pointer;
+            font-size: 0.78rem;
+        }
+        .diff-options {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 14px;
+        }
+        .diff-opt {
+            background: #0a1018;
+            border: 1px solid #F6B45F;
+            color: #F6B45F;
+            padding: 4px 14px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+        .diff-opt.active {
+            background: #F6B45F;
+            color: #04162E;
+        }
+        .images-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 20px;
+            background: #0a1018;
+            border-radius: 28px;
+            padding: 16px;
+        }
+        .image-panel {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+        }
+        .image-panel canvas {
+            width: 100%;
+            background: #1e2a3a;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        .feedback {
+            margin: 12px 0;
+            font-size: 0.9rem;
+            font-weight: bold;
+            min-height: 50px;
+            color: #2ECC71;
+        }
+        .feedback.error {
+            color: #E74C3C;
+        }
+        .progress-wrap {
+            background: #0a1018;
+            border-radius: 40px;
+            padding: 6px 12px;
+            margin-top: 8px;
+            font-size: 0.7rem;
+            color: #6c8fb0;
+        }
+        .footer {
+            text-align: center;
+            font-size: 0.6rem;
+            color: #6c8fb0;
+            margin-top: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="top-bar">
+            <div class="logo-area">
+                <div class="logo" id="gameTitle">FARK AVCISI</div>
+                <div class="sub" id="gameSub">Spot the Difference · Görsel Dikkat</div>
+            </div>
+            <a href="index.html" class="back-link" id="backLink">← Geri</a>
+        </div>
+        <div class="lang-selector" id="langSelector">
+            <button class="lang-btn active" data-lang="tr">TR</button>
+            <button class="lang-btn" data-lang="de">DE</button>
+            <button class="lang-btn" data-lang="en">EN</button>
+        </div>
+        <div class="info-bar">
+            <div class="info-box"><span id="scoreLabel">🎯 Bulunan:</span> <span id="scoreNum">0</span> / <span id="totalNum">3</span></div>
+            <div class="info-box"><span id="bestLabel">🏆 En İyi:</span> <span id="bestNum">—</span></div>
+            <button class="new-btn" id="resetBtn"><span id="resetText">↺ Yeniden</span></button>
+        </div>
+        <div class="diff-options" id="diffOptions">
+            <div data-diff="easy" class="diff-opt active">Kolay (3)</div>
+            <div data-diff="medium" class="diff-opt">Orta (5)</div>
+            <div data-diff="hard" class="diff-opt">Zor (7)</div>
+        </div>
+        <div class="images-container" id="imagesContainer">
+            <div class="image-panel">
+                <canvas id="canvasLeft" width="400" height="300"></canvas>
+            </div>
+            <div class="image-panel">
+                <canvas id="canvasRight" width="400" height="300"></canvas>
+            </div>
+        </div>
+        <div class="feedback" id="feedbackMsg"></div>
+        <div class="progress-wrap" id="progressMsg">İki resim arasındaki farklara tıkla!</div>
+        <div class="footer" id="footerText">Her iki resimde de farklı olan bölgeyi bul.</div>
+    </div>
+    <script>
+        (function() {
+            var langData = {
+                tr: {
+                    title: "FARK AVCISI",
+                    sub: "Spot the Difference · Görsel Dikkat",
+                    back: "← Geri",
+                    score: "🎯 Bulunan:",
+                    best: "🏆 En İyi:",
+                    reset: "↺ Yeniden",
+                    progress: "İki resim arasındaki farklara tıkla!",
+                    footer: "Her iki resimde de farklı olan bölgeyi bul.",
+                    correct: "✅ Fark bulundu! +1",
+                    wrong: "❌ Yanlış yer. Tekrar dene.",
+                    gameOver: "🎉 TEBRİKLER! Tüm farkları buldun!",
+                    newBest: " (YENİ REKOR!)"
+                },
+                de: {
+                    title: "FINDEN SIE DEN UNTERSCHIED",
+                    sub: "Visuelle Aufmerksamkeit",
+                    back: "← Zurück",
+                    score: "🎯 Gefunden:",
+                    best: "🏆 Beste:",
+                    reset: "↺ Neustart",
+                    progress: "Klicke auf die Unterschiede!",
+                    footer: "Finde den unterschiedlichen Bereich in beiden Bildern.",
+                    correct: "✅ Unterschied gefunden! +1",
+                    wrong: "❌ Falsche Stelle. Versuche es erneut.",
+                    gameOver: "🎉 GLÜCKWUNSCH! Alle Unterschiede gefunden!",
+                    newBest: " (NEUER REKORD!)"
+                },
+                en: {
+                    title: "SPOT THE DIFFERENCE",
+                    sub: "Visual Attention",
+                    back: "← Back",
+                    score: "🎯 Found:",
+                    best: "🏆 Best:",
+                    reset: "↺ Reset",
+                    progress: "Tap on the differences!",
+                    footer: "Find the area that differs in both images.",
+                    correct: "✅ Difference found! +1",
+                    wrong: "❌ Wrong spot. Try again.",
+                    gameOver: "🎉 CONGRATULATIONS! You found all differences!",
+                    newBest: " (NEW RECORD!)"
+                }
+            };
+
+            var currentLang = "tr";
+            var difficulty = "easy";
+            var totalDiffs = { easy: 3, medium: 5, hard: 7 };
+            var foundDiffs = 0;
+            var bestScores = { easy: 0, medium: 0, hard: 0 };
+            var gameActive = true;
+            var diffPositions = [];
+            var foundMarkers = [];
+
+            var canvasLeft = document.getElementById('canvasLeft');
+            var canvasRight = document.getElementById('canvasRight');
+            var ctxLeft = canvasLeft.getContext('2d');
+            var ctxRight = canvasRight.getContext('2d');
+
+            var scoreSpan = document.getElementById('scoreNum');
+            var totalSpan = document.getElementById('totalNum');
+            var bestSpan = document.getElementById('bestNum');
+            var feedbackDiv = document.getElementById('feedbackMsg');
+            var resetBtn = document.getElementById('resetBtn');
+            var langBtns = document.querySelectorAll('.lang-btn');
+            var diffBtns = document.querySelectorAll('.diff-opt');
+            var gameTitle = document.getElementById('gameTitle');
+            var gameSub = document.getElementById('gameSub');
+            var backLink = document.getElementById('backLink');
+            var scoreLabel = document.getElementById('scoreLabel');
+            var bestLabel = document.getElementById('bestLabel');
+            var resetSpan = document.getElementById('resetText');
+            var progressMsg = document.getElementById('progressMsg');
+            var footerText = document.getElementById('footerText');
+
+            function loadBest() {
+                var easy = localStorage.getItem('spotdiff_best_easy_' + currentLang);
+                var medium = localStorage.getItem('spotdiff_best_medium_' + currentLang);
+                var hard = localStorage.getItem('spotdiff_best_hard_' + currentLang);
+                bestScores.easy = easy ? parseInt(easy) : 0;
+                bestScores.medium = medium ? parseInt(medium) : 0;
+                bestScores.hard = hard ? parseInt(hard) : 0;
+                updateBestDisplay();
+            }
+
+            function saveBest() {
+                var key = 'spotdiff_best_' + difficulty + '_' + currentLang;
+                var currentBest = bestScores[difficulty];
+                if (foundDiffs > currentBest) {
+                    bestScores[difficulty] = foundDiffs;
+                    localStorage.setItem(key, foundDiffs);
+                    updateBestDisplay();
+                }
+            }
+
+            function updateBestDisplay() {
+                bestSpan.textContent = bestScores[difficulty] || '—';
+            }
+
+            function updateLanguage() {
+                var t = langData[currentLang];
+                if (!t) return;
+                gameTitle.innerText = t.title;
+                gameSub.innerText = t.sub;
+                backLink.innerText = t.back;
+                scoreLabel.innerText = t.score;
+                bestLabel.innerText = t.best;
+                resetSpan.innerText = t.reset;
+                progressMsg.innerText = t.progress;
+                footerText.innerText = t.footer;
+            }
+
+            function setLanguage(lang) {
+                currentLang = lang;
+                updateLanguage();
+                loadBest();
+                var btns = document.querySelectorAll('.lang-btn');
+                for (var i = 0; i < btns.length; i++) {
+                    if (btns[i].getAttribute('data-lang') === lang) btns[i].classList.add('active');
+                    else btns[i].classList.remove('active');
+                }
+            }
+
+            function drawBackground(ctx, w, h) {
+                ctx.fillStyle = '#1A2A3A';
+                ctx.fillRect(0, 0, w, h);
+                for (var i = 0; i < 12; i++) {
+                    for (var j = 0; j < 10; j++) {
+                        ctx.fillStyle = (i + j) % 2 === 0 ? '#1E2E3E' : '#162636';
+                        ctx.fillRect(i * 35, j * 32, 33, 30);
+                    }
+                }
+                var shapes = [
+                    { type: 'rect', x: 30, y: 40, w: 70, h: 70, color: '#F6B45F' },
+                    { type: 'circle', x: 200, y: 80, r: 35, color: '#1ABC9C' },
+                    { type: 'rect', x: 310, y: 180, w: 60, h: 60, color: '#eaf2fb' },
+                    { type: 'triangle', x: 100, y: 210, s: 50, color: '#F6B45F' },
+                    { type: 'circle', x: 350, y: 60, r: 25, color: '#E74C3C' },
+                    { type: 'rect', x: 140, y: 120, w: 50, h: 40, color: '#3498DB' }
+                ];
+                for (var s = 0; s < shapes.length; s++) {
+                    var sh = shapes[s];
+                    ctx.fillStyle = sh.color;
+                    if (sh.type === 'rect') {
+                        ctx.fillRect(sh.x, sh.y, sh.w, sh.h);
+                    } else if (sh.type === 'circle') {
+                        ctx.beginPath();
+                        ctx.arc(sh.x, sh.y, sh.r, 0, Math.PI * 2);
+                        ctx.fill();
+                    } else if (sh.type === 'triangle') {
+                        ctx.beginPath();
+                        ctx.moveTo(sh.x, sh.y - sh.s / 2);
+                        ctx.lineTo(sh.x + sh.s / 2, sh.y + sh.s / 2);
+                        ctx.lineTo(sh.x - sh.s / 2, sh.y + sh.s / 2);
+                        ctx.fill();
+                    }
+                }
+            }
+
+            function drawDifferences(ctx, positions, markers) {
+                for (var i = 0; i < positions.length; i++) {
+                    var p = positions[i];
+                    var isFound = false;
+                    for (var j = 0; j < markers.length; j++) {
+                        if (markers[j].x === p.x && markers[j].y === p.y) { isFound = true; break; }
+                    }
+                    if (!isFound) {
+                        ctx.fillStyle = p.color;
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.strokeStyle = '#FFFFFF';
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+                }
+                for (var k = 0; k < markers.length; k++) {
+                    var m = markers[k];
+                    ctx.strokeStyle = '#2ECC71';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(m.x, m.y, m.radius + 4, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.fillStyle = 'rgba(46, 204, 113, 0.3)';
+                    ctx.fill();
+                }
+            }
+
+            function generateRandomDiffs(count) {
+                var diffs = [];
+                var tries = 0;
+                while (diffs.length < count && tries < 100) {
+                    var x = 40 + Math.random() * (canvasLeft.width - 80);
+                    var y = 40 + Math.random() * (canvasLeft.height - 80);
+                    var valid = true;
+                    for (var i = 0; i < diffs.length; i++) {
+                        var dx = x - diffs[i].x;
+                        var dy = y - diffs[i].y;
+                        if (Math.sqrt(dx * dx + dy * dy) < 40) { valid = false; break; }
+                    }
+                    if (valid) {
+                        var colors = ['#E74C3C', '#F1C40F', '#2ECC71', '#9B59B6', '#E67E22', '#1ABC9C',
+                            '#F6B45F'
+                        ];
+                        diffs.push({
+                            x: x,
+                            y: y,
+                            radius: difficulty === 'hard' ? 10 : (difficulty === 'medium' ? 14 : 18),
+                            color: colors[Math.floor(Math.random() * colors.length)]
+                        });
+                    }
+                    tries++;
+                }
+                return diffs;
+            }
+
+            function drawBothCanvases() {
+                var w = canvasLeft.width;
+                var h = canvasLeft.height;
+                ctxLeft.clearRect(0, 0, w, h);
+                ctxRight.clearRect(0, 0, w, h);
+                drawBackground(ctxLeft, w, h);
+                drawBackground(ctxRight, w, h);
+                drawDifferences(ctxRight, diffPositions, foundMarkers);
+                drawDifferences(ctxLeft, [], foundMarkers);
+            }
+
+            function loadRound() {
+                var total = totalDiffs[difficulty];
+                totalSpan.innerText = total;
+                foundDiffs = 0;
+                scoreSpan.innerText = '0';
+                foundMarkers = [];
+                gameActive = true;
+                diffPositions = generateRandomDiffs(total);
+                drawBothCanvases();
+                feedbackDiv.innerHTML = '';
+            }
+
+            function handleCanvasTap(e, side) {
+                if (!gameActive) return;
+                var canvas = side === 'left' ? canvasLeft : canvasRight;
+                var rect = canvas.getBoundingClientRect();
+                var scaleX = canvas.width / rect.width;
+                var scaleY = canvas.height / rect.height;
+                var clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                var clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                var x = (clientX - rect.left) * scaleX;
+                var y = (clientY - rect.top) * scaleY;
+                var found = null;
+                for (var i = 0; i < diffPositions.length; i++) {
+                    var pos = diffPositions[i];
+                    var dx = x - pos.x;
+                    var dy = y - pos.y;
+                    var dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < pos.radius + 10) {
+                        found = pos;
+                        break;
+                    }
+                }
+                if (found) {
+                    var alreadyFound = false;
+                    for (var j = 0; j < foundMarkers.length; j++) {
+                        if (foundMarkers[j].x === found.x && foundMarkers[j].y === found.y) { alreadyFound =
+                                true; break; }
+                    }
+                    if (!alreadyFound) {
+                        foundMarkers.push({ x: found.x, y: found.y, radius: found.radius });
+                        foundDiffs++;
+                        scoreSpan.innerText = foundDiffs;
+                        saveBest();
+                        feedbackDiv.innerHTML = langData[currentLang].correct;
+                        feedbackDiv.style.color = '#2ECC71';
+                        drawBothCanvases();
+                        if (foundDiffs === totalDiffs[difficulty]) {
+                            gameActive = false;
+                            var msg = langData[currentLang].gameOver;
+                            if (foundDiffs === totalDiffs[difficulty] && foundDiffs > bestScores[difficulty])
+                                msg += langData[currentLang].newBest;
+                            feedbackDiv.innerHTML = msg;
+                        }
+                    } else {
+                        feedbackDiv.innerHTML = langData[currentLang].correct;
+                        feedbackDiv.style.color = '#2ECC71';
+                    }
+                } else {
+                    feedbackDiv.innerHTML = langData[currentLang].wrong;
+                    feedbackDiv.style.color = '#E74C3C';
+                    setTimeout(function() { if (gameActive) feedbackDiv.innerHTML = ''; }, 800);
+                }
+            }
+
+            canvasLeft.addEventListener('click', function(e) { handleCanvasTap(e, 'left'); });
+            canvasRight.addEventListener('click', function(e) { handleCanvasTap(e, 'right'); });
+            canvasLeft.addEventListener('touchstart', function(e) { e.preventDefault();
+                handleCanvasTap(e, 'left'); });
+            canvasRight.addEventListener('touchstart', function(e) { e.preventDefault();
+                handleCanvasTap(e, 'right'); });
+
+            function setDifficulty(diff) {
+                difficulty = diff;
+                updateBestDisplay();
+                for (var i = 0; i < diffBtns.length; i++) {
+                    var btn = diffBtns[i];
+                    if (btn.getAttribute('data-diff') === diff) btn.classList.add('active');
+                    else btn.classList.remove('active');
+                }
+                loadRound();
+            }
+
+            function resetGame() { setDifficulty(difficulty); }
+
+            for (var i = 0; i < diffBtns.length; i++) {
+                diffBtns[i].addEventListener('click', function() {
+                    var d = this.getAttribute('data-diff');
+                    if (d !== difficulty) setDifficulty(d);
+                });
+            }
+            resetBtn.addEventListener('click', resetGame);
+            for (var j = 0; j < langBtns.length; j++) {
+                langBtns[j].addEventListener('click', function() {
+                    var lang = this.getAttribute('data-lang');
+                    if (lang !== currentLang) setLanguage(lang);
+                });
+            }
+            setLanguage('tr');
+            loadBest();
+            setDifficulty('easy');
+        })();
+    </script>
+</body>
+</html>
