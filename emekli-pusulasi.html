@@ -24,7 +24,7 @@
     }
 
     .app-container {
-      max-width: 600px;
+      max-width: 620px;
       width: 100%;
       background: #1e2a3a;
       border-radius: 56px;
@@ -79,7 +79,6 @@
       font-size: 0.75rem;
       color: #F6B45F;
     }
-
     .info-item span {
       color: #eaf2fb;
     }
@@ -119,7 +118,7 @@
       font-weight: bold;
     }
 
-    select {
+    select, input {
       background: #1e2a3a;
       border: 1px solid #F6B45F;
       border-radius: 60px;
@@ -128,7 +127,6 @@
       font-size: 0.85rem;
       outline: none;
       font-family: inherit;
-      cursor: pointer;
     }
 
     .conditions-list {
@@ -189,7 +187,7 @@
     }
 
     .result-number {
-      font-size: 2.2rem;
+      font-size: 2rem;
       font-weight: bold;
       color: #F6B45F;
     }
@@ -211,12 +209,44 @@
       cursor: pointer;
       width: 100%;
       font-size: 0.9rem;
-      margin-bottom: 8px;
+      margin: 8px 0;
       transition: 0.05s;
     }
 
     .action-btn:active {
       transform: scale(0.97);
+    }
+
+    .user-rating {
+      background: #1e2a3a;
+      border-radius: 20px;
+      margin-top: 12px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .stars {
+      display: inline-flex;
+      gap: 8px;
+      margin: 8px 0;
+    }
+
+    .star {
+      font-size: 1.6rem;
+      cursor: pointer;
+      color: #4a6a8a;
+      transition: 0.05s;
+    }
+
+    .star.active {
+      color: #F6B45F;
+      text-shadow: 0 0 6px #F6B45F;
+    }
+
+    .rating-text {
+      font-size: 0.7rem;
+      color: #6c8fb0;
+      margin-top: 5px;
     }
 
     .report-btn {
@@ -274,7 +304,7 @@
       </div>
     </div>
 
-    <!-- Dinamik ek şartlar (burada gösterilecek) -->
+    <!-- Dinamik ek şartlar -->
     <div id="conditionsContainer"></div>
     <div id="warningContainer" class="warning-note" style="display:none;"></div>
 
@@ -284,20 +314,33 @@
       <div class="note">*Seçtiğiniz şartlar sağlandığında alacağınız tutar (3 yıl taahhüt).</div>
     </div>
 
+    <!-- Kullanıcı oylaması -->
+    <div class="user-rating">
+      <div style="font-size:0.8rem;">📊 Bu bankanın şartlarını anlamak ne kadar kolaydı?</div>
+      <div class="stars" id="starContainer">
+        <span class="star" data-value="1">☆</span>
+        <span class="star" data-value="2">☆</span>
+        <span class="star" data-value="3">☆</span>
+        <span class="star" data-value="4">☆</span>
+        <span class="star" data-value="5">☆</span>
+      </div>
+      <div class="rating-text" id="ratingText">Henüz oy yok. İlk sen oyla!</div>
+    </div>
+
     <button class="action-btn" id="copyBtn">📋 Sonucu Kopyala</button>
     <div class="report-btn" id="reportBtn">📢 Bilgiler güncel değil mi? Bildir</div>
   </div>
 
-  <!-- Banka değiştirme ceza hesaplayıcı (düzeltilmiş mantık) -->
+  <!-- Banka değiştirme ceza hesaplayıcı -->
   <div class="card">
     <div class="card-title">🔄 Banka Değiştirme · Promosyon İadesi</div>
-    <div class="select-item" style="margin-bottom:12px;">
+    <div class="select-item">
       <label>Alınan Promosyon (TL):</label>
-      <input type="number" id="receivedPromo" value="7500" style="width:100%; background:#1e2a3a; border:1px solid #F6B45F; border-radius:60px; padding:10px; color:white;">
+      <input type="number" id="receivedPromo" value="7500" style="width:100%;">
     </div>
     <div class="select-item">
       <label>Kalan Taahhüt (ay):</label>
-      <input type="number" id="remainingMonths" value="6" style="width:100%; background:#1e2a3a; border:1px solid #F6B45F; border-radius:60px; padding:10px; color:white;">
+      <input type="number" id="remainingMonths" value="6" style="width:100%;">
     </div>
     <button class="action-btn" id="calcPenaltyBtn">💰 İade Tutarını Hesapla</button>
     <div id="penaltyResult" style="margin-top:12px; text-align:center; color:#2ECC71; font-weight:bold;"></div>
@@ -309,109 +352,116 @@
 
 <script>
   (function() {
-    // ---------- GÜNCELLENMİŞ BANKA VERİLERİ (NİSAN 2026) ----------
-    // Her banka için maaş aralığına göre değişen baz promosyon ve ek şartlar.
-    // Kaynak: Yapı Kredi, Garanti BBVA, İş Bankası, Vakıf Katılım, ING, Ziraat, Halkbank vb. bankaların Nisan 2026 kampanyaları.
+    // ------------------------------------------------------------------
+    // GÜNCELLENMİŞ BANKA VERİLERİ (NİSAN 2026) – MAKSİMUM TUTAR + EK ŞARTLAR
+    // Her banka için:
+    //    baseBySalary : { maaş_aralığı : baz_promosyon }
+    //    ekBonusSabit : maaştan bağımsız ek promosyon (maksimum tutara ulaşmak için)
+    //    conditions   : checkbox ile eklenebilecek şartlar
+    //    warnings     : uyarı metinleri
+    //    maxPossible  : opsiyonel, gösterge amaçlı
+    // ------------------------------------------------------------------
     var banksData = [
-      {
-        name: "Yapı Kredi",
-        // Maaş aralığına göre baz promosyon (nakit)
-        baseBySalary: {
-          "0-9999": 6250,
-          "10000-14999": 10000,
-          "15000-19999": 12500,
-          "20000+": 15000
-        },
-        conditions: [
-          { desc: "Fatura ödeme talimatı (en az 1 fatura)", bonus: 2000, key: "fatura" },
-          { desc: "Kredi kartı harcaması (asgari 2.000 TL/ay)", bonus: 2000, key: "krediKarti" },
-          { desc: "Dijital bankacılık aktif (mobil uygulama)", bonus: 2000, key: "dijital" },
-          { desc: "Mobil üzerinden müşteri açılışı (yeni müşteri)", bonus: 3000, key: "mobilMusteri" }
-        ],
-        warnings: [
-          "⚠️ Fatura talimatlarını iptal etmeniz durumunda ek promosyon iptal olur.",
-          "⚠️ Kredi kartını ilk 6 ay içinde iptal ederseniz, kredi kartı promosyonu iade edilir."
-        ]
-      },
-      {
-        name: "Garanti BBVA",
-        baseBySalary: {
-          "0-9999": 6250,
-          "10000-14999": 10000,
-          "15000-19999": 12500,
-          "20000+": 15000
-        },
-        conditions: [
-          { desc: "Bonus Kart veya Paracard ile 2.000 TL harcama", bonus: 6000, key: "kartHarcama" },
-          { desc: "Avans Hesap kullanımı (2.000 TL)", bonus: 2000, key: "avans" },
-          { desc: "Yeni sigorta poliçesi", bonus: 2000, key: "sigorta" }
-        ],
-        warnings: [
-          "⚠️ Sigorta poliçesini iptal ederseniz, ilgili promosyon iade edilir.",
-          "⚠️ Avans Hesap bakiyesini kapatırsanız bonus iptal olur."
-        ]
-      },
-      {
-        name: "İş Bankası",
-        baseBySalary: {
-          "0-9999": 6250,
-          "10000-14999": 8000,
-          "15000-19999": 10000,
-          "20000+": 12000
-        },
-        conditions: [
-          { desc: "Fatura ödeme talimatı (en az 2 fatura)", bonus: 3000, key: "fatura2" },
-          { desc: "Maximum Kart başvurusu ve aktif kullanım", bonus: 2000, key: "kart" }
-        ],
-        warnings: [
-          "⚠️ Fatura talimatını iptal ederseniz promosyon iptal olur.",
-          "⚠️ Kredi kartını ilk yıl iptal ederseniz promosyon iade edilir."
-        ]
-      },
       {
         name: "Vakıf Katılım",
         baseBySalary: {
-          "0-9999": 5000,
-          "10000-14999": 8000,
-          "15000-19999": 10000,
-          "20000+": 12000
+          "0-9999": 8750,
+          "10000-14999": 14000,
+          "15000-19999": 17500,
+          "20000-49999": 21000,
+          "50000+": 25000
         },
+        ekBonusSabit: 15000,   // maaştan bağımsız ek promosyon
         conditions: [
-          { desc: "Fatura ödeme talimatı (en az 2 fatura)", bonus: 4500, key: "fatura" },
-          { desc: "Katılım Kredi Kartı başvurusu", bonus: 3000, key: "kart" },
-          { desc: "Hayat sigortası yaptırmak", bonus: 2000, key: "hayatSigorta" },
-          { desc: "Tüm şartlar + dijital bankacılık", bonus: 5000, key: "tumSartlar" }
+          { desc: "Otomatik fatura ödeme (en az 2 fatura)", bonus: 4500, key: "fatura" },
+          { desc: "Katılım Kredi Kartı başvurusu ve aktif kullanım", bonus: 3000, key: "kart" },
+          { desc: "Hayat sigortası yaptırmak", bonus: 2000, key: "sigorta" },
+          { desc: "Tüm şartlar + dijital bankacılık (Ek destek)", bonus: 5000, key: "tumSartlar" }
         ],
         warnings: [
-          "⚠️ Hayat sigortasını ilk yıl içinde iptal ederseniz, ilgili promosyon iade edilir.",
-          "⚠️ Fatura talimatlarını iptal etmeniz durumunda ek promosyon geçersiz olur."
+          "⚠️ Hayat sigortasını ilk yıl içinde iptal ederseniz, ilgili promosyon (2.000 TL) iade edilir.",
+          "⚠️ Fatura talimatlarını iptal etmeniz durumunda ek promosyon (4.500 TL) geçersiz olur.",
+          "⚠️ Kredi kartını ilk 6 ay iptal ederseniz kredi kartı promosyonu iade edilir."
         ]
       },
       {
         name: "ING",
         baseBySalary: {
-          "0-9999": 6250,
-          "10000-14999": 10000,
-          "15000-19999": 12500,
-          "20000+": 15000
+          "0-9999": 8750,
+          "10000-14999": 14000,
+          "15000-19999": 17500,
+          "20000-49999": 21000,
+          "50000+": 25000
         },
+        ekBonusSabit: 10000,   // ING için örnek "Turuncu Ekstra"
         conditions: [
-          { desc: "Turuncu Hesap açmak", bonus: 2000, key: "turuncuHesap" },
+          { desc: "Turuncu Hesap açmak", bonus: 2000, key: "turuncu" },
           { desc: "Fatura ödeme talimatı (2 fatura)", bonus: 3000, key: "fatura" },
-          { desc: "Kredi kartı başvurusu", bonus: 2000, key: "kart" }
+          { desc: "Kredi kartı başvurusu ve 1 alışveriş", bonus: 2000, key: "kart" }
         ],
-        warnings: [
-          "⚠️ Kredi kartını iptal ederseniz promosyon iade edilir."
-        ]
+        warnings: ["⚠️ Kredi kartını iptal ederseniz promosyon iade edilir."]
+      },
+      {
+        name: "Garanti BBVA",
+        baseBySalary: {
+          "0-9999": 8750,
+          "10000-14999": 14000,
+          "15000-19999": 17500,
+          "20000-49999": 21000,
+          "50000+": 25000
+        },
+        ekBonusSabit: 10000,
+        conditions: [
+          { desc: "Bonus Kart veya Paracard ile 2.000 TL harcama", bonus: 6000, key: "kart" },
+          { desc: "Avans Hesap kullanımı (2.000 TL limit)", bonus: 2000, key: "avans" },
+          { desc: "Yeni sigorta poliçesi", bonus: 2000, key: "sigorta" }
+        ],
+        warnings: ["⚠️ Sigorta iptalinde promosyon iadesi.", "⚠️ Avans hesap kapatılırsa bonus iptal."]
+      },
+      {
+        name: "Yapı Kredi",
+        baseBySalary: {
+          "0-9999": 8750,
+          "10000-14999": 14000,
+          "15000-19999": 17500,
+          "20000-49999": 21000,
+          "50000+": 25000
+        },
+        ekBonusSabit: 10000,
+        conditions: [
+          { desc: "Fatura ödeme talimatı (1 fatura)", bonus: 2000, key: "fatura" },
+          { desc: "Kredi kartı harcaması (asgari 2.000 TL/ay)", bonus: 2000, key: "kart" },
+          { desc: "Dijital bankacılık aktif", bonus: 2000, key: "dijital" },
+          { desc: "Mobil üzerinden müşteri açılışı", bonus: 3000, key: "mobil" }
+        ],
+        warnings: ["⚠️ Fatura talimatı iptali promosyonu geçersiz kılar."]
+      },
+      {
+        name: "İş Bankası",
+        baseBySalary: {
+          "0-9999": 8750,
+          "10000-14999": 14000,
+          "15000-19999": 17500,
+          "20000-49999": 21000,
+          "50000+": 25000
+        },
+        ekBonusSabit: 9000,
+        conditions: [
+          { desc: "Fatura ödeme talimatı (2 fatura)", bonus: 3000, key: "fatura" },
+          { desc: "Maximum Kart başvurusu ve aktif kullanım", bonus: 2000, key: "kart" }
+        ],
+        warnings: ["⚠️ Fatura iptali promosyonu iptal eder.", "⚠️ Kart iptali promosyon iadesi."]
       },
       {
         name: "Ziraat Bankası",
         baseBySalary: {
-          "0-9999": 5000,
-          "10000-14999": 7000,
-          "15000-19999": 9000,
-          "20000+": 12000
+          "0-9999": 8750,
+          "10000-14999": 14000,
+          "15000-19999": 17500,
+          "20000-49999": 21000,
+          "50000+": 25000
         },
+        ekBonusSabit: 8000,
         conditions: [
           { desc: "Fatura ödeme talimatı (1 fatura)", bonus: 2000, key: "fatura" },
           { desc: "Kredi kartı başvurusu", bonus: 2000, key: "kart" }
@@ -421,11 +471,13 @@
       {
         name: "Halkbank",
         baseBySalary: {
-          "0-9999": 5000,
-          "10000-14999": 7000,
-          "15000-19999": 9000,
-          "20000+": 11000
+          "0-9999": 8750,
+          "10000-14999": 14000,
+          "15000-19999": 17500,
+          "20000-49999": 21000,
+          "50000+": 25000
         },
+        ekBonusSabit: 7000,
         conditions: [
           { desc: "Fatura ödeme talimatı (1 fatura)", bonus: 1500, key: "fatura" },
           { desc: "Kredi kartı başvurusu", bonus: 2000, key: "kart" }
@@ -435,27 +487,29 @@
       {
         name: "Akbank",
         baseBySalary: {
-          "0-9999": 6250,
-          "10000-14999": 8000,
-          "15000-19999": 10000,
-          "20000+": 15000
+          "0-9999": 8750,
+          "10000-14999": 14000,
+          "15000-19999": 17500,
+          "20000-49999": 21000,
+          "50000+": 25000
         },
+        ekBonusSabit: 10000,
         conditions: [
-          { desc: "Fatura ödeme talimatı (5 fatura)", bonus: 5000, key: "fatura5" },
+          { desc: "Fatura ödeme talimatı (5 fatura)", bonus: 5000, key: "fatura" },
           { desc: "Axess/Wings kredi kartı", bonus: 5000, key: "kart" }
         ],
-        warnings: [
-          "⚠️ Fatura talimatlarını iptal ederseniz promosyon iptal olur."
-        ]
+        warnings: ["⚠️ Fatura iptali promosyonu iptal eder."]
       },
       {
         name: "Denizbank",
         baseBySalary: {
-          "0-9999": 5000,
-          "10000-14999": 7000,
-          "15000-19999": 9000,
-          "20000+": 11000
+          "0-9999": 8750,
+          "10000-14999": 14000,
+          "15000-19999": 17500,
+          "20000-49999": 21000,
+          "50000+": 25000
         },
+        ekBonusSabit: 7000,
         conditions: [
           { desc: "Fatura ödeme talimatı (2 fatura)", bonus: 2500, key: "fatura" },
           { desc: "Kredi kartı başvurusu", bonus: 2000, key: "kart" }
@@ -465,11 +519,13 @@
       {
         name: "Vakıfbank",
         baseBySalary: {
-          "0-9999": 5000,
-          "10000-14999": 7000,
-          "15000-19999": 9000,
-          "20000+": 11000
+          "0-9999": 8750,
+          "10000-14999": 14000,
+          "15000-19999": 17500,
+          "20000-49999": 21000,
+          "50000+": 25000
         },
+        ekBonusSabit: 7000,
         conditions: [
           { desc: "Fatura ödeme talimatı (2 fatura)", bonus: 3000, key: "fatura" },
           { desc: "Troy Emekli Kredi Kartı", bonus: 2000, key: "kart" }
@@ -479,25 +535,29 @@
       {
         name: "QNB Finansbank",
         baseBySalary: {
-          "0-9999": 5500,
-          "10000-14999": 7500,
-          "15000-19999": 9500,
-          "20000+": 12000
+          "0-9999": 8750,
+          "10000-14999": 14000,
+          "15000-19999": 17500,
+          "20000-49999": 21000,
+          "50000+": 25000
         },
+        ekBonusSabit: 8000,
         conditions: [
           { desc: "Fatura ödeme talimatı (2 fatura)", bonus: 3000, key: "fatura" },
-          { desc: "Kredi kartı (minimum limit 5.000 TL)", bonus: 2500, key: "kart" }
+          { desc: "Kredi kartı (min limit 5.000 TL)", bonus: 2500, key: "kart" }
         ],
         warnings: []
       },
       {
         name: "Şekerbank",
         baseBySalary: {
-          "0-9999": 4500,
-          "10000-14999": 6000,
-          "15000-19999": 8000,
-          "20000+": 10000
+          "0-9999": 8750,
+          "10000-14999": 14000,
+          "15000-19999": 17500,
+          "20000-49999": 21000,
+          "50000+": 25000
         },
+        ekBonusSabit: 5000,
         conditions: [
           { desc: "Fatura ödeme talimatı (1 fatura)", bonus: 1500, key: "fatura" },
           { desc: "Kredi kartı başvurusu", bonus: 1500, key: "kart" }
@@ -506,16 +566,27 @@
       }
     ];
 
-    // Sabit maaş aralıkları
+    // Maaş aralıkları (seçim için)
     var salaryRanges = [
       { value: "0-9999", label: "0 - 9.999 TL" },
       { value: "10000-14999", label: "10.000 - 14.999 TL" },
       { value: "15000-19999", label: "15.000 - 19.999 TL" },
-      { value: "20000+", label: "20.000 TL ve üzeri" }
+      { value: "20000-49999", label: "20.000 - 49.999 TL" },
+      { value: "50000+", label: "50.000 TL ve üzeri" }
     ];
 
+    // Oylama için localStorage anahtarları
+    function getRatingKey(bankName) { return 'ep_rating_' + bankName.replace(/\s/g,'_'); }
+    function loadRating(bankName) {
+      var saved = localStorage.getItem(getRatingKey(bankName));
+      return saved ? parseInt(saved,10) : 0;
+    }
+    function saveRating(bankName, value) {
+      localStorage.setItem(getRatingKey(bankName), value);
+    }
+
     var currentBankIndex = 0;
-    var currentSalaryRange = "0-9999";
+    var currentSalary = "0-9999";
     var conditionCheckboxes = [];
     var conditionBonusMap = {};
 
@@ -529,22 +600,24 @@
     var reportBtn = document.getElementById('reportBtn');
     var calcPenaltyBtn = document.getElementById('calcPenaltyBtn');
     var penaltyResultDiv = document.getElementById('penaltyResult');
+    var starContainer = document.getElementById('starContainer');
+    var ratingText = document.getElementById('ratingText');
 
     // Banka listesini doldur
     function populateBankSelect() {
       bankSelect.innerHTML = '';
-      for (var i = 0; i < banksData.length; i++) {
+      for (var i=0; i<banksData.length; i++) {
         var opt = document.createElement('option');
         opt.value = i;
         opt.innerText = banksData[i].name;
         bankSelect.appendChild(opt);
       }
+      document.getElementById('bankCount').innerText = banksData.length;
     }
 
-    // Maaş aralığı select'ini doldur
     function populateSalarySelect() {
       salarySelect.innerHTML = '';
-      for (var i = 0; i < salaryRanges.length; i++) {
+      for (var i=0; i<salaryRanges.length; i++) {
         var opt = document.createElement('option');
         opt.value = salaryRanges[i].value;
         opt.innerText = salaryRanges[i].label;
@@ -552,14 +625,12 @@
       }
     }
 
-    // Uyarıları güncelle
+    // Uyarıları göster
     function renderWarnings(bankIndex) {
       var bank = banksData[bankIndex];
-      if (bank.warnings && bank.warnings.length > 0) {
+      if (bank.warnings && bank.warnings.length) {
         var warnHtml = '<div style="margin-bottom:4px;">⚠️ Önemli Uyarılar:</div><ul style="margin-left:20px;">';
-        for (var i = 0; i < bank.warnings.length; i++) {
-          warnHtml += '<li>' + bank.warnings[i] + '</li>';
-        }
+        for (var i=0; i<bank.warnings.length; i++) warnHtml += '<li>' + bank.warnings[i] + '</li>';
         warnHtml += '</ul>';
         warningContainer.innerHTML = warnHtml;
         warningContainer.style.display = 'block';
@@ -568,100 +639,95 @@
       }
     }
 
-    // Şart listesini oluştur
+    // Ek şartları render et
     function renderConditions(bankIndex) {
       var bank = banksData[bankIndex];
       conditionsDiv.innerHTML = '';
       conditionCheckboxes = [];
-      conditionBonusMap = {};
-
       if (!bank.conditions || bank.conditions.length === 0) {
         conditionsDiv.innerHTML = '<div style="color:#6c8fb0; padding:12px; text-align:center;">Bu banka için ek şart bulunmamaktadır.</div>';
         return;
       }
-
-      for (var i = 0; i < bank.conditions.length; i++) {
+      for (var i=0; i<bank.conditions.length; i++) {
         var cond = bank.conditions[i];
-        var div = document.createElement('div');
-        div.className = 'condition-item';
-        var cb = document.createElement('input');
-        cb.type = 'checkbox';
-        cb.id = 'cond_' + i;
-        var label = document.createElement('label');
-        label.htmlFor = 'cond_' + i;
-        label.innerText = cond.desc;
-        var bonusSpan = document.createElement('span');
-        bonusSpan.className = 'condition-bonus';
-        bonusSpan.innerText = '+' + cond.bonus.toLocaleString() + ' TL';
-        div.appendChild(cb);
-        div.appendChild(label);
-        div.appendChild(bonusSpan);
+        var div = document.createElement('div'); div.className = 'condition-item';
+        var cb = document.createElement('input'); cb.type = 'checkbox'; cb.id = 'cond_' + i;
+        var label = document.createElement('label'); label.htmlFor = 'cond_' + i; label.innerText = cond.desc;
+        var bonusSpan = document.createElement('span'); bonusSpan.className = 'condition-bonus'; bonusSpan.innerText = '+' + cond.bonus.toLocaleString() + ' TL';
+        div.appendChild(cb); div.appendChild(label); div.appendChild(bonusSpan);
         conditionsDiv.appendChild(div);
         conditionCheckboxes.push({ cb: cb, bonus: cond.bonus });
         conditionBonusMap[cond.key] = cb;
       }
-
-      for (var j = 0; j < conditionCheckboxes.length; j++) {
+      // event listener ekle
+      for (var j=0; j<conditionCheckboxes.length; j++) {
         conditionCheckboxes[j].cb.addEventListener('change', calculateTotal);
       }
     }
 
-    // Toplam promosyonu hesapla
+    // Toplam promosyon hesaplama (baz + sabit ek + checkbox'lar)
     function calculateTotal() {
       var bank = banksData[currentBankIndex];
-      var baseAmount = bank.baseBySalary[currentSalaryRange];
-      if (!baseAmount) baseAmount = 0;
-
-      var total = baseAmount;
-      for (var i = 0; i < conditionCheckboxes.length; i++) {
-        if (conditionCheckboxes[i].cb.checked) {
-          total += conditionCheckboxes[i].bonus;
-        }
+      var base = bank.baseBySalary[currentSalary];
+      if (!base) base = 0;
+      var ekSabit = bank.ekBonusSabit || 0;
+      var total = base + ekSabit;
+      for (var i=0; i<conditionCheckboxes.length; i++) {
+        if (conditionCheckboxes[i].cb.checked) total += conditionCheckboxes[i].bonus;
       }
       calculatedBonusSpan.innerText = total.toLocaleString() + ' TL';
     }
 
-    // Banka değiştiğinde
+    // Banka veya maaş değiştiğinde
     function onBankChange() {
       currentBankIndex = parseInt(bankSelect.value, 10);
       renderConditions(currentBankIndex);
       renderWarnings(currentBankIndex);
       calculateTotal();
+      updateRatingUI(banksData[currentBankIndex].name);
     }
 
-    // Maaş aralığı değiştiğinde
     function onSalaryChange() {
-      currentSalaryRange = salarySelect.value;
+      currentSalary = salarySelect.value;
       calculateTotal();
     }
 
-    // En iyi skor ve puanlama (önceki gibi localStorage)
-    function copyResult() {
-      var bankName = banksData[currentBankIndex].name;
-      var salaryText = salarySelect.options[salarySelect.selectedIndex].text;
-      var totalText = calculatedBonusSpan.innerText;
-      var msg = bankName + ' bankasında ' + salaryText + ' maaş aralığı için size özel promosyon: ' + totalText;
-      navigator.clipboard.writeText(msg).then(function() {
-        alert('Sonuç kopyalandı:\n' + msg);
-      }).catch(function() {
-        alert('Manuel kopyalayın: ' + msg);
-      });
-    }
-
-    // Promosyon iadesi hesaplama (ceza değil)
-    function calculateRefund() {
-      var received = parseInt(document.getElementById('receivedPromo').value, 10);
-      var monthsLeft = parseInt(document.getElementById('remainingMonths').value, 10);
-      if (isNaN(received) || isNaN(monthsLeft) || monthsLeft < 0) {
-        penaltyResultDiv.innerText = 'Lütfen geçerli değerler girin.';
-        return;
+    // Kullanıcı oylaması
+    function updateRatingUI(bankName) {
+      var rating = loadRating(bankName);
+      var stars = document.querySelectorAll('#starContainer .star');
+      for (var i=0; i<stars.length; i++) {
+        var starVal = parseInt(stars[i].getAttribute('data-value'),10);
+        if (starVal <= rating) stars[i].innerHTML = '★';
+        else stars[i].innerHTML = '☆';
       }
-      var monthly = received / 36;
-      var refund = monthly * monthsLeft;
-      refund = Math.round(refund);
-      penaltyResultDiv.innerHTML = '⚠️ Kalan ' + monthsLeft + ' ay için iade edilmesi gereken promosyon tutarı: ' + refund.toLocaleString() + ' TL<br><span style="font-size:0.7rem;">*Bankanızla görüşerek kesin tutarı teyit ediniz.</span>';
+      if (rating > 0) ratingText.innerHTML = '⭐ Kullanıcı puanı: ' + rating + '/5 (' + (rating*20) + '%) - Başkalarına yol göster.';
+      else ratingText.innerHTML = 'Henüz oy yok. İlk sen oyla! (1-5 yıldız)';
     }
 
+    function bindStarEvents() {
+      var stars = document.querySelectorAll('#starContainer .star');
+      for (var i=0; i<stars.length; i++) {
+        stars[i].onclick = function() {
+          var val = parseInt(this.getAttribute('data-value'),10);
+          var bank = banksData[currentBankIndex];
+          saveRating(bank.name, val);
+          updateRatingUI(bank.name);
+        };
+      }
+    }
+
+    // Kopyala
+    function copyResult() {
+      var bank = banksData[currentBankIndex];
+      var salaryText = salarySelect.options[salarySelect.selectedIndex].text;
+      var total = calculatedBonusSpan.innerText;
+      var msg = bank.name + ' bankasında ' + salaryText + ' maaş aralığı için size özel promosyon: ' + total;
+      navigator.clipboard.writeText(msg).then(function() { alert('Sonuç kopyalandı:\n' + msg); })
+        .catch(function() { alert('Manuel kopyalayın: ' + msg); });
+    }
+
+    // Bildirim (mailto)
     function sendReport() {
       var bankName = banksData[currentBankIndex].name;
       var subject = encodeURIComponent('Emekli Pusulası - Bilgi Güncelleme Talebi: ' + bankName);
@@ -669,7 +735,19 @@
       window.location.href = 'mailto:info@pacdi.games?subject=' + subject + '&body=' + body;
     }
 
-    // Başlangıç
+    // İade hesaplama
+    function calculateRefund() {
+      var received = parseInt(document.getElementById('receivedPromo').value, 10);
+      var monthsLeft = parseInt(document.getElementById('remainingMonths').value, 10);
+      if (isNaN(received) || isNaN(monthsLeft) || monthsLeft<0) {
+        penaltyResultDiv.innerText = 'Lütfen geçerli değerler girin.';
+        return;
+      }
+      var refund = Math.round((received / 36) * monthsLeft);
+      penaltyResultDiv.innerHTML = '⚠️ Kalan ' + monthsLeft + ' ay için iade edilmesi gereken promosyon tutarı: ' + refund.toLocaleString() + ' TL<br><span style="font-size:0.7rem;">*Bankanızla görüşerek kesin tutarı teyit ediniz.</span>';
+    }
+
+    // Event listener'lar
     populateBankSelect();
     populateSalarySelect();
     bankSelect.addEventListener('change', onBankChange);
@@ -677,14 +755,17 @@
     copyBtn.addEventListener('click', copyResult);
     reportBtn.addEventListener('click', sendReport);
     calcPenaltyBtn.addEventListener('click', calculateRefund);
+    bindStarEvents();
 
+    // Başlangıç değerleri
     currentBankIndex = 0;
     bankSelect.value = 0;
-    currentSalaryRange = "0-9999";
-    salarySelect.value = currentSalaryRange;
+    currentSalary = "20000-49999";
+    salarySelect.value = currentSalary;
     renderConditions(0);
     renderWarnings(0);
     calculateTotal();
+    updateRatingUI(banksData[0].name);
   })();
 </script>
 </body>
