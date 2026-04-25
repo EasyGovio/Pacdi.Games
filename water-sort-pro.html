@@ -3,16 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Water Sort Pro | PACDI Games</title>
+  <title>Water Sort · Renk Sıralama | PACDI Games</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-    }
-
+    * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
     body {
       background: #04162E;
       font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -22,99 +15,31 @@
       align-items: center;
       padding: 16px;
     }
-
     .game-container {
       max-width: 650px;
       width: 100%;
       background: #1e2a3a;
       border-radius: 48px;
       padding: 20px 16px 24px;
-      box-shadow: 0 20px 35px rgba(0, 0, 0, 0.4);
-      border: 1px solid rgba(246, 180, 95, 0.3);
+      box-shadow: 0 20px 35px rgba(0,0,0,0.4);
+      border: 1px solid rgba(246,180,95,0.3);
     }
-
     .header {
       display: flex;
       justify-content: space-between;
       align-items: baseline;
       margin-bottom: 14px;
     }
-
-    .logo {
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: #F6B45F;
-    }
-
-    .sub {
-      font-size: 0.62rem;
-      color: #9bb7d4;
-      margin-top: 2px;
-    }
-
-    .back-link {
-      color: #F6B45F;
-      text-decoration: none;
-      font-weight: bold;
-      font-size: 0.78rem;
-      background: #0a1018;
-      padding: 5px 12px;
-      border-radius: 40px;
-    }
-
-    .info-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #0a1018;
-      border-radius: 40px;
-      padding: 7px 16px;
-      margin-bottom: 14px;
-    }
-
-    .info-box {
-      color: #F6B45F;
-      font-weight: bold;
-      font-size: 0.78rem;
-    }
-
-    .info-box span {
-      color: #eaf2fb;
-    }
-
-    .new-btn {
-      background: #F6B45F;
-      border: none;
-      font-weight: bold;
-      padding: 5px 14px;
-      border-radius: 40px;
-      color: #04162E;
-      cursor: pointer;
-      font-size: 0.78rem;
-    }
-
-    .difficulty-row {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 14px;
-    }
-
-    .diff-btn {
-      background: #0a1018;
-      border: 1px solid #F6B45F;
-      color: #F6B45F;
-      padding: 4px 14px;
-      border-radius: 40px;
-      font-size: 0.75rem;
-      cursor: pointer;
-    }
-
-    .diff-btn.active {
-      background: #F6B45F;
-      color: #04162E;
-    }
-
+    .logo { font-size: 1.5rem; font-weight: bold; color: #F6B45F; }
+    .sub { font-size: 0.62rem; color: #9bb7d4; margin-top: 2px; }
+    .back-link { color: #F6B45F; text-decoration: none; font-weight: bold; font-size: 0.78rem; background: #0a1018; padding: 5px 12px; border-radius: 40px; }
+    .info-bar { display: flex; justify-content: space-between; align-items: center; background: #0a1018; border-radius: 40px; padding: 7px 16px; margin-bottom: 14px; flex-wrap: wrap; gap: 8px; }
+    .info-box { color: #F6B45F; font-weight: bold; font-size: 0.78rem; }
+    .info-box span { color: #eaf2fb; }
+    .select-group { display: flex; gap: 12px; justify-content: center; margin-bottom: 14px; flex-wrap: wrap; }
+    .select-item label { font-size: 0.7rem; color: #F6B45F; margin-right: 6px; }
+    select { background: #0a1018; border: 1px solid #F6B45F; border-radius: 40px; padding: 6px 12px; color: #F6B45F; font-size: 0.8rem; }
+    button { background: #F6B45F; border: none; font-weight: bold; padding: 5px 14px; border-radius: 40px; color: #04162E; cursor: pointer; font-size: 0.78rem; }
     .tubes-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -122,9 +47,8 @@
       justify-items: center;
       margin: 20px 0;
     }
-
     .tube {
-      width: 80px;
+      width: 85px;
       background: #0a1018;
       border-radius: 40px;
       padding: 8px 6px;
@@ -134,71 +58,15 @@
       gap: 6px;
       cursor: pointer;
       border: 2px solid #F6B45F40;
-      transition: all 0.1s;
+      transition: all 0.1s ease;
+      min-height: 150px;
     }
-
-    .tube.selected {
-      border: 3px solid #F6B45F;
-      background: rgba(246, 180, 95, 0.1);
-      transform: scale(1.02);
-    }
-
-    .color-unit {
-      width: 100%;
-      height: 24px;
-      border-radius: 20px;
-      transition: transform 0.08s;
-    }
-
-    .empty-slot {
-      width: 100%;
-      height: 24px;
-      background: rgba(255, 255, 255, 0.04);
-      border-radius: 20px;
-      border: 1px dashed #F6B45F30;
-    }
-
-    .info-row {
-      display: flex;
-      justify-content: space-between;
-      margin: 10px 0;
-      gap: 10px;
-    }
-
-    .info-row button {
-      flex: 1;
-      background: #1e2a3a;
-      border: 1px solid #F6B45F;
-      color: #F6B45F;
-      padding: 8px;
-      border-radius: 40px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .message {
-      text-align: center;
-      margin-top: 15px;
-      padding: 8px;
-      background: #0a1018;
-      border-radius: 40px;
-      color: #eaf2fb;
-      font-weight: bold;
-      font-size: 0.8rem;
-    }
-
-    .footer {
-      text-align: center;
-      font-size: 0.6rem;
-      color: #6c8fb0;
-      margin-top: 12px;
-    }
-
-    @media (max-width: 550px) {
-      .tube { width: 70px; }
-      .color-unit, .empty-slot { height: 20px; }
-      .tubes-grid { gap: 10px; }
-    }
+    .tube.selected { border: 3px solid #F6B45F; background: rgba(246,180,95,0.1); transform: scale(1.02); }
+    .color-unit { width: 100%; height: 24px; border-radius: 20px; transition: transform 0.08s; box-shadow: inset 0 1px 2px rgba(0,0,0,0.2); }
+    .empty-slot { width: 100%; height: 24px; background: rgba(255,255,255,0.04); border-radius: 20px; border: 1px dashed #F6B45F30; }
+    .message { text-align: center; margin-top: 15px; padding: 8px; background: #0a1018; border-radius: 40px; color: #eaf2fb; font-weight: bold; font-size: 0.8rem; }
+    .footer { text-align: center; font-size: 0.6rem; color: #6c8fb0; margin-top: 12px; display: flex; justify-content: center; gap: 16px; }
+    @media (max-width: 550px) { .tube { width: 70px; } .color-unit, .empty-slot { height: 20px; } .tubes-grid { gap: 10px; } }
   </style>
 </head>
 <body>
@@ -207,43 +75,30 @@
     <div><div class="logo">WATER SORT PRO</div><div class="sub">PACDI Games · Renk Sıralama</div></div>
     <a href="index.html" class="back-link">← Geri</a>
   </div>
-
   <div class="info-bar">
     <div class="info-box">📌 Hamle: <span id="moveCount">0</span></div>
     <div class="info-box">🏆 En İyi: <span id="bestScore">—</span></div>
-    <button class="new-btn" id="newGameBtn">↺ Yeni Oyun</button>
+    <button id="newGameBtn">↺ Yeni Oyun</button>
   </div>
 
-  <div class="difficulty-row">
-    <div class="diff-btn active" data-diff="easy">Kolay (4 renk)</div>
-    <div class="diff-btn" data-diff="medium">Orta (5 renk)</div>
-    <div class="diff-btn" data-diff="hard">Zor (6 renk)</div>
+  <div class="select-group">
+    <div class="select-item"><label>🎯 Zorluk:</label><select id="difficultySelect"><option value="easy">Kolay (4 renk)</option><option value="medium" selected>Orta (5 renk)</option><option value="hard">Zor (6 renk)</option></select></div>
   </div>
 
   <div id="tubesContainer" class="tubes-grid"></div>
-
-  <div class="info-row">
-    <button id="hintBtn">💡 İpucu (Reklam)</button>
-    <button id="extraTubeBtn">🧪 +Boş Tüp (Reklam)</button>
-  </div>
-
   <div class="message" id="gameMsg">Bir tüpe dokun → top seç → başka tüpe taşı</div>
-  <div class="footer">✔ Aynı renk üst üste eklenir · Boş tüpe her renk gider · Kazanmak için her tüp tek renk</div>
+  <div class="footer">
+    <span>✔ Aynı renk üst üste</span>
+    <span>✨ Boş tüpe her renk</span>
+    <span>🏆 Kazanmak için tüm tüpleri tek renk yap</span>
+  </div>
 </div>
 
 <script>
   (function() {
-    var COLOR_SETS = {
-      easy: ["#F6B45F", "#2ECC71", "#E74C3C", "#3498DB"],
-      medium: ["#F6B45F", "#2ECC71", "#E74C3C", "#3498DB", "#9B59B6"],
-      hard: ["#F6B45F", "#2ECC71", "#E74C3C", "#3498DB", "#9B59B6", "#1ABC9C"]
-    };
-
-    var TUBE_COUNT_BASE = { easy: 6, medium: 7, hard: 8 };
-    var UNITS_PER_COLOR = 3;   // her renkten 3 birim
+    // -- RENK PALETİ (6 renk, zorluk seviyesine göre kullanılacak)
+    var ALL_COLORS = ["#F6B45F", "#2ECC71", "#E74C3C", "#3498DB", "#9B59B6", "#1ABC9C"];
     var TUBE_CAP = 4;
-
-    var currentDiff = "easy";
     var tubes = [];
     var selectedTube = null;
     var moves = 0;
@@ -251,59 +106,67 @@
     var gameActive = true;
     var bestKey = "watersort_pro_best";
 
+    // DOM elementleri
     var container = document.getElementById('tubesContainer');
     var moveSpan = document.getElementById('moveCount');
     var bestSpan = document.getElementById('bestScore');
     var newGameBtn = document.getElementById('newGameBtn');
     var gameMsgDiv = document.getElementById('gameMsg');
+    var difficultySelect = document.getElementById('difficultySelect');
 
     function loadBest() {
-      var saved = localStorage.getItem(bestKey + "_" + currentDiff);
-      bestScore = saved ? parseInt(saved, 10) : 0;
+      var saved = localStorage.getItem(bestKey);
+      bestScore = saved ? parseInt(saved,10) : 0;
       bestSpan.innerText = bestScore || '—';
     }
     function saveBest() {
       if (moves < bestScore || bestScore === 0) {
         bestScore = moves;
-        localStorage.setItem(bestKey + "_" + currentDiff, bestScore);
+        localStorage.setItem(bestKey, bestScore);
         bestSpan.innerText = bestScore;
       }
     }
 
-    function getColorList() { return COLOR_SETS[currentDiff]; }
-    function getTubeCount() { return TUBE_COUNT_BASE[currentDiff]; }
+    // Zorluğa göre kullanılacak renk sayısı
+    function getColorCount() {
+      var diff = difficultySelect.value;
+      if (diff === 'easy') return 4;
+      if (diff === 'medium') return 5;
+      return 6;
+    }
 
-    function generatePlayableLayout() {
-      var colors = getColorList();
-      var colorCount = colors.length;
-      var totalUnits = colorCount * UNITS_PER_COLOR;
-      var tubeCount = getTubeCount();
+    // Rastgele ama çözülmesi zor bir başlangıç dizilimi üret
+    function generateUnsolvedLayout(colorCount) {
+      var colors = ALL_COLORS.slice(0, colorCount);
+      var unitsPerColor = 4;
+      var totalUnits = colorCount * unitsPerColor;
       var colorPool = [];
-      for (var i = 0; i < colorCount; i++) {
-        for (var j = 0; j < UNITS_PER_COLOR; j++) {
-          colorPool.push(colors[i]);
-        }
+      for (var c=0; c<colorCount; c++) {
+        for (var q=0; q<unitsPerColor; q++) colorPool.push(colors[c]);
       }
-      // karıştır
-      for (var i = colorPool.length - 1; i > 0; i--) {
-        var j = Math.floor(Math.random() * (i + 1));
-        var t = colorPool[i]; colorPool[i] = colorPool[j]; colorPool[j] = t;
+      // Fisher-Yates karıştır
+      for (var i=colorPool.length-1; i>0; i--) {
+        var j = Math.floor(Math.random()*(i+1));
+        var tmp = colorPool[i]; colorPool[i]=colorPool[j]; colorPool[j]=tmp;
       }
+      // Tüp sayısı = renk sayısı + 2 (en az 6 tüp, max 8)
+      var tubeCount = Math.min(8, colorCount + 2);
       var newTubes = [];
-      for (var t = 0; t < tubeCount; t++) newTubes.push([]);
-      for (var idx = 0; idx < colorPool.length; idx++) {
+      for (var t=0; t<tubeCount; t++) newTubes.push([]);
+      // Dağıtım: rastgele tüplere yerleştir, ancak tüm tüplerin dolmaması için karıştır
+      for (var idx=0; idx<colorPool.length; idx++) {
         var placed = false;
         var attempts = 0;
-        while (!placed && attempts < 50) {
-          var r = Math.floor(Math.random() * tubeCount);
-          if (newTubes[r].length < TUBE_CAP) {
-            newTubes[r].push(colorPool[idx]);
+        while (!placed && attempts < 40) {
+          var randTube = Math.floor(Math.random() * tubeCount);
+          if (newTubes[randTube].length < TUBE_CAP) {
+            newTubes[randTube].push(colorPool[idx]);
             placed = true;
           }
           attempts++;
         }
         if (!placed) {
-          for (var k = 0; k < tubeCount; k++) {
+          for (var k=0; k<tubeCount; k++) {
             if (newTubes[k].length < TUBE_CAP) {
               newTubes[k].push(colorPool[idx]);
               break;
@@ -311,67 +174,100 @@
           }
         }
       }
+      // Boş tüpleri doldurma (en az 2 boş tüp bırak)
+      // Mevcut boş tüp sayısını kontrol et
+      var emptyCount = 0;
+      for (var i=0; i<tubeCount; i++) if (newTubes[i].length===0) emptyCount++;
+      if (emptyCount < 2) {
+        // ekstra boşluk oluşturmak için rastgele bir dolu tüpten bir topu başka yere taşı (zorluk artır)
+        for (var i=0; i<tubeCount && emptyCount<2; i++) {
+          if (newTubes[i].length>0 && newTubes[i].length < TUBE_CAP) {
+            // zaten kısmen dolu, boş tüpe taşı
+            for (var j=0; j<tubeCount; j++) {
+              if (newTubes[j].length===0) {
+                var ball = newTubes[i].pop();
+                newTubes[j].push(ball);
+                emptyCount++;
+                break;
+              }
+            }
+          }
+        }
+      }
       return newTubes;
     }
 
-    function isGameWon() {
-      for (var i = 0; i < tubes.length; i++) {
-        var tube = tubes[i];
-        if (tube.length === 0) continue;
-        var first = tube[0];
-        for (var j = 1; j < tube.length; j++) if (tube[j] !== first) return false;
-      }
-      return true;
-    }
-
-    function isValidMove(from, to) {
-      if (from === to) return false;
-      var src = tubes[from];
-      var dst = tubes[to];
-      if (src.length === 0) return false;
-      if (dst.length === TUBE_CAP) return false;
-      if (dst.length === 0) return true;
-      return src[src.length - 1] === dst[dst.length - 1];
-    }
-
-    function applyMove(from, to) {
-      if (!isValidMove(from, to)) return false;
-      var ball = tubes[from].pop();
-      tubes[to].push(ball);
-      moves++;
-      moveSpan.innerText = moves;
+    function initGame() {
+      var colorCount = getColorCount();
+      var newLayout = generateUnsolvedLayout(colorCount);
+      tubes = newLayout;
       selectedTube = null;
+      moves = 0;
+      gameActive = true;
+      moveSpan.innerText = "0";
       renderGame();
-      if (isGameWon()) {
-        gameActive = false;
-        saveBest();
-        gameMsgDiv.innerHTML = "🎉 KAZANDINIZ! YENİ OYUN için butona basınız.";
-      } else {
-        gameMsgDiv.innerHTML = "✔️ Hamle yapıldı.";
-      }
-      return true;
+      gameMsgDiv.innerHTML = "Bir tüpe dokun → top seç → başka tüpe taşı";
     }
 
     function renderGame() {
       container.innerHTML = '';
-      for (var i = 0; i < tubes.length; i++) {
+      for (var i=0; i<tubes.length; i++) {
         var tubeData = tubes[i];
         var tubeDiv = document.createElement('div');
         tubeDiv.className = 'tube';
         if (selectedTube === i) tubeDiv.classList.add('selected');
-        for (var slot = 0; slot < TUBE_CAP; slot++) {
-          var unit = document.createElement('div');
+        tubeDiv.setAttribute('data-idx', i);
+        for (var slot=0; slot<TUBE_CAP; slot++) {
+          var unitDiv = document.createElement('div');
           if (slot < tubeData.length) {
-            unit.className = 'color-unit';
-            unit.style.backgroundColor = tubeData[slot];
+            unitDiv.className = 'color-unit';
+            unitDiv.style.backgroundColor = tubeData[slot];
           } else {
-            unit.className = 'empty-slot';
+            unitDiv.className = 'empty-slot';
           }
-          tubeDiv.appendChild(unit);
+          tubeDiv.appendChild(unitDiv);
         }
         tubeDiv.addEventListener('click', (function(idx) { return function() { onTubeClick(idx); }; })(i));
         container.appendChild(tubeDiv);
       }
+    }
+
+    function isValidMove(fromIdx, toIdx) {
+      if (fromIdx === toIdx) return false;
+      var src = tubes[fromIdx];
+      var dst = tubes[toIdx];
+      if (src.length === 0) return false;
+      if (dst.length === TUBE_CAP) return false;
+      if (dst.length === 0) return true;
+      var srcTop = src[src.length-1];
+      var dstTop = dst[dst.length-1];
+      return srcTop === dstTop;
+    }
+
+    function applyMove(fromIdx, toIdx) {
+      if (!isValidMove(fromIdx, toIdx)) return false;
+      var srcTop = tubes[fromIdx].pop();
+      tubes[toIdx].push(srcTop);
+      moves++;
+      moveSpan.innerText = moves;
+      selectedTube = null;
+      renderGame();
+      return true;
+    }
+
+    function isGameWon() {
+      var totalUnits = 0;
+      for (var i=0; i<tubes.length; i++) {
+        var tube = tubes[i];
+        if (tube.length === 0) continue;
+        var firstColor = tube[0];
+        for (var j=1; j<tube.length; j++) {
+          if (tube[j] !== firstColor) return false;
+        }
+        totalUnits += tube.length;
+      }
+      var expected = getColorCount() * 4;
+      return totalUnits === expected;
     }
 
     function onTubeClick(idx) {
@@ -382,84 +278,39 @@
           renderGame();
           gameMsgDiv.innerHTML = "✅ Top seçildi. Hedef tüpe dokun.";
         } else {
-          gameMsgDiv.innerHTML = "⚠️ Boş tüp seçilemez. Önce dolu tüp seç.";
+          gameMsgDiv.innerHTML = "⚠️ Boş tüp seçemezsin. Önce dolu bir tüp seç.";
+        }
+        return;
+      }
+      var success = applyMove(selectedTube, idx);
+      if (success) {
+        if (isGameWon()) {
+          gameActive = false;
+          saveBest();
+          gameMsgDiv.innerHTML = "🎉 TEBRİKLER! OYUNU KAZANDINIZ! 🎉";
+          renderGame();
+        } else {
+          gameMsgDiv.innerHTML = "✔️ Hamle yapıldı. Devam et.";
         }
       } else {
-        var success = applyMove(selectedTube, idx);
-        if (!success) {
-          gameMsgDiv.innerHTML = "❌ Geçersiz hamle! Aynı renk üst üste veya hedef boş olmalı.";
-          selectedTube = null;
-          renderGame();
-        }
+        gameMsgDiv.innerHTML = "❌ Geçersiz hamle! Aynı renk üst üste olmalı veya hedef boş olmalı.";
+        selectedTube = null;
+        renderGame();
       }
     }
 
     function newGame() {
-      gameActive = true;
-      selectedTube = null;
-      tubes = generatePlayableLayout();
-      moves = 0;
-      moveSpan.innerText = "0";
-      loadBest();
-      renderGame();
-      gameMsgDiv.innerHTML = "Yeni oyun başladı. İyi şanslar!";
+      initGame();
+      gameMsgDiv.innerHTML = "🔁 Yeni oyun başladı. Zorluk: " + difficultySelect.options[difficultySelect.selectedIndex].text;
     }
 
-    function setDifficulty(diff) {
-      currentDiff = diff;
-      // aktif buton görünümü
-      var btns = document.querySelectorAll('.diff-btn');
-      for (var i = 0; i < btns.length; i++) {
-        if (btns[i].getAttribute('data-diff') === diff) btns[i].classList.add('active');
-        else btns[i].classList.remove('active');
-      }
+    difficultySelect.addEventListener('change', function() {
       newGame();
-    }
-
-    // İpucu: yapılabilecek bir hamle öner (ödüllü video mock)
-    function giveHint() {
-      if (!gameActive) return;
-      for (var i = 0; i < tubes.length; i++) {
-        for (var j = 0; j < tubes.length; j++) {
-          if (isValidMove(i, j)) {
-            gameMsgDiv.innerHTML = "💡 İpucu: " + (i+1) + ". tüpten " + (j+1) + ". tüpe taşıyabilirsin.";
-            alert("🎥 İpucu için reklam izleniyor (simülasyon)\nÖnerilen hamle: " + (i+1) + " → " + (j+1));
-            return;
-          }
-        }
-      }
-      gameMsgDiv.innerHTML = "⚠️ Şu anda yapılabilecek hamle yok. Karıştırmayı dene.";
-    }
-
-    // Ek boş tüp ekle (ödüllü video)
-    function addExtraTube() {
-      if (!gameActive) return;
-      if (tubes.length >= 9) {
-        gameMsgDiv.innerHTML = "❌ Daha fazla tüp eklenemez (max 9).";
-        return;
-      }
-      alert("🎥 Ekstra tüp için reklam izleniyor (simülasyon)");
-      tubes.push([]);
-      renderGame();
-      gameMsgDiv.innerHTML = "🧪 Yeni boş tüp eklendi!";
-    }
-
-    // Event listener'lar
+    });
     newGameBtn.addEventListener('click', newGame);
-    document.getElementById('hintBtn').addEventListener('click', giveHint);
-    document.getElementById('extraTubeBtn').addEventListener('click', addExtraTube);
-
-    var diffBtns = document.querySelectorAll('.diff-btn');
-    for (var i = 0; i < diffBtns.length; i++) {
-      diffBtns[i].addEventListener('click', function() {
-        var diff = this.getAttribute('data-diff');
-        if (diff === currentDiff) return;
-        setDifficulty(diff);
-      });
-    }
 
     loadBest();
-    newGame();
+    initGame();
   })();
 </script>
 </body>
