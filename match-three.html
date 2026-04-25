@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Match Three | PACDI Games</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+        body { background:#04162E; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
+        .game-container { max-width:500px; width:100%; background:rgba(4,22,46,0.85); border-radius:56px; padding:20px 16px 24px; box-shadow:0 20px 35px rgba(0,0,0,0.5); border:1px solid rgba(246,180,95,0.3); text-align:center; }
+        .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+        .logo { font-size:1.3rem; font-weight:800; color:#F6B45F; }
+        .back-link { color:#F6B45F; text-decoration:none; font-weight:bold; font-size:0.78rem; background:#0a1018; padding:5px 12px; border-radius:40px; border:1px solid rgba(246,180,95,0.3); }
+        .info-bar { display:flex; justify-content:space-between; align-items:center; background:#0a1018; border-radius:40px; padding:7px 16px; margin-bottom:14px; color:#F6B45F; font-weight:bold; }
+        .grid { display:grid; grid-template-columns:repeat(8,1fr); gap:3px; margin:10px auto; max-width:360px; }
+        .cell { aspect-ratio:1; border-radius:8px; cursor:pointer; transition:0.1s; }
+        .cell.selected { border:3px solid #fff; transform:scale(0.9); }
+        .score { font-size:1.5rem; font-weight:bold; color:#F6B45F; }
+        .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:12px; }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="top-bar">
+        <div class="logo">MATCH THREE</div>
+        <a href="index.html" class="back-link">← Geri</a>
+    </div>
+    <div class="info-bar">
+        <span>Skor: <span id="scoreDisplay">0</span></span>
+        <button style="background:#F6B45F;border:none;padding:5px 14px;border-radius:40px;color:#04162E;font-weight:bold;cursor:pointer;" onclick="resetGame()">Yeni Oyun</button>
+    </div>
+    <div class="grid" id="gameGrid"></div>
+    <div class="footer">Aynı renk 3 taşı yan yana getir, patlat!</div>
+</div>
+<script>
+    var ROWS=8, COLS=8, COLORS=['#E74C3C','#2ECC71','#3498DB','#F6B45F','#9B59B6','#1ABC9C'];
+    var grid=[], selectedRow=null, selectedCol=null, score=0;
+    function initGrid(){ grid=[]; for(var r=0;r<ROWS;r++){ grid[r]=[]; for(var c=0;c<COLS;c++){ grid[r][c]=Math.floor(Math.random()*COLORS.length); } } removeMatches(); }
+    function renderGrid(){ var container=document.getElementById('gameGrid'); container.innerHTML=''; for(var r=0;r<ROWS;r++){ for(var c=0;c<COLS;c++){ var cell=document.createElement('div'); cell.className='cell'; cell.style.backgroundColor=COLORS[grid[r][c]]; if(selectedRow===r && selectedCol===c) cell.classList.add('selected'); cell.addEventListener('click',(function(row,col){ return function(){ handleClick(row,col); }; })(r,c)); container.appendChild(cell); } } document.getElementById('scoreDisplay').innerText=score; }
+    function handleClick(row,col){
+        if(selectedRow===null){ selectedRow=row; selectedCol=col; renderGrid(); return; }
+        var dr=Math.abs(selectedRow-row), dc=Math.abs(selectedCol-col);
+        if((dr===1 && dc===0) || (dr===0 && dc===1)){
+            var tmp=grid[selectedRow][selectedCol]; grid[selectedRow][selectedCol]=grid[row][col]; grid[row][col]=tmp;
+            if(!hasMatches()){ tmp=grid[selectedRow][selectedCol]; grid[selectedRow][selectedCol]=grid[row][col]; grid[row][col]=tmp; }
+            else { while(hasMatches()){ removeMatches(); fillEmpty(); } }
+        }
+        selectedRow=null; selectedCol=null; renderGrid();
+    }
+    function hasMatches(){
+        for(var r=0;r<ROWS;r++){ for(var c=0;c<COLS-2;c++){ if(grid[r][c]!==null && grid[r][c]===grid[r][c+1] && grid[r][c]===grid[r][c+2]) return true; } }
+        for(var c=0;c<COLS;c++){ for(var r=0;r<ROWS-2;r++){ if(grid[r][c]!==null && grid[r][c]===grid[r+1][c] && grid[r][c]===grid[r+2][c]) return true; } }
+        return false;
+    }
+    function removeMatches(){
+        var toRemove=[];
+        for(var r=0;r<ROWS;r++){ for(var c=0;c<COLS-2;c++){ if(grid[r][c]!==null && grid[r][c]===grid[r][c+1] && grid[r][c]===grid[r][c+2]){ toRemove.push([r,c],[r,c+1],[r,c+2]); } } }
+        for(var c=0;c<COLS;c++){ for(var r=0;r<ROWS-2;r++){ if(grid[r][c]!==null && grid[r][c]===grid[r+1][c] && grid[r][c]===grid[r+2][c]){ toRemove.push([r,c],[r+1,c],[r+2,c]); } } }
+        for(var i=0;i<toRemove.length;i++){ var r=toRemove[i][0], c=toRemove[i][1]; if(grid[r][c]!==null){ grid[r][c]=null; score+=10; } }
+    }
+    function fillEmpty(){
+        for(var c=0;c<COLS;c++){
+            var colVals=[];
+            for(var r=ROWS-1;r>=0;r--){ if(grid[r][c]!==null) colVals.push(grid[r][c]); }
+            while(colVals.length<ROWS) colVals.unshift(Math.floor(Math.random()*COLORS.length));
+            for(var r=ROWS-1;r>=0;r--){ grid[r][c]=colVals.pop(); }
+        }
+    }
+    function resetGame(){ score=0; selectedRow=null; selectedCol=null; initGrid(); renderGrid(); }
+    initGrid(); renderGrid();
+</script>
+</body>
+</html>

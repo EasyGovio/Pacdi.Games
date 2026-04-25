@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>PACDI Run | PACDI Games</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background:#04162E; display:flex; justify-content:center; align-items:center; min-height:100vh; touch-action:manipulation; }
+        canvas { border-radius:24px; background:#0a1018; border:2px solid #F6B45F; }
+    </style>
+</head>
+<body>
+<canvas id="gameCanvas" width="400" height="600"></canvas>
+<script>
+    var canvas=document.getElementById('gameCanvas'), ctx=canvas.getContext('2d');
+    var player={ x:50, y:300, w:30, h:30, vy:0 };
+    var obstacles=[], gravity=0.5, speed=4, score=0, gameOver=false;
+    function reset(){ player.y=300; player.vy=0; obstacles=[]; score=0; gameOver=false; }
+    function update(){
+        if(gameOver) return;
+        player.vy+=gravity; player.y+=player.vy;
+        if(player.y+player.h>canvas.height || player.y<0) gameOver=true;
+        if(Math.random()<0.015) obstacles.push({ x:canvas.width, y:canvas.height-40-Math.random()*200, w:20, h:40 });
+        for(var i=obstacles.length-1;i>=0;i--){
+            obstacles[i].x-=speed;
+            if(obstacles[i].x+obstacles[i].w<0){ obstacles.splice(i,1); score+=10; }
+            if(player.x<obstacles[i].x+obstacles[i].w && player.x+player.w>obstacles[i].x && player.y<obstacles[i].y+obstacles[i].h && player.y+player.h>obstacles[i].y) gameOver=true;
+        }
+    }
+    function draw(){
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        ctx.fillStyle='#F6B45F'; ctx.fillRect(player.x,player.y,player.w,player.h);
+        for(var i=0;i<obstacles.length;i++){ ctx.fillStyle='#E74C3C'; ctx.fillRect(obstacles[i].x,obstacles[i].y,obstacles[i].w,obstacles[i].h); }
+        ctx.fillStyle='#eaf2fb'; ctx.font='20px sans-serif'; ctx.fillText('Skor: '+score,10,30);
+        if(gameOver){ ctx.fillStyle='#F6B45F'; ctx.font='30px sans-serif'; ctx.fillText('OYUN BİTTİ',60,300); }
+    }
+    function loop(){ update(); draw(); requestAnimationFrame(loop); }
+    document.addEventListener('keydown',function(e){ if(e.code==='Space'){ if(gameOver) reset(); player.vy=-8; e.preventDefault(); } });
+    canvas.addEventListener('touchstart',function(e){ e.preventDefault(); if(gameOver) reset(); player.vy=-8; });
+    reset(); loop();
+</script>
+</body>
+</html>
