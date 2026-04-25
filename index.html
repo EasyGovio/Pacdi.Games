@@ -72,7 +72,7 @@
     function addPoints(amount) { points += amount; localStorage.setItem(POINTS_KEY, points); updatePointsUI(); pointsSpan.style.transform = 'scale(1.2)'; setTimeout(function() { pointsSpan.style.transform = ''; }, 200); }
     updatePointsUI();
 
-    // GÜNCEL OYUN LİSTESİ (yalnızca repoda mevcut, çalışan oyunlar)
+    // GÜNCEL OYUN LİSTESİ (repodaki dosyalar temel alınmıştır)
     var games = {
       reflex: [
         { name: "Reaction Tap", desc: "Hedefe dokun, reaksiyon süreni ölç.", icon: "⚡", file: "reaction-tap.html" },
@@ -105,14 +105,27 @@
         { name: "Counterfeit", desc: "Sahte banknotu gerçeğinden ayır.", icon: "💰", file: "counterfeit.html" },
         { name: "Pattern Match", desc: "Deseni ezberle, doğru hücreleri seç.", icon: "🔲", file: "pattern-match.html" },
         { name: "Hidden Object", desc: "Gizli nesneleri bul.", icon: "🔎", file: "hidden-object.html" },
-        { name: "Water Sort Pro", desc: "Renkleri tüplerde sırala.", icon: "💧", file: "water-sort-pro.html" }
+        { name: "Water Sort Pro", desc: "Renkleri tüplerde sırala.", icon: "💧", file: "water-sort-pro.html" },
+        { name: "Water Sort X", desc: "Progresif zorlukta 6 renk sırala.", icon: "🧪", file: "watersortx.html" },
+        { name: "Fark Avcısı", desc: "İki resim arasındaki farkları bul.", icon: "🔍", file: "fark-avcisi.html" },
+        { name: "Match Three", desc: "Aynı renk 3 taşı eşleştir, patlat.", icon: "💎", file: "match-three.html" },
+        { name: "PACDI Run", desc: "Engellerden kaç, koşmaya devam et.", icon: "🏃", file: "pacdi-run.html" }
       ],
       culture: [
+        { name: "Emekli Pusulası", desc: "Emeklilik bilgi ve eğlence.", icon: "🧓", file: "emekli-pusulasi.html" },
         { name: "Nefes Pusulası", desc: "Kriz anında nefes egzersizi.", icon: "🌬️", file: "breathing.html" },
         { name: "Günlük Pusula", desc: "Güne özel yönlendirme ve öneri.", icon: "🧭", file: "daily-compass.html" },
         { name: "Geçmişin Yankısı", desc: "Anıları canlandıran bulmaca.", icon: "📻", file: "echo-of-the-past.html" },
-        { name: "Emekli Pusulası", desc: "Emeklilik bilgi ve eğlence.", icon: "🧓", file: "emekli-pusulasi.html" },
-        { name: "Ata Albümü", desc: "Soy ağacı ve aile bilgileri.", icon: "📸", file: "ancestors-album.html" }
+        { name: "Ata Albümü", desc: "Soy ağacı ve aile bilgileri.", icon: "📸", file: "ancestors-album.html" },
+        { name: "İyiliğin Grameri", desc: "Barış kelimelerini dillerde eşleştir.", icon: "🕊️", file: "eti-grammar.html" },
+        { name: "Unutulmuş Zariflikler", desc: "Eski nezaket kurallarını hatırla.", icon: "🎩", file: "forgotten-graces.html" },
+        { name: "Bilgelik Halkası", desc: "Etik değerleri farklı kültürlerde eşleştir.", icon: "🏵️", file: "wisdom-circle.html" },
+        { name: "Dijital Miras", desc: "Fotoğraf yükle, sorularla parçaları aç.", icon: "🖼️", file: "legacy-puzzle.html" },
+        { name: "Sesli Hafıza", desc: "Aile seslerini tanı.", icon: "🎤", file: "sesli-hafiza.html" },
+        { name: "Peg Solitaire", desc: "Tek çivi kalana kadar zıpla.", icon: "⚪", file: "peg.html" },
+        { name: "Plaka Kodları", desc: "Türkiye illerini plaka kodlarıyla eşleştir.", icon: "🚗", file: "plaka-kodu.html" },
+        { name: "Kelime Avı", desc: "Gizli kelimeyi 6 denemede bul.", icon: "🔤", file: "word-hunt.html" },
+        { name: "Dünya Şehirleri", desc: "Meşhur şehirleri özellikleriyle eşleştir.", icon: "🌍", file: "world-cities.html" }
       ]
     };
 
@@ -122,7 +135,6 @@
       var nameDiv = document.createElement('div'); nameDiv.className = 'game-name'; nameDiv.innerText = game.name;
       var descDiv = document.createElement('div'); descDiv.className = 'game-desc'; descDiv.innerText = game.desc;
       var badgeDiv = document.createElement('div'); badgeDiv.className = 'badge-group';
-      // Yeni etiketi kaldırıldı, istenirse tekrar eklenebilir
       var playBtn = document.createElement('a'); playBtn.className = 'play-btn'; playBtn.innerText = 'Oyna →'; playBtn.href = game.file;
       card.appendChild(iconDiv); card.appendChild(nameDiv); card.appendChild(descDiv); card.appendChild(badgeDiv); card.appendChild(playBtn);
       return card;
