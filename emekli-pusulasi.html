@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Emekli Pusulası | Banka Promosyonları | PACDI Games</title>
+  <title>Emekli Pusulası | PACDI Games</title>
   <style>
     * {
       margin: 0;
@@ -24,13 +24,13 @@
     }
 
     .app-container {
-      max-width: 550px;
+      max-width: 600px;
       width: 100%;
       background: #1e2a3a;
       border-radius: 56px;
       padding: 20px 16px 24px;
-      box-shadow: 0 20px 35px rgba(0, 0, 0, 0.5);
       backdrop-filter: blur(2px);
+      box-shadow: 0 20px 35px rgba(0, 0, 0, 0.5);
       border: 1px solid rgba(246, 180, 95, 0.3);
     }
 
@@ -99,60 +99,86 @@
       padding-left: 10px;
     }
 
-    .bank-selector select {
-      width: 100%;
-      background: #1e2a3a;
-      border: 1px solid #F6B45F;
-      border-radius: 60px;
-      padding: 12px 16px;
-      color: #eaf2fb;
-      font-size: 0.9rem;
-      font-family: inherit;
+    .bank-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
       margin-bottom: 16px;
+    }
+
+    .bank-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #1e2a3a;
+      border-radius: 60px;
+      padding: 6px 12px;
+      cursor: pointer;
+      transition: 0.05s;
+    }
+    .bank-row.active {
+      background: #F6B45F;
+      color: #04162E;
+    }
+    .bank-row.active .bonus, .bank-row.active .bank-name {
+      color: #04162E;
+    }
+    .bank-name {
+      flex: 1;
+      font-weight: bold;
+      color: #eaf2fb;
+      font-size: 0.85rem;
+    }
+    .bonus {
+      background: #F6B45F20;
+      padding: 2px 8px;
+      border-radius: 40px;
+      font-weight: bold;
+      font-size: 0.75rem;
+      color: #F6B45F;
     }
 
     .conditions {
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      margin: 16px 0;
+      gap: 10px;
+      margin: 12px 0;
     }
-
     .condition-item {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       background: #1e2a3a;
       border-radius: 60px;
-      padding: 8px 16px;
-      flex-wrap: wrap;
+      padding: 8px 12px;
     }
     .condition-item input {
-      width: 22px;
-      height: 22px;
+      width: 20px;
+      height: 20px;
       accent-color: #F6B45F;
-      flex-shrink: 0;
     }
     .condition-item label {
       flex: 1;
       color: #eaf2fb;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
     }
     .condition-bonus {
       color: #2ECC71;
       font-weight: bold;
-      white-space: nowrap;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
     }
 
-    .warning-note {
-      font-size: 0.7rem;
-      color: #E74C3C;
+    .warning-box {
       background: rgba(231, 76, 60, 0.1);
-      border-radius: 20px;
-      padding: 8px 12px;
-      margin: 8px 0;
-      border-left: 3px solid #E74C3C;
+      border-left: 4px solid #E74C3C;
+      padding: 10px;
+      margin: 12px 0;
+      border-radius: 16px;
+    }
+    .warning-box ul {
+      margin-left: 20px;
+      color: #eaf2fb;
+      font-size: 0.7rem;
     }
 
     .result-promo {
@@ -160,10 +186,9 @@
       border-radius: 28px;
       padding: 16px;
       text-align: center;
-      margin-top: 12px;
-      border: 1px solid #F6B45F30;
+      margin: 12px 0;
+      border: 1px solid #F6B45F40;
     }
-
     .result-number {
       font-size: 2rem;
       font-weight: bold;
@@ -179,43 +204,46 @@
       color: #04162E;
       cursor: pointer;
       width: 100%;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       margin-bottom: 8px;
     }
-
-    .user-rating {
-      background: #0a1018;
-      border-radius: 28px;
-      margin-top: 12px;
-      padding: 12px;
-      text-align: center;
-      border: 1px solid #F6B45F20;
+    .calc-group {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin: 16px 0;
     }
-
-    .stars {
-      display: inline-flex;
-      gap: 6px;
-      margin: 5px 0;
-    }
-
-    .star {
-      font-size: 1.6rem;
-      cursor: pointer;
-      color: #4a6a8a;
-      transition: 0.05s;
-    }
-
-    .star.active {
+    .calc-group label {
+      font-size: 0.8rem;
       color: #F6B45F;
-      text-shadow: 0 0 6px #F6B45F;
+      font-weight: bold;
     }
-
-    .rating-text {
+    select, input {
+      background: #1e2a3a;
+      border: 1px solid #F6B45F;
+      border-radius: 60px;
+      padding: 8px 12px;
+      color: #eaf2fb;
+      font-family: inherit;
+    }
+    .report-btn {
+      background: #0a1018;
+      border: 1px solid #F6B45F;
+      color: #F6B45F;
+      padding: 8px;
+      border-radius: 40px;
+      width: 100%;
+      margin-top: 8px;
+      cursor: pointer;
       font-size: 0.7rem;
-      color: #6c8fb0;
-      margin-top: 5px;
     }
-
+    .note {
+      font-size: 0.65rem;
+      color: #6c8fb0;
+      text-align: center;
+      margin-top: 8px;
+    }
     .footer {
       text-align: center;
       font-size: 0.6rem;
@@ -227,230 +255,194 @@
 <body>
 <div class="app-container">
   <div class="header">
-    <div>
-      <div class="logo">EMEKLİ PUSULASI</div>
-      <div class="sub">PACDI Games · Şartlı Promosyon · Kullanıcı Oyları</div>
-    </div>
+    <div><div class="logo">EMEKLİ PUSULASI</div><div class="sub">PACDI Games · Şartlı Promosyon Rehberi</div></div>
     <a href="index.html" class="back-link">← Geri</a>
   </div>
 
   <div class="info-bar">
-    <div class="info-item">📅 <span id="lastUpdateDate">Nisan 2026</span></div>
-    <div class="info-item">🏦 <span id="bankCount">12</span> banka · Şart bazlı</div>
+    <div class="info-item">📅 <span id="updateDate">Nisan 2026</span></div>
+    <div class="info-item">🏦 12 banka · Şart bazlı</div>
     <div class="info-item">⭐ Kullanıcı oyları</div>
   </div>
 
+  <!-- Banka seçimi -->
   <div class="card">
-    <div class="card-title">🏧 Banka Seç & Şartlarını İşaretle</div>
-    <div class="bank-selector">
-      <select id="bankSelect"></select>
-    </div>
-    <div class="conditions" id="conditionsContainer"></div>
-    <div id="warningContainer" class="warning-note" style="display:none;"></div>
+    <div class="card-title">🏧 Banka Seç</div>
+    <div id="bankList" class="bank-list"></div>
+  </div>
+
+  <!-- Şartlar ve ek bonuslar -->
+  <div class="card">
+    <div class="card-title">✅ Şartlarını İşaretle</div>
+    <div id="conditionsContainer" class="conditions"></div>
+    <div id="warningContainer" class="warning-box" style="display:none;"></div>
     <div class="result-promo">
       <div style="font-size:0.8rem;">Size Özel Net Promosyon</div>
       <div class="result-number" id="calculatedBonus">0 TL</div>
       <div class="note">*Seçtiğiniz şartlar sağlandığında alacağınız tutar (3 yıl taahhüt).</div>
     </div>
-
-    <div class="user-rating">
-      <div style="font-size:0.8rem; margin-bottom:6px;">📊 Bu bankanın şartlarını anlamak ne kadar kolaydı?</div>
-      <div class="stars" id="starContainer">
-        <span class="star" data-value="1">☆</span>
-        <span class="star" data-value="2">☆</span>
-        <span class="star" data-value="3">☆</span>
-        <span class="star" data-value="4">☆</span>
-        <span class="star" data-value="5">☆</span>
-      </div>
-      <div class="rating-text" id="ratingText">Henüz oy yok. İlk sen oyla!</div>
-    </div>
-
-    <button class="action-btn" id="copyBtn">📋 Sonucu Kopyala</button>
+    <button id="copyBtn" class="action-btn">📋 Sonucu Kopyala</button>
+    <button id="reportBtn" class="report-btn">📢 Bilgiler güncel değil mi? Bildir</button>
   </div>
 
-  <div class="footer">PACDI Games · Her oyun onurla · Veriler manuel güncellenir</div>
+  <!-- Banka değiştirme ceza hesaplayıcı -->
+  <div class="card">
+    <div class="card-title">🔄 Banka Değiştirme · Promosyon İadesi</div>
+    <div class="calc-group">
+      <label>Alınan Promosyon (TL):</label>
+      <input type="number" id="receivedBonus" value="20000" step="1000">
+    </div>
+    <div class="calc-group">
+      <label>Kalan Taahhüt (ay):</label>
+      <input type="number" id="remainingMonths" value="12">
+    </div>
+    <button id="calcPenaltyBtn" class="action-btn">💰 İade Tutarını Hesapla</button>
+    <div id="penaltyResult" class="result-promo" style="display:none; margin-top:8px;">
+      <div class="result-text" id="penaltyText">—</div>
+      <div class="note">*Taahhüt süresi dolmadan banka değiştirirseniz, kalan her ay için promosyonun 1/36'sı iade edilir.</div>
+    </div>
+  </div>
+
+  <div class="footer">PACDI Games · Veriler manuel güncellenir, bankaları teyit ediniz.</div>
 </div>
 
 <script>
   (function() {
-    // 12 BANKA, ŞARTLI PROMOSYON + İPTAL UYARILARI
+    // Banka verileri (base + şart + uyarılar)
     var banks = [
-      { name: "Vakıf Katılım", base: 25000, conditions: [
-        { desc: "Fatura ödeme talimatı (en az 2 fatura)", bonus: 5000 },
-        { desc: "Kredi kartı başvurusu (aktif kullanım)", bonus: 3000 },
-        { desc: "Hayat sigortası yaptırmak", bonus: 2000 },
-        { desc: "Tüm şartlar + dijital bankacılık", bonus: 5000 }
-      ], warnings: ["⚠️ Hayat sigortasını ilk yıl içinde iptal ederseniz, sigorta bonusu (2.000 TL) iade edilir.", "⚠️ Fatura talimatlarını iptal etmeniz durumunda ek promosyon (5.000 TL) geçersiz olur."] },
-      { name: "ING", base: 22000, conditions: [
-        { desc: "Fatura ödeme talimatı (2 fatura)", bonus: 5000 },
-        { desc: "Kredi kartı başvurusu", bonus: 3000 },
-        { desc: "Mobil bankacılık aktif", bonus: 2000 }
-      ], warnings: ["⚠️ Kredi kartını ilk 6 ay içinde iptal ederseniz, kredi kartı promosyonu (3.000 TL) iade edilir."] },
-      { name: "Garanti BBVA", base: 20000, conditions: [
-        { desc: "Fatura talimatı (3 fatura)", bonus: 6000 },
-        { desc: "Kredi kartı limiti en az 10.000 TL", bonus: 4000 },
-        { desc: "Dijital bankacılık üyesi", bonus: 2000 }
-      ], warnings: ["⚠️ Fatura talimatlarından herhangi birini iptal ederseniz, ilgili bonus (2.000 TL/adet) iade edilir."] },
-      { name: "Yapı Kredi", base: 18000, conditions: [
-        { desc: "Fatura ödeme talimatı (1 fatura)", bonus: 3000 },
-        { desc: "Kredi kartı + World puan programı", bonus: 2000 },
-        { desc: "Yatırım hesabı açma", bonus: 2000 }
-      ], warnings: ["⚠️ Yatırım hesabını kapatmanız durumunda ek promosyon (2.000 TL) iade edilir."] },
-      { name: "İş Bankası", base: 15000, conditions: [
-        { desc: "Fatura ödeme talimatı (elektrik, su, doğalgaz)", bonus: 5000 },
-        { desc: "Maximum kart başvurusu", bonus: 3000 },
-        { desc: "Maaş müşterisine ek avantaj", bonus: 2000 }
-      ], warnings: ["⚠️ Fatura talimatlarından birini iptal ederseniz, iptal edilen fatura başına 1.500 TL iade yapılır."] },
-      { name: "Ziraat Bankası", base: 14000, conditions: [
-        { desc: "Fatura ödeme talimatı (2 fatura)", bonus: 4000 },
-        { desc: "Kredi kartı başvurusu", bonus: 3000 },
-        { desc: "Mobil uygulama kullanımı", bonus: 1000 }
-      ], warnings: [] },
-      { name: "Halkbank", base: 13000, conditions: [
-        { desc: "Fatura talimatı (1 fatura)", bonus: 2000 },
-        { desc: "Kredi kartı", bonus: 2000 },
-        { desc: "Maaş promosyon kampanyası", bonus: 3000 }
-      ], warnings: [] },
-      { name: "QNB Finansbank", base: 17000, conditions: [
-        { desc: "Fatura ödeme (2 fatura)", bonus: 4000 },
-        { desc: "Kredi kartı (minimum limit 5000 TL)", bonus: 3000 },
-        { desc: "Dijital kanal üyesi", bonus: 1500 }
-      ], warnings: ["⚠️ Kredi kartını ilk yıl iptal ederseniz, kredi kartı promosyonu (3.000 TL) iade alınır."] },
-      { name: "Denizbank", base: 15500, conditions: [
-        { desc: "Fatura talimatı (2 fatura)", bonus: 3500 },
-        { desc: "Kredi kartı başvurusu", bonus: 2500 },
-        { desc: "Maaş hesabına ek avantaj", bonus: 2000 }
-      ], warnings: [] },
-      { name: "Akbank", base: 16000, conditions: [
-        { desc: "Fatura ödeme (en az 2 fatura)", bonus: 4000 },
-        { desc: "Kredi kartı", bonus: 3000 },
-        { desc: "Mobil bankacılık aktif", bonus: 2000 }
-      ], warnings: [] },
-      { name: "Vakıfbank", base: 14500, conditions: [
-        { desc: "Fatura talimatı (2 fatura)", bonus: 3000 },
-        { desc: "Kredi kartı", bonus: 2500 },
-        { desc: "Tamamlayıcı emeklilik hesabı", bonus: 2000 }
-      ], warnings: ["⚠️ Tamamlayıcı emeklilik hesabını iptal ederseniz, ilgili bonus (2.000 TL) iade edilir."] },
-      { name: "Şekerbank", base: 12000, conditions: [
-        { desc: "Fatura ödeme talimatı (1 fatura)", bonus: 2000 },
-        { desc: "Kredi kartı", bonus: 2000 },
-        { desc: "Maaş müşterisi", bonus: 2500 }
-      ], warnings: [] }
+      { name: "Vakıf Katılım", base: 25000,
+        conditions: [{desc:"Fatura ödeme (2 fatura)",bonus:5000},{desc:"Kredi kartı aktif",bonus:3000},{desc:"Hayat sigortası",bonus:2000},{desc:"Tüm şartlar+ dijital",bonus:5000}],
+        warnings: ["⚠️ Hayat sigortasını ilk yıl içinde iptal ederseniz, ilgili promosyon (2.000 TL) iade edilir.", "⚠️ Fatura talimatlarını iptal etmeniz durumunda ek promosyon (5.000 TL) geçersiz olur."] },
+      { name: "ING", base: 22000,
+        conditions: [{desc:"Fatura ödeme (2 fatura)",bonus:5000},{desc:"Kredi kartı",bonus:3000},{desc:"Mobil bankacılık aktif",bonus:2000}],
+        warnings: ["⚠️ Kredi kartını ilk 6 ay içinde iptal ederseniz, kredi kartı promosyonu (3.000 TL) iade edilir."] },
+      { name: "Garanti BBVA", base: 20000,
+        conditions: [{desc:"Fatura talimatı (3 fatura)",bonus:6000},{desc:"Kredi kartı limit ≥10.000",bonus:4000},{desc:"Dijital üye",bonus:2000}],
+        warnings: ["⚠️ Fatura talimatlarından herhangi birini iptal ederseniz, ilgili bonus (2.000 TL/adet) iade edilir."] },
+      { name: "Yapı Kredi", base: 18000,
+        conditions: [{desc:"Fatura ödeme (1 fatura)",bonus:3000},{desc:"Kredi kartı + World puan",bonus:2000},{desc:"Yatırım hesabı",bonus:2000}],
+        warnings: ["⚠️ Yatırım hesabını kapatmanız durumunda ek promosyon (2.000 TL) iade edilir."] },
+      { name: "İş Bankası", base: 15000,
+        conditions: [{desc:"Fatura ödeme (3 fatura)",bonus:5000},{desc:"Maximum kart",bonus:3000},{desc:"Maaş müşterisine ek",bonus:2000}],
+        warnings: ["⚠️ Fatura talimatlarından birini iptal ederseniz, iptal edilen fatura başına 1.500 TL iade yapılır."] }
     ];
-
-    var currentBankIndex = 0;
+    // diğer bankalar kısaltılmış
+    var extraBanks = [
+      { name: "Ziraat Bankası", base: 14000, conditions: [{desc:"Fatura ödeme (2 fatura)",bonus:4000},{desc:"Kredi kartı",bonus:3000},{desc:"Mobil uygulama",bonus:1000}], warnings: [] },
+      { name: "Halkbank", base: 13000, conditions: [{desc:"Fatura talimatı (1 fatura)",bonus:2000},{desc:"Kredi kartı",bonus:2000},{desc:"Maaş promosyonu",bonus:3000}], warnings: [] },
+      { name: "QNB Finansbank", base: 17000, conditions: [{desc:"Fatura ödeme (2 fatura)",bonus:4000},{desc:"Kredi kartı (min limit)",bonus:3000},{desc:"Dijital üye",bonus:1500}], warnings: ["⚠️ Kredi kartını ilk yıl iptal ederseniz ilgili promosyon iade edilir."] },
+      { name: "Denizbank", base: 15500, conditions: [{desc:"Fatura talimatı (2 fatura)",bonus:3500},{desc:"Kredi kartı",bonus:2500},{desc:"Maaş hesabı avantaj",bonus:2000}], warnings: [] },
+      { name: "Akbank", base: 16000, conditions: [{desc:"Fatura ödeme (2 fatura)",bonus:4000},{desc:"Kredi kartı",bonus:3000},{desc:"Mobil bankacılık",bonus:2000}], warnings: [] }
+    ];
+    banks = banks.concat(extraBanks);
+    var currentBankIdx = 0;
     var conditionCheckboxes = [];
-    var bankSelect = document.getElementById('bankSelect');
+
+    var bankListDiv = document.getElementById('bankList');
     var conditionsDiv = document.getElementById('conditionsContainer');
-    var warningContainer = document.getElementById('warningContainer');
+    var warningDiv = document.getElementById('warningContainer');
     var calculatedBonusSpan = document.getElementById('calculatedBonus');
+    var copyBtn = document.getElementById('copyBtn');
+    var reportBtn = document.getElementById('reportBtn');
+    var calcPenaltyBtn = document.getElementById('calcPenaltyBtn');
+    var penaltyResultDiv = document.getElementById('penaltyResult');
+    var penaltyTextSpan = document.getElementById('penaltyText');
 
-    // Oylama sistemi
-    function getRatingKey(bankName) { return 'rating_' + bankName.replace(/\s/g,'_'); }
-    function loadRating(bankName) { var s = localStorage.getItem(getRatingKey(bankName)); return s ? parseInt(s,10) : 0; }
-    function saveRating(bankName, value) { localStorage.setItem(getRatingKey(bankName), value); }
-    function updateRatingUI(bankName) {
-      var rating = loadRating(bankName);
-      var stars = document.querySelectorAll('#starContainer .star');
-      for (var i = 0; i < stars.length; i++) {
-        var starVal = parseInt(stars[i].getAttribute('data-value'), 10);
-        if (starVal <= rating) stars[i].innerHTML = '★';
-        else stars[i].innerHTML = '☆';
-      }
-      var ratingText = document.getElementById('ratingText');
-      if (rating > 0) ratingText.innerHTML = '⭐ Kullanıcı puanı: ' + rating + '/5 (' + (rating*20) + '%) - Başkalarına yol göster.';
-      else ratingText.innerHTML = 'Henüz oy yok. İlk sen oyla! (1-5 yıldız)';
-    }
-    function bindStarEvents() {
-      var stars = document.querySelectorAll('#starContainer .star');
-      for (var i = 0; i < stars.length; i++) {
-        stars[i].onclick = function() {
-          var val = parseInt(this.getAttribute('data-value'), 10);
-          var bank = banks[currentBankIndex];
-          saveRating(bank.name, val);
-          updateRatingUI(bank.name);
-        };
+    function renderBankList() {
+      bankListDiv.innerHTML = '';
+      for (var i=0; i<banks.length; i++) {
+        var row = document.createElement('div');
+        row.className = 'bank-row' + (i === currentBankIdx ? ' active' : '');
+        row.innerHTML = '<span class="bank-name">'+banks[i].name+'</span><span class="bonus">'+banks[i].base.toLocaleString()+' TL</span>';
+        row.addEventListener('click', (function(idx){ return function(){ selectBank(idx); }; })(i));
+        bankListDiv.appendChild(row);
       }
     }
 
-    function populateBankSelect() {
-      bankSelect.innerHTML = '';
-      for (var i = 0; i < banks.length; i++) {
-        var opt = document.createElement('option');
-        opt.value = i;
-        opt.innerText = banks[i].name;
-        bankSelect.appendChild(opt);
-      }
-      document.getElementById('bankCount').innerText = banks.length;
+    function selectBank(idx) {
+      currentBankIdx = idx;
+      renderBankList();
+      renderConditions();
     }
 
-    function renderConditions(bankIndex) {
-      var bank = banks[bankIndex];
+    function renderConditions() {
+      var bank = banks[currentBankIdx];
       conditionsDiv.innerHTML = '';
       conditionCheckboxes = [];
-      for (var i = 0; i < bank.conditions.length; i++) {
+      for (var i=0; i<bank.conditions.length; i++) {
         var cond = bank.conditions[i];
         var div = document.createElement('div');
         div.className = 'condition-item';
         var cb = document.createElement('input');
         cb.type = 'checkbox';
-        cb.id = 'cond_' + i;
+        cb.id = 'cond_'+i;
         var label = document.createElement('label');
-        label.htmlFor = 'cond_' + i;
+        label.htmlFor = 'cond_'+i;
         label.innerText = cond.desc;
         var bonusSpan = document.createElement('span');
         bonusSpan.className = 'condition-bonus';
-        bonusSpan.innerText = '+' + cond.bonus.toLocaleString() + ' TL';
+        bonusSpan.innerText = '+'+cond.bonus.toLocaleString()+' TL';
         div.appendChild(cb);
         div.appendChild(label);
         div.appendChild(bonusSpan);
         conditionsDiv.appendChild(div);
-        conditionCheckboxes.push({ cb: cb, bonus: cond.bonus });
+        conditionCheckboxes.push({cb:cb, bonus:cond.bonus});
       }
-      for (var j = 0; j < conditionCheckboxes.length; j++) {
+      for (var j=0; j<conditionCheckboxes.length; j++) {
         conditionCheckboxes[j].cb.addEventListener('change', calculateTotal);
       }
-      calculateTotal();
-      if (bank.warnings && bank.warnings.length > 0) {
-        var warnHtml = '<div>⚠️ Uyarılar:</div><ul>';
-        for (var w = 0; w < bank.warnings.length; w++) warnHtml += '<li>' + bank.warnings[w] + '</li>';
+      // uyarılar
+      if (bank.warnings && bank.warnings.length>0) {
+        var warnHtml = '<ul>';
+        for (var w=0; w<bank.warnings.length; w++) warnHtml += '<li>'+bank.warnings[w]+'</li>';
         warnHtml += '</ul>';
-        warningContainer.innerHTML = warnHtml;
-        warningContainer.style.display = 'block';
+        warningDiv.innerHTML = warnHtml;
+        warningDiv.style.display = 'block';
       } else {
-        warningContainer.style.display = 'none';
+        warningDiv.style.display = 'none';
       }
+      calculateTotal();
     }
 
     function calculateTotal() {
-      var bank = banks[currentBankIndex];
+      var bank = banks[currentBankIdx];
       var total = bank.base;
-      for (var i = 0; i < conditionCheckboxes.length; i++) {
+      for (var i=0; i<conditionCheckboxes.length; i++) {
         if (conditionCheckboxes[i].cb.checked) total += conditionCheckboxes[i].bonus;
       }
       calculatedBonusSpan.innerText = total.toLocaleString() + ' TL';
     }
 
-    function onBankChange() {
-      currentBankIndex = parseInt(bankSelect.value, 10);
-      renderConditions(currentBankIndex);
-      updateRatingUI(banks[currentBankIndex].name);
+    function calculatePenalty() {
+      var received = parseInt(document.getElementById('receivedBonus').value, 10);
+      var monthsLeft = parseInt(document.getElementById('remainingMonths').value, 10);
+      if (isNaN(received) || isNaN(monthsLeft) || monthsLeft<0) {
+        penaltyTextSpan.innerText = 'Geçerli değer girin.';
+        penaltyResultDiv.style.display = 'block';
+        return;
+      }
+      var refund = Math.round(received / 36 * monthsLeft);
+      penaltyTextSpan.innerHTML = '⚠️ Kalan '+monthsLeft+' ay için iade edilmesi gereken tutar: '+refund.toLocaleString()+' TL';
+      penaltyResultDiv.style.display = 'block';
     }
 
-    bankSelect.addEventListener('change', onBankChange);
-    document.getElementById('copyBtn').addEventListener('click', function() {
-      var bank = banks[currentBankIndex];
+    copyBtn.addEventListener('click', function() {
+      var bank = banks[currentBankIdx];
       var total = calculatedBonusSpan.innerText;
-      var msg = bank.name + ' promosyonu (size özel): ' + total;
-      navigator.clipboard.writeText(msg).then(function() { alert('Kopyalandı: ' + msg); }).catch(function() { alert('Manuel kopyala: ' + msg); });
+      var msg = bank.name+' promosyonu (size özel): '+total;
+      navigator.clipboard.writeText(msg).then(()=>alert('Kopyalandı: '+msg)).catch(()=>alert('Manuel kopyalayın: '+msg));
     });
 
-    populateBankSelect();
-    currentBankIndex = 0;
-    bankSelect.value = 0;
-    renderConditions(0);
-    bindStarEvents();
-    updateRatingUI(banks[0].name);
+    reportBtn.addEventListener('click', function() {
+      var bankName = banks[currentBankIdx].name;
+      var subject = encodeURIComponent('Emekli Pusulası - Bilgi Güncelleme Talebi: ' + bankName);
+      var body = encodeURIComponent('Merhaba,\n\n' + bankName + ' bankasının promosyon bilgilerinin güncellenmesi gerekiyor.\n\nLütfen güncel bilgileri kontrol eder misiniz? (Şartlar, promosyon tutarı vs.)\n\nTeşekkürler.\n\n' + window.location.href);
+      window.location.href = 'mailto:info@pacdi.games?subject=' + subject + '&body=' + body;
+    });
+
+    calcPenaltyBtn.addEventListener('click', calculatePenalty);
+
+    selectBank(0);
   })();
 </script>
 </body>
