@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Pacdi Sırala · Düzen ve Mantık | PACDI Games</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+    body { background: #04162E; font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 16px; }
+    .game-container { max-width: 500px; width: 100%; background: rgba(4,22,46,0.8); border-radius: 56px; padding: 20px 16px 24px; box-shadow: 0 20px 35px rgba(0,0,0,0.5); backdrop-filter: blur(2px); border: 1px solid rgba(246,180,95,0.3); }
+    .header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px; }
+    .logo { font-size: 1.5rem; font-weight: bold; color: #F6B45F; }
+    .sub { font-size: 0.62rem; color: #9bb7d4; margin-top: 2px; }
+    .back-link { color: #F6B45F; text-decoration: none; font-weight: bold; font-size: 0.78rem; background: #0a1018; padding: 5px 12px; border-radius: 40px; }
+    .info-bar { display: flex; justify-content: space-between; align-items: center; background: #0a1018; border-radius: 40px; padding: 7px 16px; margin-bottom: 14px; }
+    .info-box { color: #F6B45F; font-weight: bold; font-size: 0.78rem; }
+    .info-box span { color: #eaf2fb; }
+    .new-btn { background: #F6B45F; border: none; font-weight: bold; padding: 5px 14px; border-radius: 40px; color: #0F1318; cursor: pointer; font-size: 0.78rem; }
+    .game-area { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+    .tube { width: 70px; height: 200px; background: rgba(10,16,24,0.5); border: 3px solid rgba(246,180,95,0.4); border-bottom-left-radius: 35px; border-bottom-right-radius: 35px; display: flex; flex-direction: column-reverse; align-items: center; padding-bottom: 8px; cursor: pointer; transition: transform 0.1s, border-color 0.1s; backdrop-filter: blur(4px); }
+    .tube.selected { transform: translateY(-8px); border-color: #F6B45F; box-shadow: 0 8px 16px rgba(246,180,95,0.2); }
+    .ball { width: 48px; height: 48px; border-radius: 50%; margin-bottom: 6px; box-shadow: inset -4px -4px 8px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.2); transition: transform 0.05s; }
+    .stats-row { display: flex; justify-content: space-between; background: #0a1018; border-radius: 40px; padding: 8px 16px; margin-bottom: 12px; }
+    .stat-item { font-size: 0.75rem; color: #F6B45F; }
+    .stat-item span { color: #eaf2fb; font-weight: bold; }
+    .action-buttons { display: flex; gap: 12px; justify-content: center; margin: 12px 0; }
+    .action-btn { background: #1e2a3a; border: 1px solid #F6B45F; color: #F6B45F; padding: 6px 16px; border-radius: 40px; font-weight: bold; cursor: pointer; font-size: 0.8rem; }
+    .action-btn:active { background: #F6B45F; color: #04162E; }
+    .status { text-align: center; font-size: 0.85rem; font-weight: bold; color: #F6B45F; min-height: 28px; margin-bottom: 8px; }
+    .footer { text-align: center; font-size: 0.6rem; color: #6c8fb0; margin-top: 10px; }
+    @media (max-width: 550px) { .tube { width: 60px; height: 170px; } .ball { width: 42px; height: 42px; } .game-area { gap: 10px; } }
+  </style>
+</head>
+<body>
+<div class="game-container">
+  <div class="header"><div><div class="logo">PACDI SIRALA</div><div class="sub">Düzen · Mantık · Strateji</div></div><a href="index.html" class="back-link">← Geri</a></div>
+  <div class="info-bar"><div class="info-box">🎯 Hamle: <span id="moveCount">0</span></div><div class="info-box">🏆 En İyi: <span id="bestNum">—</span></div><button class="new-btn" id="resetBtn">↺ Yeni Oyun</button></div>
+  <div class="game-area" id="gameArea"></div>
+  <div class="stats-row"><div class="stat-item">🔹 Kural: Aynı renk üst üste veya boş tüpe taşı</div></div>
+  <div class="action-buttons"><button class="action-btn" id="undoBtn">↩️ Geri Al</button></div>
+  <div class="status" id="statusMsg">Tüpe dokun → topu seç → başka tüpe taşı</div>
+  <div class="footer">Her tüpte aynı renkleri topla · Kazanmak için tüm tüpleri düzenle</div>
+</div>
+<script>
+  (function(){
+    var COLORS = ['#1ABC9C', '#F6B45F', '#E74C3C'];
+    var tubes = [], history = [], moves = 0, bestScore = 0, selectedTube = -1, gameActive = true, winFlag = false;
+    var gameArea = document.getElementById('gameArea'), moveSpan = document.getElementById('moveCount'), bestSpan = document.getElementById('bestNum'), resetBtn = document.getElementById('resetBtn'), undoBtn = document.getElementById('undoBtn'), statusMsg = document.getElementById('statusMsg');
+    var bestKey = 'pacdi_sirala_best';
+    function loadBest(){ var s=localStorage.getItem(bestKey); bestScore=s?parseInt(s):0; bestSpan.textContent=bestScore||'—'; }
+    function saveBest(){ if(moves<bestScore||bestScore===0){ bestScore=moves; localStorage.setItem(bestKey,bestScore); bestSpan.textContent=bestScore; } }
+    function saveHistory(){ var copy=[]; for(var i=0;i<tubes.length;i++) copy.push(tubes[i].slice()); history.push({tubes:copy, moves:moves}); if(history.length>30) history.shift(); }
+    function initGame(){
+      tubes=[[0,1,2],[1,2,0],[2,0,1],[]];
+      moves=0; selectedTube=-1; gameActive=true; winFlag=false;
+      moveSpan.textContent='0';
+      statusMsg.innerHTML='Tüpe dokun → topu seç → başka tüpe taşı';
+      history=[];
+      saveHistory();
+      renderGame();
+    }
+    function undoMove(){
+      if(!gameActive||winFlag) return;
+      if(history.length<=1){ statusMsg.innerHTML='⚠️ Geri alınacak hamle yok!'; return; }
+      history.pop();
+      var last=history[history.length-1];
+      tubes=JSON.parse(JSON.stringify(last.tubes));
+      moves=last.moves;
+      moveSpan.textContent=moves;
+      selectedTube=-1;
+      renderGame();
+      statusMsg.innerHTML='↩️ Hamle geri alındı';
+      setTimeout(function(){ if(!winFlag) statusMsg.innerHTML='Tüpe dokun → topu seç → başka tüpe taşı'; },1000);
+    }
+    function isValidMove(fromIdx,toIdx){
+      var fromTube=tubes[fromIdx], toTube=tubes[toIdx];
+      if(fromTube.length===0) return false;
+      if(toTube.length>=3) return false;
+      if(toTube.length===0) return true;
+      return fromTube[fromTube.length-1]===toTube[toTube.length-1];
+    }
+    function applyMove(fromIdx,toIdx){
+      if(!isValidMove(fromIdx,toIdx)) return false;
+      saveHistory();
+      var ball=tubes[fromIdx].pop();
+      tubes[toIdx].push(ball);
+      moves++;
+      moveSpan.textContent=moves;
+      return true;
+    }
+    function checkWin(){
+      var total=0;
+      for(var i=0;i<tubes.length;i++){
+        var tube=tubes[i];
+        if(tube.length===0) continue;
+        total+=tube.length;
+        var first=tube[0];
+        for(var j=1;j<tube.length;j++) if(tube[j]!==first) return false;
+      }
+      return total===9;
+    }
+    function winGame(){ gameActive=false; winFlag=true; saveBest(); statusMsg.innerHTML='🎉 MÜKEMMEL DÜZEN! KAZANDINIZ! 🎉'; statusMsg.style.color='#1ABC9C'; }
+    function onTubeClick(idx){
+      if(!gameActive||winFlag) return;
+      if(selectedTube===-1){
+        if(tubes[idx].length>0){ selectedTube=idx; renderGame(); statusMsg.innerHTML='✅ Top seçildi. Hedef tüpe dokun.'; }
+        else statusMsg.innerHTML='⚠️ Boş tüp seçilemez. Önce top seç.';
+      }else{
+        var from=selectedTube, to=idx;
+        if(from===to){ selectedTube=-1; renderGame(); statusMsg.innerHTML='Seçim iptal edildi.'; return; }
+        if(isValidMove(from,to)){ applyMove(from,to); selectedTube=-1; renderGame(); if(checkWin()) winGame(); else statusMsg.innerHTML='✔️ Hamle yapıldı. Devam et.'; }
+        else{ statusMsg.innerHTML='❌ Geçersiz hamle! Aynı renk üst üste olmalı veya hedef boş.'; selectedTube=-1; renderGame(); }
+      }
+    }
+    function renderGame(){
+      gameArea.innerHTML='';
+      for(var i=0;i<tubes.length;i++){
+        var tubeDiv=document.createElement('div'); tubeDiv.className='tube'; if(selectedTube===i) tubeDiv.classList.add('selected');
+        var content=tubes[i];
+        for(var j=0;j<content.length;j++){
+          var ballDiv=document.createElement('div'); ballDiv.className='ball'; ballDiv.style.backgroundColor=COLORS[content[j]];
+          tubeDiv.appendChild(ballDiv);
+        }
+        for(var k=content.length;k<3;k++){ var empty=document.createElement('div'); empty.style.width='48px'; empty.style.height='48px'; empty.style.marginBottom='6px'; empty.style.visibility='hidden'; tubeDiv.appendChild(empty); }
+        tubeDiv.addEventListener('click',(function(idx){ return function(){ onTubeClick(idx); }; })(i));
+        gameArea.appendChild(tubeDiv);
+      }
+    }
+    function resetGame(){ initGame(); selectedTube=-1; gameActive=true; winFlag=false; renderGame(); statusMsg.innerHTML='Yeni oyun başladı. İyi şanslar!'; setTimeout(function(){ if(!winFlag) statusMsg.innerHTML='Tüpe dokun → topu seç → başka tüpe taşı'; },1500); }
+    resetBtn.addEventListener('click',resetGame);
+    undoBtn.addEventListener('click',function(){ if(!gameActive||winFlag) return; undoMove(); });
+    loadBest(); initGame();
+  })();
+</script>
+</body>
+</html>
