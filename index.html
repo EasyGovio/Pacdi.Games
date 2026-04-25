@@ -48,11 +48,10 @@
     </div>
   </div>
 
-  <!-- Kategoriler (reflex, logic, visual, culture) dinamik olarak doldurulacak -->
-  <div class="category"><div class="category-title"><span>🌾</span> Rehber & Hasat, Kültür</div><div class="games-grid" id="cultureGrid"></div></div>
   <div class="category"><div class="category-title"><span>⚡</span> Refleks & Dikkat</div><div class="games-grid" id="reflexGrid"></div></div>
   <div class="category"><div class="category-title"><span>🧠</span> Hafıza & Mantık</div><div class="games-grid" id="logicGrid"></div></div>
   <div class="category"><div class="category-title"><span>🎨</span> Görsel Algı & Strateji</div><div class="games-grid" id="visualGrid"></div></div>
+  <div class="category"><div class="category-title"><span>🌾</span> Hasat, Kültür & Onur</div><div class="games-grid" id="cultureGrid"></div></div>
 
   <div class="reward-banner">
     <div style="font-size: 0.8rem; color: #F6B45F;">🎉 Her oyunun sonunda ekstra puan kazan!</div>
@@ -66,7 +65,6 @@
 
 <script>
   (function() {
-    // Pusula Puanı localStorage
     var POINTS_KEY = 'pacdi_games_points';
     var points = parseInt(localStorage.getItem(POINTS_KEY) || '0', 10);
     var pointsSpan = document.getElementById('pusulaPoints');
@@ -74,24 +72,8 @@
     function addPoints(amount) { points += amount; localStorage.setItem(POINTS_KEY, points); updatePointsUI(); pointsSpan.style.transform = 'scale(1.2)'; setTimeout(function() { pointsSpan.style.transform = ''; }, 200); }
     updatePointsUI();
 
-    // ---------- OYUN LİSTESİ (TÜM OYUNLAR) ----------
+    // OYUN LİSTESİ (GÜNCELLENDİ – 3 yeni oyun eklendi)
     var games = {
-      // ÖNCE REHBER / KÜLTÜR KATEGORİSİ (Emekli Pusulası en üstte)
-      culture: [
-        { name: "Emekli Pusulası", desc: "Banka promosyonlarını karşılaştır, en yüksek teklifi bul.", icon: "📊", file: "emekli-pusulasi.html", new: true },
-        { name: "Nefes Pusulası", desc: "Kriz anında nefes egzersizi.", icon: "🌬️", file: "breath-anchor.html", new: true },
-        { name: "Bilgelik Halkası", desc: "Etik değerleri farklı kültürlerde eşleştir.", icon: "🏵️", file: "wisdom-circle.html", new: true },
-        { name: "Unutulmuş Zariflikler", desc: "Eski nezaket kurallarını hatırla.", icon: "🎩", file: "forgotten-graces.html", new: true },
-        { name: "İyiliğin Grameri", desc: "Barış kelimelerini dillerde eşleştir.", icon: "🕊️", file: "grammar-of-goodness.html", new: true },
-        { name: "Dijital Miras", desc: "Fotoğraf yükle, sorularla parçaları aç.", icon: "🖼️", file: "legacy-puzzle.html", new: true },
-        { name: "Sesli Hafıza", desc: "Aile seslerini tanı.", icon: "🎤", file: "voice-memory.html", new: true },
-        { name: "Plaka Kodları", desc: "Türkiye illerini eşleştir.", icon: "🚗", file: "plaka-kodu.html", new: true },
-        { name: "Yöresel Yemekler", desc: "Mutfak ve bölge eşleştirme.", icon: "🍲", file: "regional-food.html", new: true },
-        { name: "Ege Hasadı", desc: "Zeytin, otlar, Ege ürünleri.", icon: "🫒", file: "ege-hasadi.html", new: true },
-        { name: "Karadeniz Hasadı", desc: "Çay, fındık, Karadeniz ürünleri.", icon: "🍵", file: "karadeniz-hasadi.html", new: true },
-        { name: "Doğu Hasadı", desc: "Peynir, hayvancılık, yöresel tatlar.", icon: "🧀", file: "dogu-hasadi.html", new: true },
-        { name: "Kennzeichen Quiz", desc: "Almanya şehir plakalarını öğren.", icon: "🇩🇪", file: "kennzeichen-quiz.html", new: true }
-      ],
       reflex: [
         { name: "Reaction Tap", desc: "Hedefe dokun, reaksiyon süreni ölç.", icon: "⚡", file: "reaction-tap.html", new: false },
         { name: "Eye Tracker", desc: "Kültürel nesneleri hızla yakala.", icon: "👁️", file: "eye-tracker.html", new: true },
@@ -111,7 +93,7 @@
         { name: "Sıra Hatırlama", desc: "Işık ve ses dizisini tekrarla.", icon: "🎵", file: "sequence.html", new: false },
         { name: "Kelime Türetme", desc: "Harflerden kelime üret.", icon: "📖", file: "word.html", new: false },
         { name: "Math Sprint", desc: "Hızlı matematik egzersizi.", icon: "🧮", file: "math.html", new: false },
-        { name: "Mahjong Solitaire", desc: "Eşleşen taşları kaldır, zihni rahatlat.", icon: "🀄", file: "mahjong.html", new: false }
+        { name: "Pacdi Sırala", desc: "Renkli topları aynı tüpte düzenle.", icon: "🎯", file: "pacdi-sirala.html", new: true }
       ],
       visual: [
         { name: "Rotate", desc: "Şekli döndür, hedefe hizala.", icon: "🔄", file: "rotate.html", new: false },
@@ -121,14 +103,19 @@
         { name: "Pattern Match", desc: "Deseni ezberle, doğru hücreleri seç.", icon: "🔲", file: "pattern-match.html", new: false },
         { name: "Spot the Diff", desc: "İki resim arasındaki farkları bul.", icon: "🔎", file: "spot-the-diff.html", new: true },
         { name: "Peg Solitaire", desc: "Tek çivi kalana kadar zıpla.", icon: "⚪", file: "peg.html", new: false },
-        { name: "Water Sort Pro", desc: "Renkleri tüpte düzenle (zeka oyunu).", icon: "💧", file: "water-sort-pro.html", new: false },
-        { name: "2048", desc: "Sayıları birleştir, 2048'e ulaş.", icon: "🔢", file: "2048.html", new: false },
-        { name: "Hidden Object", desc: "Gizli nesneleri bul, dikkat et.", icon: "🔍", file: "hidden-object.html", new: false },
-        { name: "Bio-Sync Rhythm", desc: "Metronom ile ritim yakala.", icon: "🎵", file: "bio-sync-rhythm.html", new: true },
-        { name: "Breathing", desc: "Stres yönetimi nefes egzersizleri.", icon: "🌬️", file: "breathing.html", new: false },
-        { name: "Ancestors' Album", desc: "Nostaljik hafıza oyunu.", icon: "📷", file: "ancestors-album.html", new: false },
-        { name: "Daily Compass", desc: "Yön bulma ve oryantasyon.", icon: "🧭", file: "daily-compass.html", new: false },
-        { name: "Word Garden", desc: "Kelime bahçesi, stressiz kelime oyunu.", icon: "🌸", file: "word-garden.html", new: true }
+        { name: "Water Sort Pro", desc: "Renkleri tüpte düzenle.", icon: "💧", file: "water-sort-pro.html", new: false },
+        { name: "Pacdi Rulo", desc: "Kule dizme, denge oyunu.", icon: "🏗️", file: "pacdi-rulo.html", new: true },
+        { name: "Pacdi Çivi", desc: "Stratejik çivi çekme oyunu.", icon: "🔩", file: "pacdi-civi.html", new: true }
+      ],
+      culture: [
+        { name: "Nefes Pusulası", desc: "Kriz anında nefes egzersizi.", icon: "🌬️", file: "breath-anchor.html", new: true },
+        { name: "Bilgelik Halkası", desc: "Etik değerleri farklı kültürlerde eşleştir.", icon: "🏵️", file: "wisdom-circle.html", new: true },
+        { name: "Unutulmuş Zariflikler", desc: "Eski nezaket kurallarını hatırla.", icon: "🎩", file: "forgotten-graces.html", new: true },
+        { name: "İyiliğin Grameri", desc: "Barış kelimelerini dillerde eşleştir.", icon: "🕊️", file: "grammar-of-goodness.html", new: true },
+        { name: "Dijital Miras", desc: "Fotoğraf yükle, sorularla parçaları aç.", icon: "🖼️", file: "legacy-puzzle.html", new: true },
+        { name: "Sesli Hafıza", desc: "Aile seslerini tanı.", icon: "🎤", file: "voice-memory.html", new: true },
+        { name: "Plaka Kodları", desc: "Türkiye illerini eşleştir.", icon: "🚗", file: "plaka-kodu.html", new: true },
+        { name: "Yöresel Yemekler", desc: "Mutfak ve bölge eşleştirme.", icon: "🍲", file: "regional-food.html", new: true }
       ]
     };
 
@@ -151,16 +138,14 @@
       for (var i = 0; i < gamesArray.length; i++) container.appendChild(createGameCard(gamesArray[i]));
     }
 
-    renderCategory('cultureGrid', games.culture);
     renderCategory('reflexGrid', games.reflex);
     renderCategory('logicGrid', games.logic);
     renderCategory('visualGrid', games.visual);
+    renderCategory('cultureGrid', games.culture);
 
-    // Toplam oyun sayısını göster
-    var total = games.culture.length + games.reflex.length + games.logic.length + games.visual.length;
+    var total = games.reflex.length + games.logic.length + games.visual.length + games.culture.length;
     document.getElementById('totalGamesSpan').innerText = total;
 
-    // Reklam mock butonu
     var rewardBtn = document.getElementById('mockRewardBtn');
     if (rewardBtn) rewardBtn.addEventListener('click', function() { alert('🎬 Reklam izleme simülasyonu\n+10 Pusula Puanı'); addPoints(10); });
 
