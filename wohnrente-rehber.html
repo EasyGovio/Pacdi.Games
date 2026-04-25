@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Wohnrente Rehber PRO | PACDI Games</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+        body { background:#04162E; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
+        .game-container { max-width:620px; width:100%; background:rgba(4,22,46,0.85); border-radius:56px; padding:20px 16px 24px; box-shadow:0 20px 35px rgba(0,0,0,0.5); backdrop-filter:blur(2px); border:1px solid rgba(246,180,95,0.3); text-align:center; }
+        .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+        .logo { font-size:1.2rem; font-weight:800; color:#F6B45F; }
+        .back-link { color:#F6B45F; text-decoration:none; font-weight:bold; font-size:0.78rem; background:#0a1018; padding:5px 12px; border-radius:40px; border:1px solid rgba(246,180,95,0.3); }
+        .lang-selector { display:flex; gap:6px; margin-bottom:12px; justify-content:flex-end; }
+        .lang-btn { background:#0a1018; border:1px solid #F6B45F; color:#F6B45F; font-size:0.7rem; padding:3px 10px; border-radius:30px; cursor:pointer; }
+        .lang-btn.active { background:#F6B45F; color:#04162E; }
+        .question-area { background:#0a1018; border-radius:28px; padding:20px 16px; margin-bottom:20px; text-align:left; }
+        .step-indicator { color:#6c8fb0; font-size:0.7rem; margin-bottom:10px; }
+        .question-text { font-size:1rem; font-weight:bold; color:#F6B45F; margin-bottom:16px; }
+        .options-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+        .opt-btn { background:#1e2a3a; border:2px solid #1ABC9C; border-radius:60px; padding:12px 8px; font-weight:bold; color:#1ABC9C; cursor:pointer; font-size:0.85rem; text-align:center; }
+        .opt-btn:active { background:#1ABC9C; color:#04162E; transform:scale(0.96); }
+        .result-box { background:#0a1018; border-radius:28px; padding:20px; margin-top:20px; border:2px solid #F6B45F; text-align:left; }
+        .result-title { font-size:1.3rem; font-weight:800; color:#F6B45F; margin-bottom:10px; }
+        .result-detail { color:#eaf2fb; font-size:0.85rem; line-height:1.6; margin-bottom:12px; }
+        .option-card { background:#1e2a3a; border-radius:16px; padding:14px; margin:10px 0; border-left:4px solid #F6B45F; }
+        .option-card.empfohlen { border-left-color:#2ECC71; background:rgba(46,204,113,0.1); }
+        .option-title { font-weight:bold; color:#F6B45F; margin-bottom:6px; }
+        .pro { color:#2ECC71; }
+        .contra { color:#E74C3C; }
+        .niessbrauch-badge { background:rgba(241,196,15,0.2); border-left:4px solid #F1C40F; padding:10px; border-radius:10px; margin-top:8px; font-size:0.75rem; color:#F1C40F; }
+        .partner-box { background:rgba(246,180,95,0.08); border:2px solid rgba(246,180,95,0.4); border-radius:20px; padding:16px; margin-top:16px; text-align:center; }
+        .partner-title { color:#F6B45F; font-weight:bold; margin-bottom:10px; font-size:0.9rem; }
+        .partner-btn { display:inline-block; background:#F6B45F; color:#04162E; font-weight:bold; padding:8px 16px; border-radius:40px; font-size:0.8rem; text-decoration:none; margin:4px; }
+        .partner-btn.outline { background:transparent; border:2px solid #F6B45F; color:#F6B45F; }
+        .warning-box { background:rgba(231,76,60,0.2); border-left:4px solid #E74C3C; padding:12px; border-radius:12px; margin:12px 0; font-size:0.8rem; }
+        .community-box { background:rgba(46,204,113,0.2); border-left:4px solid #2ECC71; padding:12px; border-radius:12px; margin:12px 0; font-size:0.8rem; }
+        .back-btn { background:#1e2a3a; border:1px solid #F6B45F; color:#F6B45F; padding:8px 16px; border-radius:40px; cursor:pointer; font-weight:bold; margin-top:10px; }
+        .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:12px; }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="top-bar">
+        <div class="logo" id="gameTitle">WOHNRENTE REHBER PRO</div>
+        <a href="index.html" class="back-link" id="backLink">← Zurück</a>
+    </div>
+    <div class="lang-selector" id="langSelector">
+        <button class="lang-btn active" data-lang="de">DE</button>
+        <button class="lang-btn" data-lang="tr">TR</button>
+        <button class="lang-btn" data-lang="en">EN</button>
+    </div>
+    <div class="question-area" id="questionArea">
+        <div class="step-indicator" id="stepIndicator"></div>
+        <div class="question-text" id="questionText"></div>
+        <div class="options-grid" id="optionsGrid"></div>
+        <button class="back-btn" id="backBtn" style="display:none;">← Zurück</button>
+    </div>
+    <div class="footer" id="footerText">PACDI Games · Ihr Wohnrente-Ratgeber in Deutschland</div>
+</div>
+<script>
+(function(){
+    var langData = {
+        de: {
+            title: "WOHNRENTE REHBER PRO",
+            back: "← Zurück",
+            steps: "Schritt {0} von {1}",
+            footer: "PACDI Games · Ihr Wohnrente-Ratgeber in Deutschland",
+            resultTitle: "Ihre Wohnrente-Empfehlung",
+            teilverkauf: "Teilverkauf",
+            umkehrhypothek: "Umkehrhypothek",
+            vermietung: "Vermietung + Umzug",
+            nichts: "Nichts tun",
+            empfohlen: "Empfohlen",
+            vorteile: "Vorteile",
+            nachteile: "Nachteile",
+            erben: "Auswirkungen auf Erben",
+            niessbrauchInfo: "⚖ Wichtig: Bestehen Sie auf ein Nießbrauchrecht im Grundbuch. Es sichert Ihr lebenslanges Wohnrecht und schützt Sie vor einer Räumung – auch wenn die Immobilie verkauft wurde.",
+            partnerTitle: "Vertrauenswürdige Partner",
+            partnerBtn: "Jetzt informieren",
+            communityTitle: "Gemeinschaftshilfe",
+            communityText: "Viele türkische Rentner in Deutschland sind Mitglied in einem Rentnerverein oder einer Gemeinde wie DİTİB. Diese Gemeinschaften bieten oft ehrenamtliche Beratung bei finanziellen Entscheidungen. Sie sind nicht allein."
+        },
+        tr: {
+            title: "KONUT EMEKLİLİĞİ REHBERİ PRO",
+            back: "← Geri",
+            steps: "Adım {0} / {1}",
+            footer: "PACDI Games · Almanya konut emekliliği rehberiniz",
+            resultTitle: "Konut Emekliliği Öneriniz",
+            teilverkauf: "Kısmi Satış",
+            umkehrhypothek: "Ters İpotek",
+            vermietung: "Kiraya Verme + Taşınma",
+            nichts: "Hiçbir şey yapma",
+            empfohlen: "Önerilen",
+            vorteile: "Avantajlar",
+            nachteile: "Dezavantajlar",
+            erben: "Mirasçılara Etkisi",
+            niessbrauchInfo: "⚖ Önemli: Tapuda Nießbrauchrecht (kullanım hakkı) talep edin. Bu, ömür boyu oturma hakkınızı garanti altına alır – mülk satılsa bile sizi tahliyeden korur.",
+            partnerTitle: "Güvenilir Partnerler",
+            partnerBtn: "Şimdi bilgi al",
+            communityTitle: "Topluluk Dayanışması",
+            communityText: "Almanya'daki birçok Türk emekli, bir emekli derneğine veya DİTİB gibi bir cemaate üyedir. Bu topluluklar, finansal kararlarda gönüllü danışmanlık sunar. Yalnız değilsiniz."
+        },
+        en: {
+            title: "HOME EQUITY ADVISOR PRO",
+            back: "← Back",
+            steps: "Step {0} of {1}",
+            footer: "PACDI Games · Your home equity advisor in Germany",
+            resultTitle: "Your Home Equity Recommendation",
+            teilverkauf: "Partial Sale",
+            umkehrhypothek: "Reverse Mortgage",
+            vermietung: "Rent Out + Move",
+            nichts: "Do Nothing",
+            empfohlen: "Recommended",
+            vorteile: "Advantages",
+            nachteile: "Disadvantages",
+            erben: "Impact on Heirs",
+            niessbrauchInfo: "⚖ Important: Insist on a Nießbrauchrecht in the land register. It guarantees your lifelong right of residence and protects you from eviction – even if the property is sold.",
+            partnerTitle: "Trusted Partners",
+            partnerBtn: "Get info",
+            communityTitle: "Community Support",
+            communityText: "Many Turkish retirees in Germany are members of a pensioners' association or a community like DİTİB. These communities offer volunteer advice on financial decisions. You are not alone."
+        }
+    };
+    var currentLang = 'de';
+    var currentStep = 0;
+    var answers = {};
+    var questions = [
+        { question:"Wie hoch ist der geschätzte Wert Ihrer Immobilie?", opts:["Unter 200.000 €","200.000 € – 400.000 €","Über 400.000 €"], key:"immowert", values:["niedrig","mittel","hoch"] },
+        { question:"Haben Sie Erben, denen die Immobilie wichtig ist?", opts:["Ja, und sie wollen das Haus behalten","Ja, aber sie sind flexibel","Nein, keine Erben"], key:"erben", values:["wichtig","flexibel","keine"] },
+        { question:"Benötigen Sie monatlich zusätzliches Einkommen?", opts:["Ja, dringend","Etwas wäre hilfreich","Nein, ich komme zurecht"], key:"einkommen", values:["dringend","hilfreich","ausreichend"] },
+        { question:"Wie alt sind Sie?", opts:["Unter 65","65–75","Über 75"], key:"alter", values:["jung","mittel","alt"] }
+    ];
+    var totalSteps = questions.length;
+
+    function updateLanguage() {
+        var t = langData[currentLang];
+        document.getElementById('gameTitle').innerText = t.title;
+        document.getElementById('backLink').innerText = t.back;
+        document.getElementById('footerText').innerText = t.footer;
+        document.getElementById('backBtn').innerText = t.back;
+    }
+    function setLanguage(lang) {
+        currentLang = lang; updateLanguage();
+        var btns = document.querySelectorAll('.lang-btn');
+        for(var i=0;i<btns.length;i++) btns[i].classList.toggle('active', btns[i].getAttribute('data-lang')===lang);
+        if(currentStep < totalSteps) renderQuestion(); else renderResult();
+    }
+    function renderQuestion() {
+        var q = questions[currentStep];
+        var t = langData[currentLang];
+        document.getElementById('stepIndicator').innerText = t.steps.replace('{0}',currentStep+1).replace('{1}',totalSteps);
+        document.getElementById('questionText').innerText = q.question;
+        var grid = document.getElementById('optionsGrid'); grid.innerHTML = '';
+        for(var i=0;i<q.opts.length;i++) {
+            var btn = document.createElement('button'); btn.className='opt-btn'; btn.innerText=q.opts[i];
+            btn.addEventListener('click', (function(key,value){ return function(){
+                answers[key]=value; currentStep++;
+                if(currentStep<totalSteps) renderQuestion(); else renderResult();
+            };})(q.key, q.values[i]));
+            grid.appendChild(btn);
+        }
+        document.getElementById('backBtn').style.display = currentStep>0 ? 'inline-block' : 'none';
+    }
+    function renderResult() {
+        var t = langData[currentLang];
+        var empfehlung = t.nichts;
+        var optionen = [];
+
+        if(answers.immowert === 'hoch' && answers.erben === 'flexibel' && answers.einkommen === 'dringend') {
+            empfehlung = t.teilverkauf;
+            optionen.push({ name:t.teilverkauf, empfohlen:true, pro:"Sofortige Liquidität, Sie bleiben wohnen, geringerer Wertverlust", contra:"Weniger Erbmasse, Verkaufsnebenkosten", erben:"Erben erhalten weniger, aber Sie behalten Wohnrecht", niessbrauch:true });
+        } else if(answers.immowert !== 'niedrig') {
+            optionen.push({ name:t.teilverkauf, empfohlen:false, pro:"Sofortige Liquidität, Sie bleiben wohnen", contra:"Weniger Erbmasse, Verkaufsnebenkosten", erben:"Erben erhalten weniger", niessbrauch:true });
+        }
+
+        if(answers.alter === 'alt' && answers.erben === 'keine' && answers.einkommen === 'dringend') {
+            empfehlung = t.umkehrhypothek;
+            optionen.push({ name:t.umkehrhypothek, empfohlen:true, pro:"Monatliche Rente, Sie bleiben wohnen, keine Rückzahlung zu Lebzeiten", contra:"Hohe Zinsen, Immobilie geht an Bank, wenig Erbmasse", erben:"Kaum Erbe für Immobilie", niessbrauch:true });
+        } else if(answers.erben !== 'wichtig') {
+            optionen.push({ name:t.umkehrhypothek, empfohlen:false, pro:"Monatliche Rente, Sie bleiben wohnen", contra:"Hohe Zinsen, Immobilie geht an Bank", erben:"Kaum Erbe für Immobilie", niessbrauch:true });
+        }
+
+        if(answers.immowert === 'mittel' && answers.erben === 'wichtig' && answers.einkommen !== 'ausreichend') {
+            empfehlung = t.vermietung;
+            optionen.push({ name:t.vermietung, empfohlen:true, pro:"Regelmäßige Mieteinnahmen, Immobilie bleibt im Familienbesitz, flexible Wohnortwahl", contra:"Umzugsstress, Vermieterpflichten, eventuell Renovierungskosten", erben:"Immobilie bleibt vollständig erhalten, Mieteinnahmen als Zusatzerbe", niessbrauch:false });
+        } else if(answers.erben === 'wichtig') {
+            optionen.push({ name:t.vermietung, empfohlen:false, pro:"Regelmäßige Mieteinnahmen, Immobilie bleibt erhalten", contra:"Umzugsstress, Vermieterpflichten", erben:"Immobilie bleibt vollständig erhalten", niessbrauch:false });
+        }
+
+        if(answers.einkommen === 'ausreichend' || answers.erben === 'wichtig') {
+            empfehlung = t.nichts;
+            optionen.push({ name:t.nichts, empfohlen:true, pro:"Keine Veränderung, volle Kontrolle, maximale Erbmasse", contra:"Keine zusätzliche Liquidität, Immobilienwert nicht genutzt", erben:"Maximale Erbmasse, keine Belastung", niessbrauch:false });
+        } else {
+            optionen.push({ name:t.nichts, empfohlen:false, pro:"Keine Veränderung, volle Kontrolle", contra:"Keine zusätzliche Liquidität", erben:"Maximale Erbmasse", niessbrauch:false });
+        }
+
+        var html = '<div class="result-box">';
+        html += '<div class="result-title">' + t.resultTitle + '</div>';
+        for(var i=0;i<optionen.length;i++) {
+            var o = optionen[i];
+            html += '<div class="option-card' + (o.empfohlen ? ' empfohlen' : '') + '">';
+            html += '<div class="option-title">' + (o.empfohlen ? '⭐ ' + t.empfohlen + ': ' : '') + o.name + '</div>';
+            html += '<p><span class="pro">✅ ' + t.vorteile + ':</span> ' + o.pro + '</p>';
+            html += '<p><span class="contra">⚠ ' + t.nachteile + ':</span> ' + o.contra + '</p>';
+            html += '<p>📜 ' + t.erben + ': ' + o.erben + '</p>';
+            if(o.niessbrauch) html += '<div class="niessbrauch-badge">' + t.niessbrauchInfo + '</div>';
+            html += '</div>';
+        }
+        html += '<div class="partner-box"><div class="partner-title">🤝 ' + t.partnerTitle + '</div>';
+        html += '<a href="https://www.deutsche-teilkauf.de" target="_blank" class="partner-btn">' + t.partnerBtn + ': Deutsche Teilkauf</a>';
+        html += '<a href="https://www.wertfaktor.de" target="_blank" class="partner-btn outline">' + t.partnerBtn + ': Wertfaktor</a>';
+        html += '</div>';
+        html += '<div class="warning-box"><strong>⚠ Achtung:</strong> Dies ist eine unverbindliche Ersteinschätzung. Für verbindliche Auskünfte wenden Sie sich an einen Finanzberater, Ihre Bank oder einen Sozialverband.</div>';
+        html += '<div class="community-box"><strong>🤝 ' + t.communityTitle + ':</strong><br>' + t.communityText + '</div>';
+        html += '<button class="back-btn" onclick="resetBerater()">Wiederholen</button>';
+        html += '</div>';
+        document.getElementById('questionArea').innerHTML = html;
+        document.getElementById('backBtn').style.display = 'none';
+    }
+
+    window.resetBerater = function() {
+        currentStep = 0; answers = {};
+        document.getElementById('questionArea').innerHTML = '<div class="step-indicator" id="stepIndicator"></div><div class="question-text" id="questionText"></div><div class="options-grid" id="optionsGrid"></div><button class="back-btn" id="backBtn" style="display:none;">← Zurück</button>';
+        updateLanguage(); renderQuestion();
+    };
+
+    document.getElementById('backBtn').addEventListener('click', function(){ if(currentStep>0){ currentStep--; renderQuestion(); } });
+    var langBtns = document.querySelectorAll('.lang-btn');
+    for(var i=0;i<langBtns.length;i++) langBtns[i].addEventListener('click', function(){ var lang=this.getAttribute('data-lang'); if(lang!==currentLang) setLanguage(lang); });
+
+    setLanguage('de'); renderQuestion();
+})();
+</script>
+</body>
+</html>
