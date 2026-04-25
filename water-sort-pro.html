@@ -5,14 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Water Sort Pro | PACDI Games</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-    }
-
+    * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
     body {
       background: #04162E;
       font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -22,100 +15,46 @@
       align-items: center;
       padding: 16px;
     }
-
-    .game-wrapper {
-      max-width: 700px;
+    .game-container {
+      max-width: 650px;
       width: 100%;
-      background: rgba(4, 22, 46, 0.8);
-      border-radius: 56px;
+      background: #1e2a3a;
+      border-radius: 48px;
       padding: 20px 16px 24px;
-      box-shadow: 0 20px 35px rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(2px);
+      box-shadow: 0 20px 35px rgba(0,0,0,0.4);
+      border: 1px solid rgba(246,180,95,0.3);
     }
-
-    .game-header {
-      text-align: center;
-      margin-bottom: 20px;
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 14px;
     }
-
-    h1 {
-      font-size: 2.2rem;
-      letter-spacing: 2px;
-      color: #F6B45F;
-      text-shadow: 0 2px 3px #00000040;
-      font-weight: 700;
-    }
-
-    .sub {
-      font-size: 0.75rem;
-      color: #9bb7d4;
-      margin-top: 4px;
-    }
-
+    .logo { font-size: 1.5rem; font-weight: bold; color: #F6B45F; }
+    .sub { font-size: 0.62rem; color: #9bb7d4; margin-top: 2px; }
+    .back-link { color: #F6B45F; text-decoration: none; font-weight: bold; font-size: 0.78rem; background: #0a1018; padding: 5px 12px; border-radius: 40px; }
     .info-bar {
       display: flex;
-      justify-content: center;
+      justify-content: space-between;
       align-items: center;
-      background: #0A1F3A;
+      background: #0a1018;
       border-radius: 60px;
-      padding: 8px 16px;
-      margin-bottom: 24px;
-      flex-wrap: wrap;
-      gap: 16px;
-      border: 1px solid #F6B45F30;
+      padding: 7px 16px;
+      margin-bottom: 14px;
     }
-
-    .level-box {
-      background: #04162E;
-      padding: 5px 16px;
-      border-radius: 40px;
-      color: #F6B45F;
-      font-weight: bold;
-      font-size: 1.2rem;
-    }
-
-    .level-box span {
-      color: white;
-    }
-
-    button {
-      background: #F6B45F;
-      border: none;
-      font-weight: bold;
-      padding: 6px 20px;
-      border-radius: 40px;
-      color: #04162E;
-      font-size: 0.9rem;
-      cursor: pointer;
-      font-family: inherit;
-      transition: 0.05s linear;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    }
-
-    button:active {
-      transform: scale(0.96);
-    }
-
+    .info-box { color: #F6B45F; font-weight: bold; font-size: 0.8rem; }
+    .info-box span { color: #eaf2fb; }
+    .new-btn { background: #F6B45F; border: none; font-weight: bold; padding: 5px 14px; border-radius: 40px; color: #04162E; cursor: pointer; font-size: 0.78rem; }
     .tubes-grid {
       display: grid;
-      justify-items: center;
-      gap: 18px;
-      margin-bottom: 30px;
-      transition: all 0.2s;
       grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      justify-items: center;
+      margin: 20px 0;
     }
-
-    .tubes-grid.grid-7 {
-      grid-template-columns: repeat(4, 1fr);
-    }
-
-    .tubes-grid.grid-8 {
-      grid-template-columns: repeat(4, 1fr);
-    }
-
     .tube {
       width: 85px;
-      background: rgba(255, 255, 255, 0.08);
+      background: #0a1018;
       border-radius: 40px;
       padding: 8px 6px;
       display: flex;
@@ -123,211 +62,140 @@
       align-items: center;
       gap: 6px;
       cursor: pointer;
+      border: 2px solid #F6B45F40;
       transition: all 0.1s ease;
-      border: 2px solid rgba(246, 180, 95, 0.4);
-      box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.2), 0 8px 12px rgba(0, 0, 0, 0.3);
-      backdrop-filter: blur(4px);
     }
-
     .tube.selected {
       border: 3px solid #F6B45F;
-      background: rgba(246, 180, 95, 0.15);
+      background: rgba(246,180,95,0.1);
       transform: scale(1.02);
     }
-
     .color-unit {
       width: 100%;
-      height: 22px;
+      height: 24px;
       border-radius: 20px;
-      transition: all 0.12s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+      transition: transform 0.08s;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
     }
-
     .empty-slot {
       width: 100%;
-      height: 22px;
-      background: rgba(255, 255, 255, 0.05);
+      height: 24px;
+      background: rgba(255,255,255,0.04);
       border-radius: 20px;
-      border: 1px dashed rgba(246, 180, 95, 0.3);
+      border: 1px dashed #F6B45F30;
     }
-
-    .win-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(4, 22, 46, 0.95);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-      backdrop-filter: blur(5px);
-    }
-
-    .win-card {
-      background: #0A1F3A;
-      border-radius: 56px;
-      padding: 32px 24px;
+    .message {
       text-align: center;
-      width: 280px;
-      border: 2px solid #F6B45F;
-      box-shadow: 0 20px 35px black;
+      margin-top: 15px;
+      padding: 8px;
+      background: #0a1018;
+      border-radius: 40px;
+      color: #eaf2fb;
+      font-weight: bold;
+      font-size: 0.8rem;
     }
-
-    .win-card h2 {
-      color: #F6B45F;
-      font-size: 2rem;
-      margin-bottom: 12px;
-    }
-
-    .win-card p {
-      color: white;
-      margin-bottom: 24px;
-      font-size: 1.1rem;
-    }
-
-    .next-btn {
-      background: #F6B45F;
-      font-size: 1.2rem;
-      padding: 10px 24px;
-    }
-
     .footer {
       text-align: center;
-      margin-top: 12px;
+      font-size: 0.6rem;
       color: #6c8fb0;
-      font-size: 0.7rem;
+      margin-top: 12px;
     }
-
-    .tube-pour {
-      animation: pourGlow 0.2s ease-out;
-    }
-
-    @keyframes pourGlow {
-      0% {
-        filter: brightness(1);
-        border-color: #F6B45F;
-        box-shadow: 0 0 0 0 #F6B45F;
-      }
-      50% {
-        filter: brightness(1.2);
-        border-color: #FFD966;
-        box-shadow: 0 0 8px 2px #F6B45F;
-      }
-      100% {
-        filter: brightness(1);
-        border-color: rgba(246, 180, 95, 0.4);
-      }
-    }
-
     @media (max-width: 550px) {
-      .tube {
-        width: 70px;
-      }
-      .color-unit, .empty-slot {
-        height: 18px;
-      }
-      .tubes-grid {
-        gap: 12px;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .tube {
-        width: 62px;
-      }
+      .tube { width: 70px; }
+      .color-unit, .empty-slot { height: 20px; }
+      .tubes-grid { gap: 10px; }
     }
   </style>
 </head>
 <body>
-<div class="game-wrapper">
-  <div class="game-header">
-    <h1>WATER SORT PRO</h1>
-    <div class="sub">PACDI Games · progresif zorluk</div>
+<div class="game-container">
+  <div class="header">
+    <div><div class="logo">WATER SORT PRO</div><div class="sub">PACDI Games · Renk Sıralama</div></div>
+    <a href="index.html" class="back-link">← Geri</a>
   </div>
 
   <div class="info-bar">
-    <div class="level-box">🔹 SEVİYE <span id="levelValue">1</span></div>
-    <button id="restartBtn">⟳ YENİDEN BAŞLAT</button>
+    <div class="info-box">📌 Hamle: <span id="moveCount">0</span></div>
+    <div class="info-box">🏆 En İyi: <span id="bestScore">—</span></div>
+    <button class="new-btn" id="newGameBtn">↺ Yeni Oyun</button>
   </div>
 
   <div id="tubesContainer" class="tubes-grid"></div>
-  <div class="footer">Aynı renk üst üste · Boş tüpe taşı · Seviye atla</div>
+  <div class="message" id="gameMsg">Bir tüpe dokun → top seç → başka tüpe taşı</div>
+  <div class="footer">✔ Aynı renk üst üste eklenir · Boş tüpe her renk gider · Kazanmak için tüm tüpleri tek renk yap</div>
 </div>
 
 <script>
   (function() {
-    var BASE_COLORS = ["#F6B45F", "#2ECC71", "#E74C3C", "#3498DB"];
-    var COLOR_5 = "#9B59B6";
-    var COLOR_6 = "#1ABC9C";
+    var COLOR_LIST = ["#F6B45F", "#2ECC71", "#E74C3C", "#3498DB", "#9B59B6", "#1ABC9C"];
+    var TUBE_COUNT = 6;
+    var TUBE_CAP   = 4;
 
-    function getColorListByLevel(level) {
-      if (level >= 11) return BASE_COLORS.concat([COLOR_5, COLOR_6]);
-      if (level >= 6) return BASE_COLORS.concat([COLOR_5]);
-      return BASE_COLORS.slice();
+    var tubes = [];
+    var selectedTube = null;
+    var moves = 0;
+    var bestScore = 0;
+    var gameActive = true;
+    var bestKey = "watersort_best_pacdi";
+
+    var container = document.getElementById('tubesContainer');
+    var moveSpan = document.getElementById('moveCount');
+    var bestSpan = document.getElementById('bestScore');
+    var newGameBtn = document.getElementById('newGameBtn');
+    var gameMsgDiv = document.getElementById('gameMsg');
+
+    function loadBest() {
+      var saved = localStorage.getItem(bestKey);
+      bestScore = saved ? parseInt(saved, 10) : 0;
+      bestSpan.innerText = bestScore || '—';
     }
-
-    function getTubeCountByLevel(level) {
-      return getColorListByLevel(level).length + 2;
-    }
-
-    var tubes = [], initialTubes = [], selectedTubeIndex = null, currentLevel = 1, winActive = false;
-    var container = document.getElementById("tubesContainer");
-    var levelSpan = document.getElementById("levelValue");
-    var restartBtn = document.getElementById("restartBtn");
-
-    function copyTubes(tubesArr) {
-      var copy = [];
-      for (var i = 0; i < tubesArr.length; i++) copy.push(tubesArr[i].slice());
-      return copy;
-    }
-
-    function isGameWon() {
-      var totalUnits = 0;
-      for (var i = 0; i < tubes.length; i++) {
-        var tube = tubes[i];
-        if (tube.length === 0) continue;
-        var firstColor = tube[0];
-        for (var j = 1; j < tube.length; j++) if (tube[j] !== firstColor) return false;
-        totalUnits += tube.length;
+    function saveBest() {
+      if (moves < bestScore || bestScore === 0) {
+        bestScore = moves;
+        localStorage.setItem(bestKey, bestScore);
+        bestSpan.innerText = bestScore;
       }
-      return totalUnits === getColorListByLevel(currentLevel).length * 4;
     }
 
-    function tryPour(srcIdx, dstIdx) {
-      if (srcIdx === dstIdx) return false;
-      var srcTube = tubes[srcIdx], dstTube = tubes[dstIdx];
-      if (srcTube.length === 0) return false;
-      if (dstTube.length === 4) return false;
-      var srcTop = srcTube[srcTube.length - 1];
-      if (dstTube.length > 0 && srcTop !== dstTube[dstTube.length - 1]) return false;
-      srcTube.pop();
-      dstTube.push(srcTop);
-      animatePour(srcIdx, dstIdx);
-      return true;
-    }
-
-    function animatePour(src, dst) {
-      var allTubes = document.querySelectorAll('.tube');
-      if (allTubes[src]) allTubes[src].classList.add('tube-pour');
-      if (allTubes[dst]) allTubes[dst].classList.add('tube-pour');
-      setTimeout(function() {
-        if (allTubes[src]) allTubes[src].classList.remove('tube-pour');
-        if (allTubes[dst]) allTubes[dst].classList.remove('tube-pour');
-      }, 200);
-    }
-
-    function adjustGridLayout(tubeCount) {
-      container.classList.remove('grid-7', 'grid-8');
-      if (tubeCount === 7) {
-        container.classList.add('grid-7');
-        container.style.gridTemplateColumns = 'repeat(4, 1fr)';
-      } else if (tubeCount === 8) {
-        container.classList.add('grid-8');
-        container.style.gridTemplateColumns = 'repeat(4, 1fr)';
-      } else {
-        container.style.gridTemplateColumns = 'repeat(3, 1fr)';
+    function initGame() {
+      var colorPool = [];
+      for (var c = 0; c < COLOR_LIST.length; c++) {
+        for (var q = 0; q < 4; q++) colorPool.push(COLOR_LIST[c]);
       }
+      for (var i = colorPool.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var temp = colorPool[i];
+        colorPool[i] = colorPool[j];
+        colorPool[j] = temp;
+      }
+      tubes = [];
+      for (var t = 0; t < TUBE_COUNT; t++) tubes.push([]);
+      for (var idx = 0; idx < colorPool.length; idx++) {
+        var placed = false;
+        var attempts = 0;
+        while (!placed && attempts < 60) {
+          var rnd = Math.floor(Math.random() * TUBE_COUNT);
+          if (tubes[rnd].length < TUBE_CAP) {
+            tubes[rnd].push(colorPool[idx]);
+            placed = true;
+          }
+          attempts++;
+        }
+        if (!placed) {
+          for (var k = 0; k < TUBE_COUNT; k++) {
+            if (tubes[k].length < TUBE_CAP) {
+              tubes[k].push(colorPool[idx]);
+              break;
+            }
+          }
+        }
+      }
+      selectedTube = null;
+      moves = 0;
+      moveSpan.innerText = "0";
+      gameActive = true;
+      renderGame();
+      gameMsgDiv.innerHTML = "Bir tüpe dokun → top seç → başka tüpe taşı";
     }
 
     function renderGame() {
@@ -336,9 +204,8 @@
         var tubeData = tubes[i];
         var tubeDiv = document.createElement('div');
         tubeDiv.className = 'tube';
-        if (selectedTubeIndex === i) tubeDiv.classList.add('selected');
-        tubeDiv.setAttribute('data-index', i);
-        for (var slot = 0; slot < 4; slot++) {
+        if (selectedTube === i) tubeDiv.classList.add('selected');
+        for (var slot = 0; slot < TUBE_CAP; slot++) {
           var unitDiv = document.createElement('div');
           if (slot < tubeData.length) {
             unitDiv.className = 'color-unit';
@@ -349,109 +216,79 @@
           tubeDiv.appendChild(unitDiv);
         }
         tubeDiv.addEventListener('click', (function(idx) { return function() { onTubeClick(idx); }; })(i));
-        tubeDiv.addEventListener('touchstart', (function(idx) { return function(e) { e.preventDefault(); onTubeClick(idx); }; })(i));
         container.appendChild(tubeDiv);
       }
-      adjustGridLayout(tubes.length);
     }
 
-    function onTubeClick(index) {
-      if (winActive) return;
-      if (selectedTubeIndex === null) {
-        if (tubes[index].length > 0) {
-          selectedTubeIndex = index;
-          renderGame();
-        }
-        return;
-      }
-      var success = tryPour(selectedTubeIndex, index);
-      selectedTubeIndex = null;
-      if (success) {
-        renderGame();
-        if (isGameWon()) {
-          winActive = true;
-          showWinScreen();
-        }
-      } else {
-        renderGame();
-        var tubesDiv = document.querySelectorAll('.tube');
-        if (tubesDiv[index]) {
-          tubesDiv[index].style.transform = 'translateX(3px)';
-          setTimeout(function() { if (tubesDiv[index]) tubesDiv[index].style.transform = ''; }, 120);
-        }
-      }
+    function isValidMove(fromIdx, toIdx) {
+      if (fromIdx === toIdx) return false;
+      var src = tubes[fromIdx];
+      var dst = tubes[toIdx];
+      if (src.length === 0) return false;
+      if (dst.length === TUBE_CAP) return false;
+      if (dst.length === 0) return true;
+      var srcTop = src[src.length - 1];
+      var dstTop = dst[dst.length - 1];
+      return srcTop === dstTop;
     }
 
-    function generateRandomLayout() {
-      var colorList = getColorListByLevel(currentLevel);
-      var colorsCount = colorList.length;
-      var tubeCount = getTubeCountByLevel(currentLevel);
-      var colorPool = [];
-      for (var c = 0; c < colorsCount; c++) for (var q = 0; q < 4; q++) colorPool.push(colorList[c]);
-      for (var i = colorPool.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var temp = colorPool[i]; colorPool[i] = colorPool[j]; colorPool[j] = temp; }
-      var newTubes = [];
-      for (var t = 0; t < tubeCount; t++) newTubes.push([]);
-      for (var idx = 0; idx < colorPool.length; idx++) {
-        var placed = false, attempts = 0;
-        while (!placed && attempts < 60) {
-          var randTube = Math.floor(Math.random() * tubeCount);
-          if (newTubes[randTube].length < 4) { newTubes[randTube].push(colorPool[idx]); placed = true; }
-          attempts++;
-        }
-        if (!placed) { for (var k = 0; k < tubeCount; k++) { if (newTubes[k].length < 4) { newTubes[k].push(colorPool[idx]); break; } } }
-      }
-      return newTubes;
-    }
-
-    function isLayoutSolved(layout) {
-      for (var i = 0; i < layout.length; i++) {
-        var tube = layout[i];
-        if (tube.length === 0) continue;
-        var first = tube[0];
-        for (var j = 1; j < tube.length; j++) if (tube[j] !== first) return false;
-      }
+    function applyMove(fromIdx, toIdx) {
+      if (!isValidMove(fromIdx, toIdx)) return false;
+      var moved = tubes[fromIdx].pop();
+      tubes[toIdx].push(moved);
+      moves++;
+      moveSpan.innerText = moves;
+      selectedTube = null;
+      renderGame();
       return true;
     }
 
-    function getUnsolvedLayout() {
-      for (var attempt = 0; attempt < 40; attempt++) { var candidate = generateRandomLayout(); if (!isLayoutSolved(candidate)) return candidate; }
-      var fallbackTubes = [];
-      var tubeCount = getTubeCountByLevel(currentLevel);
-      for (var t = 0; t < tubeCount; t++) fallbackTubes.push([]);
-      var allUnits = [];
-      var colorList = getColorListByLevel(currentLevel);
-      for (var ci = 0; ci < colorList.length; ci++) for (var u = 0; u < 4; u++) allUnits.push(colorList[ci]);
-      for (var s = allUnits.length - 1; s > 0; s--) { var r = Math.floor(Math.random() * (s + 1)); var tmp = allUnits[s]; allUnits[s] = allUnits[r]; allUnits[r] = tmp; }
-      var idxU = 0;
-      for (var ti = 0; ti < tubeCount && idxU < allUnits.length; ti++) { while (fallbackTubes[ti].length < 4 && idxU < allUnits.length) { fallbackTubes[ti].push(allUnits[idxU]); idxU++; } }
-      return fallbackTubes;
+    function isGameWon() {
+      var totalUnits = 0;
+      for (var i = 0; i < tubes.length; i++) {
+        var tube = tubes[i];
+        if (tube.length === 0) continue;
+        var first = tube[0];
+        for (var j = 1; j < tube.length; j++) {
+          if (tube[j] !== first) return false;
+        }
+        totalUnits += tube.length;
+      }
+      return totalUnits === 24;
     }
 
-    function setupNewLevel() {
-      var newLayout = getUnsolvedLayout();
-      tubes = copyTubes(newLayout);
-      initialTubes = copyTubes(newLayout);
-      selectedTubeIndex = null;
-      winActive = false;
-      removeWinOverlay();
-      renderGame();
+    function onTubeClick(idx) {
+      if (!gameActive) return;
+      if (selectedTube === null) {
+        if (tubes[idx].length > 0) {
+          selectedTube = idx;
+          renderGame();
+          gameMsgDiv.innerHTML = "✅ Top seçildi. Hedef tüpe dokun.";
+        } else {
+          gameMsgDiv.innerHTML = "⚠️ Boş tüp seçemezsin. Önce dolu bir tüp seç.";
+        }
+        return;
+      }
+      var success = applyMove(selectedTube, idx);
+      if (success) {
+        if (isGameWon()) {
+          gameActive = false;
+          saveBest();
+          gameMsgDiv.innerHTML = "🎉 TEBRİKLER! OYUNU KAZANDINIZ! 🎉";
+          renderGame();
+        } else {
+          gameMsgDiv.innerHTML = "✔️ Hamle yapıldı. Devam et.";
+        }
+      } else {
+        gameMsgDiv.innerHTML = "❌ Geçersiz hamle! Aynı renk üst üste olmalı veya hedef boş olmalı.";
+        selectedTube = null;
+        renderGame();
+      }
     }
 
-    function restartLevel() { if (winActive) return; tubes = copyTubes(initialTubes); selectedTubeIndex = null; renderGame(); }
-    function nextLevel() { currentLevel++; levelSpan.innerText = currentLevel; setupNewLevel(); }
-    function showWinScreen() {
-      var overlay = document.createElement('div');
-      overlay.className = 'win-overlay';
-      overlay.id = 'winOverlay';
-      overlay.innerHTML = '<div class="win-card"><h2>🎉 KAZANDIN! 🎉</h2><p>Harika hamle! İlerliyorsun.</p><button id="nextLevelBtn" class="next-btn">▶ SONRAKİ SEVİYE</button></div>';
-      document.body.appendChild(overlay);
-      var nextBtn = document.getElementById('nextLevelBtn');
-      if (nextBtn) { nextBtn.addEventListener('click', function() { nextLevel(); }); nextBtn.addEventListener('touchstart', function(e) { e.preventDefault(); nextLevel(); }); }
-    }
-    function removeWinOverlay() { var existing = document.getElementById('winOverlay'); if (existing) existing.remove(); }
-    restartBtn.addEventListener('click', function() { if (winActive) return; restartLevel(); });
-    restartBtn.addEventListener('touchstart', function(e) { e.preventDefault(); if (winActive) return; restartLevel(); });
-    function initGame() { currentLevel = 1; levelSpan.innerText = currentLevel; setupNewLevel(); }
+    function newGame() { initGame(); }
+    newGameBtn.addEventListener('click', newGame);
+    loadBest();
     initGame();
   })();
 </script>
