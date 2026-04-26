@@ -17,7 +17,7 @@
     .points-value { font-size: 1.5rem; font-weight: 800; color: #F6B45F; line-height: 1; }
     .points-label { font-size: 0.7rem; color: #9bb7d4; }
     .hero-image { width: 100%; max-height: 280px; object-fit: cover; border-radius: 32px; margin-bottom: 1.5rem; border: 2px solid rgba(246,180,95,0.35); box-shadow: 0 16px 32px rgba(0,0,0,0.5); }
-    .promo-spotlight { background: linear-gradient(145deg, rgba(246,180,95,0.12) 0%, rgba(10,16,24,0.9) 100%); border: 2px solid #F6B45F; border-radius: 42px; padding: 1.8rem 1.5rem; margin-bottom: 3rem; display: flex; flex-wrap: wrap; align-items: center; gap: 1.5rem; backdrop-filter: blur(8px); box-shadow: 0 20px 35px rgba(0,0,0,0.6); }
+    .promo-spotlight { background: linear-gradient(145deg, rgba(246,180,95,0.12) 0%, rgba(10,16,24,0.9) 100%); border: 2px solid #F6B45F; border-radius: 42px; padding: 1.8rem 1.5rem; margin-bottom: 2rem; display: flex; flex-wrap: wrap; align-items: center; gap: 1.5rem; backdrop-filter: blur(8px); box-shadow: 0 20px 35px rgba(0,0,0,0.6); }
     .promo-icon { font-size: 4rem; flex-shrink: 0; }
     .promo-content { flex: 1; min-width: 240px; }
     .promo-title { font-size: 1.8rem; font-weight: 800; color: #F6B45F; margin-bottom: 0.5rem; }
@@ -85,7 +85,7 @@
   </div>
 
   <div class="footer">
-    PACDI Games · <span id="totalGamesSpan">0</span> bilişsel egzersiz & araç · Her oyun onurla hazırlanmıştır
+    PACDI Games · <span id="totalGamesSpan">0</span> oyun & araç · Her oyun onurla hazırlanmıştır
   </div>
 </div>
 
@@ -171,6 +171,9 @@
       duo: [
         { name: "Domino", desc: "İki kişilik klasik domino oyunu.", icon: "🀄", file: "domino.html" },
         { name: "Dama", desc: "Klasik 8x8 dama, sırayla oynayın.", icon: "⏺️", file: "checkers.html" },
+        { name: "Satranç", desc: "Klasik satranç, iki kişilik.", icon: "♟️", file: "chess.html" },
+        { name: "Dokuz Taş", desc: "Geleneksel dokuz taş oyunu.", icon: "⚫", file: "nine-morris.html" },
+        { name: "Mangala", desc: "Klasik Türk mangala oyunu.", icon: "🕳️", file: "mangala.html" },
         { name: "Peg Düello", desc: "Rekabetçi çivi atlama düellosu.", icon: "⚪", file: "peg-duello.html" },
         { name: "XOX Düello", desc: "Klasik 3x3 XOX oyunu.", icon: "❌", file: "xox-duello.html" },
         { name: "Deniz Savaşı", desc: "Gemileri batır, rakibini yen.", icon: "🚢", file: "battleship-duello.html" },
@@ -181,7 +184,13 @@
         { name: "Bugout Domino", desc: "İnternet üzerinden uzaktan domino.", icon: "🌐🀄", file: "bugout-domino.html" },
         { name: "Bugout XOX", desc: "İnternet üzerinden uzaktan XOX.", icon: "🌐❌", file: "bugout-xox.html" },
         { name: "Bugout Dama", desc: "İnternet üzerinden uzaktan dama.", icon: "🌐⏺️", file: "bugout-checkers.html" },
-        { name: "Bugout Peg Düello", desc: "İnternet üzerinden uzaktan peg.", icon: "🌐⚪", file: "bugout-peg-duello.html" }
+        { name: "Bugout Satranç", desc: "İnternet üzerinden uzaktan satranç.", icon: "🌐♟️", file: "bugout-chess.html" },
+        { name: "Bugout Dokuz Taş", desc: "İnternet üzerinden uzaktan dokuz taş.", icon: "🌐⚫", file: "bugout-nine-morris.html" },
+        { name: "Bugout Mangala", desc: "İnternet üzerinden uzaktan mangala.", icon: "🌐🕳️", file: "bugout-mangala.html" },
+        { name: "Bugout Peg Düello", desc: "İnternet üzerinden uzaktan peg.", icon: "🌐⚪", file: "bugout-peg-duello.html" },
+        { name: "Bugout Deniz Savaşı", desc: "İnternet üzerinden uzaktan deniz savaşı.", icon: "🌐🚢", file: "bugout-battleship.html" },
+        { name: "Bugout Kelime Kapmaca", desc: "İnternet üzerinden uzaktan kelime.", icon: "🌐📝", file: "bugout-word-duello.html" },
+        { name: "Bugout Kuleden Kule", desc: "İnternet üzerinden uzaktan kule.", icon: "🌐🗼", file: "bugout-tower-duello.html" }
       ]
     };
 
@@ -190,9 +199,8 @@
       var iconDiv = document.createElement('div'); iconDiv.className = 'game-icon'; iconDiv.innerText = game.icon;
       var nameDiv = document.createElement('div'); nameDiv.className = 'game-name'; nameDiv.innerText = game.name;
       var descDiv = document.createElement('div'); descDiv.className = 'game-desc'; descDiv.innerText = game.desc;
-      var badgeDiv = document.createElement('div'); badgeDiv.className = 'badge-group';
       var playBtn = document.createElement('a'); playBtn.className = 'play-btn'; playBtn.innerText = 'Oyna / Aç →'; playBtn.href = game.file;
-      card.appendChild(iconDiv); card.appendChild(nameDiv); card.appendChild(descDiv); card.appendChild(badgeDiv); card.appendChild(playBtn);
+      card.appendChild(iconDiv); card.appendChild(nameDiv); card.appendChild(descDiv); card.appendChild(playBtn);
       return card;
     }
 
