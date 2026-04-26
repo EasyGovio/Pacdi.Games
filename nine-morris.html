@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Dokuz Taş | PACDI Games</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+        body { background:#04162E; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
+        .game-container { max-width:500px; width:100%; background:rgba(4,22,46,0.85); border-radius:56px; padding:20px 16px 24px; box-shadow:0 20px 35px rgba(0,0,0,0.5); border:1px solid rgba(246,180,95,0.3); text-align:center; }
+        .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+        .logo { font-size:1.3rem; font-weight:800; color:#F6B45F; }
+        .back-link { color:#F6B45F; text-decoration:none; font-weight:bold; font-size:0.78rem; background:#0a1018; padding:5px 12px; border-radius:40px; border:1px solid rgba(246,180,95,0.3); }
+        .info-bar { display:flex; justify-content:space-between; align-items:center; background:#0a1018; border-radius:40px; padding:7px 16px; margin-bottom:14px; }
+        .player-turn { color:#F6B45F; font-weight:bold; font-size:0.9rem; }
+        .new-btn { background:#F6B45F; border:none; font-weight:bold; padding:5px 14px; border-radius:40px; color:#04162E; cursor:pointer; font-size:0.78rem; }
+        canvas { display:block; margin:10px auto; border-radius:24px; border:2px solid rgba(246,180,95,0.3); max-width:400px; width:100%; aspect-ratio:1; cursor:pointer; background:#0a1018; }
+        .message { color:#F6B45F; font-size:0.9rem; font-weight:bold; min-height:30px; margin:8px 0; }
+        .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:12px; }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="top-bar">
+        <div class="logo">DOKUZ TAŞ</div>
+        <a href="index.html" class="back-link">← Geri</a>
+    </div>
+    <div class="info-bar">
+        <div class="player-turn" id="turnDisplay">Sıra: <span style="color:#3498DB">Mavi</span></div>
+        <button class="new-btn" onclick="resetGame()">↺ Yeni Oyun</button>
+    </div>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <div class="message" id="message">Yerleştirme aşaması: Mavi taşlarını yerleştiriyor</div>
+    <div class="footer">PACDI Games · İki kişilik dokuz taş oyunu.</div>
+</div>
+<script>
+(function(){
+    var canvas = document.getElementById('gameCanvas');
+    var ctx = canvas.getContext('2d');
+    var points = [];
+    var lines = [];
+    var board = [];
+    var currentPlayer = 0; // 0: mavi, 1: kırmızı
+    var piecesLeft = [9, 9];
+    var piecesOnBoard = [0, 0];
+    var phase = 'place'; // place, move, fly
+    var selectedPoint = null;
+    var gameOver = false;
+    var size = canvas.width;
+
+    // 24 nokta konumları
+    function initPoints() {
+        points = [];
+        var cx = size/2, cy = size/2;
+        var radii = [40, 80, 140];
+        for(var i=0; i<3; i++) {
+            for(var j=0; j<8; j++) {
+                var angle = (Math.PI/4 * j) - Math.PI/2;
+                if(j%2===0 || i===1) {
+                    var r = radii[i];
+                    points.push({ x:cx + r*Math.cos(angle), y:cy + r*Math.sin(angle), idx:points.length });
+                }
+            }
+        }
+        lines = [];
+        for(var i=0; i<3; i++) {
+            var start = i*8;
+            for(var j=0; j<8; j++) lines.push([start+j, start+(j+1)%8]);
+        }
+        for(var j=0; j<8; j+=2) lines.push([j, j+8], [j+8, j+16]);
+    }
+
+    function initBoard() {
+        board = [];
+        for(var i=0; i<24; i++) board.push(null);
+    }
+
+    function resetGame() {
+        initBoard();
+        currentPlayer = 0;
+        piecesLeft = [9, 9];
+        piecesOnBoard = [0, 0];
+        phase = 'place';
+        selectedPoint = null;
+        gameOver = false;
+        document.getElementById('message').innerText = 'Yerleştirme aşaması: Mavi taşlarını yerleştiriyor';
+        document.getElementById('turnDisplay').innerHTML = 'Sıra: <span style="color:#3498DB">Mavi</span>';
+        drawBoard();
+    }
+
+    function drawBoard() {
+        ctx.clearRect(0,0,size,size);
+        ctx.strokeStyle = 'rgba(246,180,95,0.4)';
+        ctx.lineWidth = 2;
+        for(var i=0; i<lines.length; i++) {
+            ctx.beginPath();
+            ctx.moveTo(points[lines[i][0]].x, points[lines[i][0]].y);
+            ctx.lineTo(points[lines[i][1]].x, points[lines[i][1]].y);
+            ctx.stroke();
+        }
+        for(var i=0; i<points.length; i++) {
+            ctx.beginPath();
+            ctx.arc(points[i].x, points[i].y, 12, 0, Math.PI*2);
+            ctx.fillStyle = '#1e2a3a';
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(246,180,95,0.6)';
+            ctx.stroke();
+            if(board[i] !== null) {
+                ctx.beginPath();
+                ctx.arc(points[i].x, points[i].y, 10, 0, Math.PI*2);
+                ctx.fillStyle = board[i] === 0 ? '#3498DB' : '#E74C3C';
+                ctx.fill();
+            }
+        }
+        if(selectedPoint !== null) {
+            ctx.strokeStyle = '#F6B45F';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(points[selectedPoint].x, points[selectedPoint].y, 15, 0, Math.PI*2);
+            ctx.stroke();
+        }
+    }
+
+    function hasMill(idx, player) {
+        for(var i=0; i<lines.length; i++) {
+            if(lines[i][0] === idx || lines[i][1] === idx) {
+                var a=lines[i][0], b=lines[i][1], c=-1;
+                for(var j=0; j<lines.length; j++) {
+                    if(j!==i && lines[j][0]===b) c=lines[j][1];
+                    if(j!==i && lines[j][1]===b) c=lines[j][0];
+                }
+                if(c!==-1 && board[a]===player && board[b]===player && board[c]===player) return true;
+                c=-1;
+                for(var k=0; k<lines.length; k++) {
+                    if(k!==i && lines[k][0]===a) c=lines[k][1];
+                    if(k!==i && lines[k][1]===a) c=lines[k][0];
+                }
+                if(c!==-1 && board[a]===player && board[b]===player && board[c]===player) return true;
+            }
+        }
+        return false;
+    }
+
+    function canMove(fromIdx, toIdx) {
+        if(board[toIdx] !== null) return false;
+        for(var i=0; i<lines.length; i++) {
+            if((lines[i][0]===fromIdx && lines[i][1]===toIdx) || (lines[i][1]===fromIdx && lines[i][0]===toIdx)) return true;
+        }
+        return false;
+    }
+
+    function getAdjacentPoints(idx) {
+        var adj = [];
+        for(var i=0; i<lines.length; i++) {
+            if(lines[i][0]===idx) adj.push(lines[i][1]);
+            if(lines[i][1]===idx) adj.push(lines[i][0]);
+        }
+        return adj;
+    }
+
+    function canRemove(player) {
+        for(var i=0; i<24; i++) {
+            if(board[i] === player && !hasMill(i, player)) return true;
+        }
+        for(var i=0; i<24; i++) {
+            if(board[i] === player) return true;
+        }
+        return false;
+    }
+
+    function handleClick(idx) {
+        if(gameOver) return;
+        if(board[idx] === null && phase === 'place' && piecesLeft[currentPlayer] > 0) {
+            board[idx] = currentPlayer;
+            piecesLeft[currentPlayer]--;
+            piecesOnBoard[currentPlayer]++;
+            if(hasMill(idx, currentPlayer)) {
+                document.getElementById('message').innerText = 'Değirmen! Rakibin bir taşını al.';
+                phase = 'remove';
+            } else {
+                currentPlayer = 1 - currentPlayer;
+                if(piecesLeft[0]===0 && piecesLeft[1]===0) phase = 'move';
+                updateTurn();
+            }
+            selectedPoint = null;
+            drawBoard();
+            return;
+        }
+        if(phase === 'remove' && board[idx] === 1-currentPlayer) {
+            if(!hasMill(idx, 1-currentPlayer) || !canRemove(1-currentPlayer)) {
+                board[idx] = null;
+                piecesOnBoard[1-currentPlayer]--;
+                currentPlayer = 1 - currentPlayer;
+                if(piecesLeft[0]===0 && piecesLeft[1]===0) phase = 'move';
+                updateTurn();
+                if(piecesOnBoard[1-currentPlayer] < 3 && phase === 'move') {
+                    gameOver = true;
+                    document.getElementById('message').innerText = '🎉 ' + (currentPlayer===0?'Mavi':'Kırmızı') + ' kazandı!';
+                }
+            }
+            selectedPoint = null;
+            drawBoard();
+            return;
+        }
+        if(board[idx] === currentPlayer) {
+            selectedPoint = idx;
+            drawBoard();
+            document.getElementById('message').innerText = 'Taş seçildi, gideceği yere tıkla.';
+            return;
+        }
+        if(selectedPoint !== null && board[idx] === null) {
+            if(phase === 'move' && piecesOnBoard[currentPlayer] > 3 && canMove(selectedPoint, idx)) {
+                board[idx] = currentPlayer;
+                board[selectedPoint] = null;
+                if(hasMill(idx, currentPlayer)) {
+                    document.getElementById('message').innerText = 'Değirmen! Rakibin bir taşını al.';
+                    phase = 'remove';
+                } else {
+                    currentPlayer = 1 - currentPlayer;
+                    updateTurn();
+                }
+                selectedPoint = null;
+                drawBoard();
+                return;
+            }
+            if(phase === 'fly' && piecesOnBoard[currentPlayer] === 3) {
+                board[idx] = currentPlayer;
+                board[selectedPoint] = null;
+                if(hasMill(idx, currentPlayer)) {
+                    document.getElementById('message').innerText = 'Değirmen! Rakibin bir taşını al.';
+                    phase = 'remove';
+                } else {
+                    currentPlayer = 1 - currentPlayer;
+                    updateTurn();
+                }
+                selectedPoint = null;
+                drawBoard();
+                return;
+            }
+        }
+    }
+
+    function updateTurn() {
+        if(piecesOnBoard[currentPlayer] === 3 && piecesLeft[currentPlayer] === 0) phase = 'fly';
+        document.getElementById('message').innerText = (currentPlayer===0?'Mavi':'Kırmızı') + ' oynuyor';
+        document.getElementById('turnDisplay').innerHTML = 'Sıra: <span style="color:' + (currentPlayer===0?'#3498DB':'#E74C3C') + '">' + (currentPlayer===0?'Mavi':'Kırmızı') + '</span>';
+    }
+
+    canvas.addEventListener('click', function(e) {
+        var rect = canvas.getBoundingClientRect();
+        var scaleX = size / rect.width, scaleY = size / rect.height;
+        var cx = (e.clientX - rect.left) * scaleX, cy = (e.clientY - rect.top) * scaleY;
+        var minDist = 20, closest = null;
+        for(var i=0; i<points.length; i++) {
+            var dx = cx - points[i].x, dy = cy - points[i].y;
+            var dist = Math.sqrt(dx*dx + dy*dy);
+            if(dist < minDist) { minDist = dist; closest = i; }
+        }
+        if(closest !== null) handleClick(closest);
+    });
+
+    initPoints();
+    resetGame();
+})();
+</script>
+</body>
+</html>

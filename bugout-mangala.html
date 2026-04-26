@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Bugout Mangala | PACDI Games</title>
+    <script src="https://cdn.jsdelivr.net/npm/bugout@0.0.13/dist/bugout.min.js"></script>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+        body { background:#04162E; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
+        .game-container { max-width:520px; width:100%; background:rgba(4,22,46,0.85); border-radius:56px; padding:20px 16px 24px; box-shadow:0 20px 35px rgba(0,0,0,0.5); border:1px solid rgba(246,180,95,0.3); text-align:center; }
+        .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+        .logo { font-size:1.3rem; font-weight:800; color:#F6B45F; }
+        .back-link { color:#F6B45F; text-decoration:none; font-weight:bold; font-size:0.78rem; background:#0a1018; padding:5px 12px; border-radius:40px; border:1px solid rgba(246,180,95,0.3); }
+        .lobby-area, .game-area { background:#0a1018; border-radius:28px; padding:20px 16px; margin-bottom:20px; }
+        h3 { color:#F6B45F; margin-bottom:10px; }
+        .room-input { width:100%; padding:12px 16px; border-radius:16px; border:2px solid rgba(246,180,95,0.3); background:#1e2a3a; color:#eaf2fb; font-size:1rem; text-align:center; outline:none; margin-bottom:10px; }
+        .btn { background:#F6B45F; border:none; font-weight:bold; padding:12px 24px; border-radius:40px; color:#04162E; cursor:pointer; font-size:0.9rem; margin:6px; }
+        .board-mangala { display:flex; flex-direction:column; align-items:center; gap:8px; padding:12px; }
+        .row { display:flex; gap:8px; align-items:center; }
+        .pit { width:46px; height:50px; border-radius:50%; background:#1e2a3a; border:2px solid rgba(246,180,95,0.3); display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:1rem; color:#eaf2fb; cursor:pointer; transition:0.1s; }
+        .pit:active { background:#F6B45F; color:#04162E; transform:scale(0.95); }
+        .pit.peer-pit { pointer-events:none; opacity:0.6; }
+        .treasury { width:56px; height:66px; border-radius:18px; background:#1e2a3a; border:2px solid #F6B45F; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:1.2rem; color:#F6B45F; }
+        .treasury.my { border-color:#3498DB; color:#3498DB; }
+        .treasury.peer { border-color:#E74C3C; color:#E74C3C; }
+        .message { color:#F6B45F; font-size:0.9rem; font-weight:bold; min-height:30px; margin:8px 0; }
+        .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:12px; }
+        .hidden { display:none; }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="top-bar">
+        <div class="logo">BUGOUT MANGALA</div>
+        <a href="index.html" class="back-link">← Geri</a>
+    </div>
+    <div id="lobbyArea" class="lobby-area">
+        <h3>Oyun Odasına Katıl</h3>
+        <input type="text" id="roomIdInput" class="room-input" placeholder="Oda kodunu gir... (boş bırakırsan yeni oda)">
+        <button id="connectBtn" class="btn">Odaya Bağlan</button>
+        <p style="color:#9bb7d4; font-size:0.8rem; margin-top:8px;" id="roomInfo"></p>
+    </div>
+    <div id="gameArea" class="game-area hidden">
+        <h3>🕳️ Bugout Mangala</h3>
+        <div class="board-mangala">
+            <div style="font-size:0.7rem; color:#E74C3C;" id="peerLabel">Rakip</div>
+            <div class="row" id="rowTop">
+                <div class="pit" data-idx="11">4</div><div class="pit" data-idx="10">4</div><div class="pit" data-idx="9">4</div>
+                <div class="pit" data-idx="8">4</div><div class="pit" data-idx="7">4</div><div class="pit" data-idx="6">4</div>
+            </div>
+            <div class="row">
+                <div class="treasury peer" id="treasuryPeer">0</div>
+                <div style="width:16px;"></div>
+                <div class="treasury my" id="treasuryMe">0</div>
+            </div>
+            <div class="row" id="rowBottom">
+                <div class="pit" data-idx="0">4</div><div class="pit" data-idx="1">4</div><div class="pit" data-idx="2">4</div>
+                <div class="pit" data-idx="3">4</div><div class="pit" data-idx="4">4</div><div class="pit" data-idx="5">4</div>
+            </div>
+            <div style="font-size:0.7rem; color:#3498DB;" id="myLabel">Sen</div>
+        </div>
+        <div class="message" id="gameMessage">Rakip bekleniyor...</div>
+    </div>
+    <div class="footer">PACDI Games · Bugout ile uzaktan mangala.</div>
+</div>
+<script>
+    var bugout, myId, peerId, isHost = false;
+    var pits = [4,4,4,4,4,4, 4,4,4,4,4,4];
+    var treasuries = [0, 0]; // [ben, rakip]
+    var myPlayer = -1; // 0: benim kuyular 0-5 (host), 1: benim kuyular 6-11 (guest)
+    var currentPlayer = 0;
+    var gameOver = false;
+
+    function getMyPits() { return myPlayer === 0 ? [0,1,2,3,4,5] : [6,7,8,9,10,11]; }
+    function getPeerPits() { return myPlayer === 0 ? [6,7,8,9,10,11] : [0,1,2,3,4,5]; }
+
+    function updateBoard() {
+        var allPits = document.querySelectorAll('.pit');
+        for(var i=0; i<12; i++) {
+            allPits[i].innerText = pits[i];
+            var isMyPit = getMyPits().indexOf(i) !== -1;
+            allPits[i].classList.toggle('peer-pit', !isMyPit || currentPlayer !== myPlayer);
+        }
+        document.getElementById('treasuryMe').innerText = treasuries[0];
+        document.getElementById('treasuryPeer').innerText = treasuries[1];
+    }
+
+    function playPit(idx) {
+        if(gameOver || currentPlayer !== myPlayer) return;
+        if(getMyPits().indexOf(idx) === -1 || pits[idx] === 0) return;
+
+        var stones = pits[idx];
+        pits[idx] = 0;
+        var pos = idx;
+        while(stones > 0) {
+            pos = (pos + 1) % 12;
+            if(pos !== idx) { pits[pos]++; stones--; }
+            if(stones === 0 && getMyPits().indexOf(pos) !== -1 && pits[pos] === 1) {
+                var oppPos = 11 - pos;
+                if(pits[oppPos] > 0) { treasuries[0] += pits[oppPos] + 1; pits[pos] = 0; pits[oppPos] = 0; }
+            }
+        }
+        currentPlayer = 1 - myPlayer;
+        sendMessage({ type:'move', pits:pits.slice(), treasuries:treasuries.slice(), currentPlayer:currentPlayer });
+        updateBoard();
+        if(checkEnd()) return;
+        document.getElementById('gameMessage').innerText = 'Rakip düşünüyor...';
+    }
+
+    function checkEnd() {
+        var myEmpty = getMyPits().every(function(p) { return pits[p] === 0; });
+        var peerEmpty = getPeerPits().every(function(p) { return pits[p] === 0; });
+        if(myEmpty || peerEmpty) {
+            gameOver = true;
+            for(var i=0; i<6; i++) treasuries[0] += pits[getMyPits()[i]];
+            for(var j=0; j<6; j++) treasuries[1] += pits[getPeerPits()[j]];
+            updateBoard();
+            if(treasuries[0] > treasuries[1]) document.getElementById('gameMessage').innerText = '🎉 Sen kazandın!';
+            else if(treasuries[1] > treasuries[0]) document.getElementById('gameMessage').innerText = '😔 Kaybettin.';
+            else document.getElementById('gameMessage').innerText = '🤝 Berabere!';
+            return true;
+        }
+        return false;
+    }
+
+    function sendMessage(data) { if(bugout && peerId) bugout.send(peerId, JSON.stringify(data)); }
+
+    function handleMessage(rawMsg) {
+        var msg;
+        try { msg = JSON.parse(rawMsg); } catch(e) { return; }
+        if(msg.type === 'move') {
+            pits = msg.pits.slice();
+            treasuries = msg.treasuries.slice();
+            currentPlayer = myPlayer;
+            updateBoard();
+            if(!checkEnd()) document.getElementById('gameMessage').innerText = 'Sıra sende!';
+        }
+    }
+
+    var allPits = document.querySelectorAll('.pit');
+    for(var i=0; i<allPits.length; i++) {
+        allPits[i].addEventListener('click', (function(idx) { return function() { playPit(idx); }; })(parseInt(allPits[i].getAttribute('data-idx'))));
+    }
+
+    document.getElementById('connectBtn').addEventListener('click', function() {
+        var roomId = document.getElementById('roomIdInput').value.trim();
+        bugout = roomId ? new Bugout(roomId) : new Bugout();
+        bugout.address().then(function(address) {
+            myId = address;
+            document.getElementById('roomInfo').innerHTML = 'Senin adresin: <b>' + myId + '</b><br>Bu kodu arkadaşına gönder.';
+            if(!roomId) isHost = true;
+        });
+        bugout.on('message', function(address, message) {
+            if(!peerId) {
+                peerId = address;
+                document.getElementById('lobbyArea').classList.add('hidden');
+                document.getElementById('gameArea').classList.remove('hidden');
+                myPlayer = isHost ? 0 : 1;
+                currentPlayer = 0;
+                updateBoard();
+                document.getElementById('gameMessage').innerText = isHost ? 'Sen başlıyorsun, bir kuyu seç.' : 'Rakip başlayacak...';
+            }
+            handleMessage(message);
+        });
+    });
+</script>
+</body>
+</html>

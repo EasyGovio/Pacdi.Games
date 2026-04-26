@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Bugout Kuleden Kule | PACDI Games</title>
+  <script src="https://cdn.jsdelivr.net/npm/bugout@0.0.13/dist/bugout.min.js"></script>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+    body { background:#04162E; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
+    .game-container { max-width:580px; width:100%; background:rgba(4,22,46,0.85); border-radius:56px; padding:20px 16px 24px; box-shadow:0 20px 35px rgba(0,0,0,0.5); border:1px solid rgba(246,180,95,0.3); text-align:center; }
+    .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+    .logo { font-size:1.3rem; font-weight:800; color:#F6B45F; }
+    .back-link { color:#F6B45F; text-decoration:none; font-weight:bold; font-size:0.78rem; background:#0a1018; padding:5px 12px; border-radius:40px; border:1px solid rgba(246,180,95,0.3); }
+    .lobby-area, .game-area { background:#0a1018; border-radius:28px; padding:20px 16px; margin-bottom:20px; }
+    h3 { color:#F6B45F; margin-bottom:10px; }
+    .room-input { width:100%; padding:12px 16px; border-radius:16px; border:2px solid rgba(246,180,95,0.3); background:#1e2a3a; color:#eaf2fb; font-size:1rem; text-align:center; outline:none; margin-bottom:10px; }
+    .btn { background:#F6B45F; border:none; font-weight:bold; padding:12px 24px; border-radius:40px; color:#04162E; cursor:pointer; font-size:0.9rem; margin:6px; }
+    .towers-row { display:flex; justify-content:space-around; gap:8px; margin:16px 0; }
+    .tower { display:flex; flex-direction:column-reverse; align-items:center; gap:2px; min-width:65px; min-height:90px; background:#1e2a3a; border-radius:16px; padding:8px; cursor:pointer; border:2px solid rgba(246,180,95,0.2); transition:0.1s; }
+    .tower.selected { border-color:#F6B45F; background:rgba(246,180,95,0.1); }
+    .disk { height:14px; border-radius:8px; margin:1px 0; }
+    .disk.my { background:#3498DB; }
+    .disk.peer { background:#E74C3C; }
+    .message { color:#F6B45F; font-size:0.9rem; font-weight:bold; min-height:30px; margin:8px 0; }
+    .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:12px; }
+    .hidden { display:none; }
+  </style>
+</head>
+<body>
+<div class="game-container">
+  <div class="top-bar">
+    <div class="logo">BUGOUT KULE</div>
+    <a href="index.html" class="back-link">← Geri</a>
+  </div>
+
+  <div id="lobbyArea" class="lobby-area">
+    <h3>Oyun Odasına Katıl</h3>
+    <input type="text" id="roomIdInput" class="room-input" placeholder="Oda kodunu gir... (boş bırakırsan yeni oda)">
+    <button id="connectBtn" class="btn">Odaya Bağlan</button>
+    <p style="color:#9bb7d4; font-size:0.8rem; margin-top:8px;" id="roomInfo"></p>
+  </div>
+
+  <div id="gameArea" class="game-area hidden">
+    <h3>🗼 Bugout Kuleden Kule</h3>
+    <div class="towers-row" id="towersRow">
+      <div class="tower" id="t0"></div>
+      <div class="tower" id="t1"></div>
+      <div class="tower" id="t2"></div>
+      <div class="tower" id="t3"></div>
+      <div class="tower" id="t4"></div>
+    </div>
+    <div class="message" id="gameMessage">Rakip bekleniyor...</div>
+  </div>
+
+  <div class="footer">PACDI Games · Bugout ile uzaktan kuleden kule.</div>
+</div>
+
+<script>
+  var bugout, myId, peerId, isHost = false;
+  var towers = [[],[],[],[],[]];
+  var myPlayer = -1; // 0: mavi, 1: kırmızı
+  var currentPlayer = 0;
+  var selectedTower = null;
+  var gameOver = false;
+
+  function initTowers() {
+    towers = [[],[],[],[],[]];
+    for(var i=3; i>=1; i--) towers[0].push({ player:0, size:i });
+    for(var i=3; i>=1; i--) towers[4].push({ player:1, size:i });
+  }
+
+  function renderTowers() {
+    for(var t=0; t<5; t++) {
+      var div = document.getElementById('t'+t);
+      div.innerHTML = '';
+      div.classList.remove('selected');
+      if(selectedTower === t) div.classList.add('selected');
+      for(var d=0; d<towers[t].length; d++) {
+        var disk = document.createElement('div');
+        disk.className = 'disk ' + (towers[t][d].player === 0 ? 'my' : 'peer');
+        if(myPlayer === 1) disk.className = 'disk ' + (towers[t][d].player === 1 ? 'my' : 'peer');
+        disk.style.width = (20 + towers[t][d].size * 10) + 'px';
+        div.appendChild(disk);
+      }
+    }
+  }
+
+  function handleClick(t) {
+    if(currentPlayer !== myPlayer || gameOver) return;
+    if(selectedTower === null) {
+      if(towers[t].length > 0 && towers[t][towers[t].length-1].player === myPlayer) {
+        selectedTower = t;
+        renderTowers();
+      }
+    } else {
+      if(selectedTower === t) { selectedTower = null; renderTowers(); return; }
+      var srcTop = towers[selectedTower][towers[selectedTower].length-1];
+      if(towers[t].length === 0 || towers[t][towers[t].length-1].size > srcTop.size) {
+        towers[t].push(towers[selectedTower].pop());
+        selectedTower = null;
+        if(checkWin(myPlayer)) {
+          gameOver = true;
+          document.getElementById('gameMessage').innerText = '🎉 Sen kazandın!';
+        }
+        currentPlayer = 1 - myPlayer;
+        sendMessage({ type:'move', towers:JSON.parse(JSON.stringify(towers)), nextPlayer:currentPlayer, gameOver:gameOver });
+        renderTowers();
+        if(!gameOver) document.getElementById('gameMessage').innerText = 'Rakip düşünüyor...';
+      } else {
+        selectedTower = null;
+        renderTowers();
+      }
+    }
+  }
+
+  function checkWin(player) {
+    for(var t=0; t<5; t++) {
+      if(towers[t].length === 3) {
+        var ok = true;
+        for(var d=0; d<3; d++) if(towers[t][d].player !== player) { ok = false; break; }
+        if(ok) return true;
+      }
+    }
+    return false;
+  }
+
+  function sendMessage(data) { if(bugout && peerId) bugout.send(peerId, JSON.stringify(data)); }
+
+  function handleMessage(rawMsg) {
+    var msg;
+    try { msg = JSON.parse(rawMsg); } catch(e) { return; }
+    if(msg.type === 'move') {
+      towers = msg.towers;
+      currentPlayer = myPlayer;
+      gameOver = msg.gameOver;
+      renderTowers();
+      if(gameOver) document.getElementById('gameMessage').innerText = '😔 Kaybettin.';
+      else document.getElementById('gameMessage').innerText = 'Sıra sende!';
+    }
+  }
+
+  for(var i=0; i<5; i++) {
+    document.getElementById('t'+i).addEventListener('click', (function(idx) { return function() { handleClick(idx); }; })(i));
+  }
+
+  document.getElementById('connectBtn').addEventListener('click', function() {
+    var roomId = document.getElementById('roomIdInput').value.trim();
+    bugout = roomId ? new Bugout(roomId) : new Bugout();
+    bugout.address().then(function(address) {
+      myId = address;
+      document.getElementById('roomInfo').innerHTML = 'Senin adresin: <b>' + myId + '</b><br>Bu kodu arkadaşına gönder.';
+      if(!roomId) isHost = true;
+    });
+    bugout.on('message', function(address, message) {
+      if(!peerId) {
+        peerId = address;
+        document.getElementById('lobbyArea').classList.add('hidden');
+        document.getElementById('gameArea').classList.remove('hidden');
+        myPlayer = isHost ? 0 : 1;
+        currentPlayer = 0;
+        initTowers();
+        renderTowers();
+        document.getElementById('gameMessage').innerText = isHost ? 'Sen Mavi, ilk hamleyi yap.' : 'Sen Kırmızı, rakip başlayacak.';
+      }
+      handleMessage(message);
+    });
+  });
+</script>
+</body>
+</html>

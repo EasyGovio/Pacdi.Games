@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Bugout Kelime Kapmaca | PACDI Games</title>
+  <script src="https://cdn.jsdelivr.net/npm/bugout@0.0.13/dist/bugout.min.js"></script>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+    body { background:#04162E; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
+    .game-container { max-width:500px; width:100%; background:rgba(4,22,46,0.85); border-radius:56px; padding:20px 16px 24px; box-shadow:0 20px 35px rgba(0,0,0,0.5); border:1px solid rgba(246,180,95,0.3); text-align:center; }
+    .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+    .logo { font-size:1.3rem; font-weight:800; color:#F6B45F; }
+    .back-link { color:#F6B45F; text-decoration:none; font-weight:bold; font-size:0.78rem; background:#0a1018; padding:5px 12px; border-radius:40px; border:1px solid rgba(246,180,95,0.3); }
+    .lobby-area, .game-area { background:#0a1018; border-radius:28px; padding:20px 16px; margin-bottom:20px; }
+    h3 { color:#F6B45F; margin-bottom:10px; }
+    .room-input { width:100%; padding:12px 16px; border-radius:16px; border:2px solid rgba(246,180,95,0.3); background:#1e2a3a; color:#eaf2fb; font-size:1rem; text-align:center; outline:none; margin-bottom:10px; }
+    .btn { background:#F6B45F; border:none; font-weight:bold; padding:12px 24px; border-radius:40px; color:#04162E; cursor:pointer; font-size:0.9rem; margin:6px; }
+    .letters-row { display:flex; justify-content:center; gap:6px; flex-wrap:wrap; margin:12px 0; }
+    .letter-chip { width:40px; height:40px; border-radius:10px; background:#1e2a3a; border:2px solid rgba(246,180,95,0.3); display:flex; align-items:center; justify-content:center; font-size:1.2rem; font-weight:bold; color:#eaf2fb; }
+    .word-input { padding:10px 14px; border-radius:12px; border:2px solid rgba(246,180,95,0.3); background:#1e2a3a; color:#eaf2fb; font-size:1rem; text-align:center; outline:none; width:150px; font-family:inherit; }
+    .message { color:#F6B45F; font-size:0.9rem; font-weight:bold; min-height:30px; margin:8px 0; }
+    .score-bar { display:flex; justify-content:space-around; margin:8px 0; }
+    .score-box { background:#0a1018; border-radius:20px; padding:8px 16px; font-weight:bold; }
+    .word-list { display:flex; flex-wrap:wrap; gap:4px; justify-content:center; margin-top:8px; }
+    .word-tag { background:#1e2a3a; padding:3px 10px; border-radius:12px; font-size:0.7rem; color:#9bb7d4; }
+    .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:12px; }
+    .hidden { display:none; }
+  </style>
+</head>
+<body>
+<div class="game-container">
+  <div class="top-bar">
+    <div class="logo">BUGOUT KELİME</div>
+    <a href="index.html" class="back-link">← Geri</a>
+  </div>
+
+  <div id="lobbyArea" class="lobby-area">
+    <h3>Oyun Odasına Katıl</h3>
+    <input type="text" id="roomIdInput" class="room-input" placeholder="Oda kodunu gir... (boş bırakırsan yeni oda)">
+    <button id="connectBtn" class="btn">Odaya Bağlan</button>
+    <p style="color:#9bb7d4; font-size:0.8rem; margin-top:8px;" id="roomInfo"></p>
+  </div>
+
+  <div id="gameArea" class="game-area hidden">
+    <h3>📝 Bugout Kelime Kapmaca</h3>
+    <div class="letters-row" id="lettersRow"></div>
+    <div style="display:flex; gap:8px; justify-content:center; align-items:center; margin:10px 0;">
+      <input type="text" class="word-input" id="wordInput" placeholder="Kelime..." maxlength="10" autocomplete="off">
+      <button class="btn" id="submitBtn">Onayla</button>
+    </div>
+    <div class="score-bar">
+      <div class="score-box" style="color:#3498DB">Sen: <span id="scoreMe">0</span></div>
+      <div class="score-box" style="color:#E74C3C">Rakip: <span id="scorePeer">0</span></div>
+    </div>
+    <div class="word-list" id="wordList"></div>
+    <div class="message" id="gameMessage">Rakip bekleniyor...</div>
+  </div>
+
+  <div class="footer">PACDI Games · Bugout ile uzaktan kelime kapmaca.</div>
+</div>
+
+<script>
+  var bugout, myId, peerId, isHost = false;
+  var letters = [];
+  var scores = [0, 0]; // [ben, rakip]
+  var usedWords = [];
+  var myTurn = false;
+  var gameOver = false;
+  var letterPool = 'AEIOUBKLMNPRSTÇ'.split('');
+
+  function generateLetters(count) {
+    var l = [];
+    for(var i=0; i<count; i++) l.push(letterPool[Math.floor(Math.random()*letterPool.length)]);
+    return l;
+  }
+
+  function renderLetters() {
+    var lr = document.getElementById('lettersRow');
+    lr.innerHTML = '';
+    for(var i=0; i<letters.length; i++) {
+      var chip = document.createElement('div');
+      chip.className = 'letter-chip';
+      chip.innerText = letters[i];
+      lr.appendChild(chip);
+    }
+  }
+
+  function renderWords() {
+    var wl = document.getElementById('wordList');
+    wl.innerHTML = '';
+    for(var i=0; i<usedWords.length; i++) {
+      var tag = document.createElement('span');
+      tag.className = 'word-tag';
+      tag.innerText = usedWords[i].word + ' (' + usedWords[i].player + ')';
+      wl.appendChild(tag);
+    }
+    document.getElementById('scoreMe').innerText = scores[0];
+    document.getElementById('scorePeer').innerText = scores[1];
+  }
+
+  function submitWord() {
+    if(!myTurn || gameOver) return;
+    var word = document.getElementById('wordInput').value.trim().toUpperCase();
+    if(word.length < 2) { document.getElementById('gameMessage').innerText = 'En az 2 harfli!'; return; }
+    for(var i=0; i<usedWords.length; i++) if(usedWords[i].word === word) { document.getElementById('gameMessage').innerText = 'Bu kelime kullanıldı!'; return; }
+    var remaining = letters.slice();
+    for(var j=0; j<word.length; j++) {
+      var idx = remaining.indexOf(word[j]);
+      if(idx === -1) { document.getElementById('gameMessage').innerText = 'Harfler yetmiyor!'; return; }
+      remaining.splice(idx, 1);
+    }
+    // geçerli
+    scores[0] += word.length;
+    usedWords.push({ word:word, player:'Sen' });
+    // harfleri güncelle
+    var newLetters = [];
+    var usedIndices = [];
+    for(var k=0; k<word.length; k++) {
+      for(var l=0; l<letters.length; l++) {
+        if(letters[l] === word[k] && usedIndices.indexOf(l) === -1) { usedIndices.push(l); break; }
+      }
+    }
+    for(var m=0; m<letters.length; m++) if(usedIndices.indexOf(m) === -1) newLetters.push(letters[m]);
+    letters = newLetters;
+    document.getElementById('wordInput').value = '';
+    renderLetters();
+    renderWords();
+    sendMessage({ type:'move', word:word, scores:scores, letters:letters });
+    myTurn = false;
+    document.getElementById('gameMessage').innerText = 'Rakip düşünüyor...';
+    if(letters.length < 2) endGame();
+  }
+
+  function endGame() {
+    gameOver = true;
+    if(scores[0] > scores[1]) document.getElementById('gameMessage').innerText = '🎉 Sen kazandın!';
+    else if(scores[1] > scores[0]) document.getElementById('gameMessage').innerText = '😔 Kaybettin.';
+    else document.getElementById('gameMessage').innerText = '🤝 Berabere!';
+  }
+
+  function sendMessage(data) { if(bugout && peerId) bugout.send(peerId, JSON.stringify(data)); }
+
+  function handleMessage(rawMsg) {
+    var msg;
+    try { msg = JSON.parse(rawMsg); } catch(e) { return; }
+    if(msg.type === 'move') {
+      scores[1] += msg.word.length;
+      usedWords.push({ word:msg.word, player:'Rakip' });
+      letters = msg.letters;
+      renderLetters();
+      renderWords();
+      myTurn = true;
+      document.getElementById('gameMessage').innerText = 'Sıra sende!';
+      if(letters.length < 2) endGame();
+    }
+  }
+
+  document.getElementById('submitBtn').addEventListener('click', submitWord);
+  document.getElementById('wordInput').addEventListener('keydown', function(e) { if(e.key==='Enter') submitWord(); });
+
+  document.getElementById('connectBtn').addEventListener('click', function() {
+    var roomId = document.getElementById('roomIdInput').value.trim();
+    bugout = roomId ? new Bugout(roomId) : new Bugout();
+    bugout.address().then(function(address) {
+      myId = address;
+      document.getElementById('roomInfo').innerHTML = 'Senin adresin: <b>' + myId + '</b><br>Bu kodu arkadaşına gönder.';
+      if(!roomId) isHost = true;
+    });
+    bugout.on('message', function(address, message) {
+      if(!peerId) {
+        peerId = address;
+        document.getElementById('lobbyArea').classList.add('hidden');
+        document.getElementById('gameArea').classList.remove('hidden');
+        letters = generateLetters(10);
+        renderLetters();
+        renderWords();
+        myTurn = isHost;
+        document.getElementById('gameMessage').innerText = isHost ? 'Sıra sende! Bir kelime türet.' : 'Rakip başlayacak...';
+      }
+      handleMessage(message);
+    });
+  });
+</script>
+</body>
+</html>

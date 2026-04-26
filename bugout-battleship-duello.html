@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Bugout Deniz Savaşı | PACDI Games</title>
+  <script src="https://cdn.jsdelivr.net/npm/bugout@0.0.13/dist/bugout.min.js"></script>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+    body { background:#04162E; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
+    .game-container { max-width:560px; width:100%; background:rgba(4,22,46,0.85); border-radius:56px; padding:20px 16px 24px; box-shadow:0 20px 35px rgba(0,0,0,0.5); border:1px solid rgba(246,180,95,0.3); text-align:center; }
+    .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+    .logo { font-size:1.3rem; font-weight:800; color:#F6B45F; }
+    .back-link { color:#F6B45F; text-decoration:none; font-weight:bold; font-size:0.78rem; background:#0a1018; padding:5px 12px; border-radius:40px; border:1px solid rgba(246,180,95,0.3); }
+    .lobby-area, .game-area { background:#0a1018; border-radius:28px; padding:20px 16px; margin-bottom:20px; }
+    h3 { color:#F6B45F; margin-bottom:10px; }
+    .room-input { width:100%; padding:12px 16px; border-radius:16px; border:2px solid rgba(246,180,95,0.3); background:#1e2a3a; color:#eaf2fb; font-size:1rem; text-align:center; outline:none; margin-bottom:10px; }
+    .btn { background:#F6B45F; border:none; font-weight:bold; padding:12px 24px; border-radius:40px; color:#04162E; cursor:pointer; font-size:0.9rem; margin:6px; }
+    .btn:active { transform:scale(0.96); }
+    .boards-row { display:flex; flex-wrap:wrap; justify-content:center; gap:16px; }
+    .board-panel { text-align:center; }
+    .board-label { font-size:0.75rem; color:#F6B45F; margin-bottom:4px; font-weight:bold; }
+    .grid { display:grid; grid-template-columns:repeat(5,1fr); gap:3px; background:#1e2a3a; padding:4px; border-radius:12px; }
+    .cell { width:42px; height:42px; background:#0a1018; border:1px solid rgba(246,180,95,0.15); border-radius:4px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:0.8rem; }
+    .cell.ship { background:rgba(52,152,219,0.25); }
+    .cell.hit { background:#E74C3C; }
+    .cell.hit::after { content:'💥'; }
+    .cell.miss { background:#2c3e50; }
+    .cell.miss::after { content:'💧'; font-size:0.6rem; }
+    .cell.disabled { pointer-events:none; opacity:0.7; }
+    .message { color:#F6B45F; font-size:0.9rem; font-weight:bold; min-height:30px; margin:8px 0; }
+    .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:12px; }
+    .hidden { display:none; }
+  </style>
+</head>
+<body>
+<div class="game-container">
+  <div class="top-bar">
+    <div class="logo">BUGOUT DENİZ SAVAŞI</div>
+    <a href="index.html" class="back-link">← Geri</a>
+  </div>
+
+  <div id="lobbyArea" class="lobby-area">
+    <h3>Oyun Odasına Katıl</h3>
+    <input type="text" id="roomIdInput" class="room-input" placeholder="Oda kodunu gir... (boş bırakırsan yeni oda)">
+    <button id="connectBtn" class="btn">Odaya Bağlan</button>
+    <p style="color:#9bb7d4; font-size:0.8rem; margin-top:8px;" id="roomInfo"></p>
+  </div>
+
+  <div id="gameArea" class="game-area hidden">
+    <h3>🚢 Bugout Deniz Savaşı</h3>
+    <div class="boards-row">
+      <div class="board-panel">
+        <div class="board-label" style="color:#3498DB">Senin Gemilerin</div>
+        <div class="grid" id="myBoard"></div>
+      </div>
+      <div class="board-panel">
+        <div class="board-label" style="color:#E74C3C">Rakip Tahtası</div>
+        <div class="grid" id="enemyBoard"></div>
+      </div>
+    </div>
+    <div class="message" id="gameMessage">Rakip bekleniyor...</div>
+  </div>
+
+  <div class="footer">PACDI Games · Bugout ile uzaktan deniz savaşı.</div>
+</div>
+
+<script>
+  var bugout, myId, peerId, isHost = false;
+  var size = 5;
+  var myBoard = [], enemyBoard = []; // 0: boş, 1: gemi, 2: vuruldu, 3: karavana
+  var myShips = 3, enemyShips = 3;
+  var myTurn = false, gameOver = false;
+
+  function randomBoard() {
+    var b = [];
+    for(var r=0; r<size; r++) { b[r] = []; for(var c=0; c<size; c++) b[r][c] = 0; }
+    var placed = 0;
+    while(placed < 3) {
+      var r = Math.floor(Math.random()*size), c = Math.floor(Math.random()*size);
+      if(b[r][c] === 0) { b[r][c] = 1; placed++; }
+    }
+    return b;
+  }
+
+  function renderBoard(containerId, board, isEnemy) {
+    var container = document.getElementById(containerId);
+    container.innerHTML = '';
+    for(var r=0; r<size; r++) {
+      for(var c=0; c<size; c++) {
+        var cell = document.createElement('div');
+        cell.className = 'cell';
+        if(!isEnemy && board[r][c] === 1) cell.classList.add('ship');
+        if(board[r][c] === 2) cell.classList.add('hit');
+        if(board[r][c] === 3) cell.classList.add('miss');
+        if(isEnemy && myTurn && !gameOver && board[r][c] < 2) {
+          cell.addEventListener('click', (function(row, col) { return function() { fire(row, col); }; })(r, c));
+        } else {
+          cell.classList.add('disabled');
+        }
+        container.appendChild(cell);
+      }
+    }
+  }
+
+  function renderAll() {
+    renderBoard('myBoard', myBoard, false);
+    renderBoard('enemyBoard', enemyBoard, true);
+  }
+
+  function fire(r, c) {
+    if(!myTurn || gameOver) return;
+    sendMessage({ type:'fire', row:r, col:c });
+    // sonucu bekle, şimdilik hamleyi kilitle
+    myTurn = false;
+    document.getElementById('gameMessage').innerText = 'Atış yapıldı, rakip yanıt bekleniyor...';
+  }
+
+  function handleFire(r, c) {
+    var result;
+    if(myBoard[r][c] === 1) { myBoard[r][c] = 2; myShips--; result = 'hit'; }
+    else if(myBoard[r][c] === 0) { myBoard[r][c] = 3; result = 'miss'; }
+    else return;
+    sendMessage({ type:'result', row:r, col:c, result:result, myShips:myShips });
+    renderAll();
+    if(myShips <= 0) {
+      gameOver = true;
+      document.getElementById('gameMessage').innerText = '😔 Tüm gemilerin batırıldı. Kaybettin.';
+    } else {
+      myTurn = true;
+      document.getElementById('gameMessage').innerText = 'Sıra sende! Ateş et.';
+    }
+  }
+
+  function handleResult(r, c, result, ships) {
+    enemyBoard[r][c] = result === 'hit' ? 2 : 3;
+    enemyShips = ships;
+    renderAll();
+    if(enemyShips <= 0) {
+      gameOver = true;
+      document.getElementById('gameMessage').innerText = '🎉 Tüm rakip gemileri batırdın! Kazandın!';
+    } else {
+      document.getElementById('gameMessage').innerText = result === 'hit' ? '🎯 İsabet! Sıra rakibinde...' : '💧 Karavana! Sıra rakibinde...';
+    }
+  }
+
+  function sendMessage(data) { if(bugout && peerId) bugout.send(peerId, JSON.stringify(data)); }
+
+  function handleMessage(rawMsg) {
+    var msg;
+    try { msg = JSON.parse(rawMsg); } catch(e) { return; }
+    if(msg.type === 'fire') {
+      handleFire(msg.row, msg.col);
+    } else if(msg.type === 'result') {
+      handleResult(msg.row, msg.col, msg.result, msg.myShips);
+    } else if(msg.type === 'ready') {
+      // iki taraf da hazır, host başlasın
+      if(isHost) { myTurn = true; document.getElementById('gameMessage').innerText = 'Sıra sende! Ateş et.'; }
+      else document.getElementById('gameMessage').innerText = 'Rakip başlayacak...';
+    }
+  }
+
+  document.getElementById('connectBtn').addEventListener('click', function() {
+    var roomId = document.getElementById('roomIdInput').value.trim();
+    bugout = roomId ? new Bugout(roomId) : new Bugout();
+    bugout.address().then(function(address) {
+      myId = address;
+      document.getElementById('roomInfo').innerHTML = 'Senin adresin: <b>' + myId + '</b><br>Bu kodu arkadaşına gönder.';
+      if(!roomId) isHost = true;
+    });
+    bugout.on('message', function(address, message) {
+      if(!peerId) {
+        peerId = address;
+        document.getElementById('lobbyArea').classList.add('hidden');
+        document.getElementById('gameArea').classList.remove('hidden');
+        myBoard = randomBoard();
+        renderAll();
+        if(isHost) {
+          // host gemilerini gönder ve hazır olduğunu bildir
+          sendMessage({ type:'ready' });
+          myTurn = true;
+          document.getElementById('gameMessage').innerText = 'Sıra sende! Ateş et.';
+        } else {
+          sendMessage({ type:'ready' });
+        }
+      }
+      handleMessage(message);
+    });
+  });
+</script>
+</body>
+</html>
