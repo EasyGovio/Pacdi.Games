@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>PACDI P2P Bağlantı Testi</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background:#04162E; font-family:sans-serif; color:#eaf2fb; padding:20px; text-align:center; }
+        .btn { background:#F6B45F; border:none; padding:14px 28px; border-radius:40px; color:#04162E; font-weight:bold; font-size:1rem; cursor:pointer; margin:10px; }
+        .info { margin:10px 0; font-size:0.9rem; }
+        .info.success { color:#2ECC71; }
+        .info.error { color:#E74C3C; }
+        textarea { width:90%; padding:10px; border-radius:10px; margin:10px 0; background:#1e2a3a; color:#eaf2fb; border:1px solid #F6B45F; }
+        input[type="text"] { width:80%; padding:10px; border-radius:10px; margin:10px 0; background:#1e2a3a; color:#eaf2fb; border:1px solid #F6B45F; }
+    </style>
+</head>
+<body>
+    <h2 style="color:#F6B45F;">🔗 PACDI P2P Bağlantı Testi</h2>
+
+    <p style="color:#9bb7d4; font-size:0.8rem; margin:10px 0;">
+        📋 <strong>Talimatlar:</strong><br>
+        ❶ <strong>"Oda Oluştur"</strong>a bas → Kod üretilir.<br>
+        ❷ Kodu <strong>kopyalayıp arkadaşına</strong> gönder.<br>
+        ❸ Arkadaşın kodu <strong>yapıştırıp "Odaya Katıl"</strong>a bassın.<br>
+        ❹ Bağlantı kurulunca yeşil yazıyı göreceksin!
+    </p>
+
+    <button class="btn" id="createBtn">🏠 Oda Oluştur</button>
+    <br>
+    <textarea id="myCode" placeholder="Senin kodun burada görünecek..." readonly></textarea>
+    <br>
+    <p style="color:#9bb7d4;">--- VEYA ---</p>
+    <input type="text" id="friendCode" placeholder="Arkadaşının kodunu buraya yapıştır...">
+    <br>
+    <button class="btn" id="joinBtn">🚪 Odaya Katıl</button>
+
+    <div class="info" id="status"></div>
+
+    <script>
+        var pc = null;
+        var dc = null;
+
+        function setStatus(msg, type) {
+            var el = document.getElementById('status');
+            el.innerText = msg;
+            el.className = 'info ' + (type || '');
+        }
+
+        async function createRoom() {
+            setStatus('⏳ Oda oluşturuluyor...');
+            try {
+                pc = new RTCPeerConnection({
+                    iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+                });
+
+                // Veri kanalı oluştur
+                dc = pc.createDataChannel('pacdi-game');
+                setupDataChannel(dc);
+
+                // ICE adaylarını topla
+                pc.onicecandidate = function(event) {
+                    if (event.candidate) {
+                        // ICE adayı geldi, ama biz SDP'yi kullanacağız
+                    }
+                };
+
+                // Teklif oluştur
+                var offer = await pc.createOffer();
+                await pc.setLocalDescription(offer);
+
+                // SDP'yi bekle (ICE adayları toplanınca)
+                await new Promise(function(resolve) {
+                    pc.onicegatheringstatechange = function() {
+                        if (pc.iceGatheringState === 'complete') {
+                            resolve();
+                        }
+                    };
+                    // 2 saniye timeout
+                    setTimeout(resolve, 2000);
+                });
+
+                // Tam SDP'yi kod olarak göster
+                var code = btoa(JSON.stringify(pc.localDescription));
+                document.getElementById('myCode').value = code;
+                setStatus('✅ Oda hazır! Kodu arkadaşına gönder.', 'success');
+
+            } catch(e) {
+                setStatus('❌ Hata: ' + e.message, 'error');
+            }
+        }
+
+        async function joinRoom() {
+            var code = document.getElementById('friendCode').value.trim();
+            if (!code) {
+                setStatus('⚠️ Lütfen bir kod girin.', 'error');
+                return;
+            }
+
+            setStatus('⏳ Odaya katılıyor...');
+            try {
+                var desc = JSON.parse(atob(code));
+
+                pc = new RTCPeerConnection({
+                    iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+                });
+
+                // Veri kanalını dinle
+                pc.ondatachannel = function(event) {
+                    dc = event.channel;
+                    setupDataChannel(dc);
+                    setStatus('✅ Bağlantı kuruldu! Artık iletişim kurabilirsiniz.', 'success');
+                };
+
+                await pc.setRemoteDescription(new RTCSessionDescription(desc));
+                var answer = await pc.createAnswer();
+                await pc.setLocalDescription(answer);
+
+            } catch(e) {
+                setStatus('❌ Geçersiz kod: ' + e.message, 'error');
+            }
+        }
+
+        function setupDataChannel(channel) {
+            channel.onopen = function() {
+                setStatus('🔗 Veri kanalı açıldı! Bağlantı başarılı.', 'success');
+            };
+
+            channel.onmessage = function(event) {
+                setStatus('📩 Mesaj alındı: ' + event.data, 'success');
+            };
+
+            channel.onclose = function() {
+                setStatus('🔌 Bağlantı koptu.', 'error');
+            };
+
+            channel.onerror = function(err) {
+                setStatus('⚠️ Kanal hatası: ' + (err.message || 'bilinmeyen'), 'error');
+            };
+        }
+
+        document.getElementById('createBtn').addEventListener('click', createRoom);
+        document.getElementById('joinBtn').addEventListener('click', joinRoom);
+    </script>
+</body>
+</html>
