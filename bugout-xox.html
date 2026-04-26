@@ -3,40 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Bugout XOX Test | PACDI Games</title>
-    <script src="bugout.min.js"></script>
+    <title>WebRTC XOX Test | PACDI Games</title>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
         body { background:#04162E; font-family:sans-serif; color:#eaf2fb; padding:20px; text-align:center; }
         .btn { background:#F6B45F; border:none; padding:14px 28px; border-radius:40px; color:#04162E; font-weight:bold; font-size:1rem; cursor:pointer; margin:10px; }
         .info { color:#F6B45F; margin:10px 0; font-size:0.9rem; }
+        textarea { width:90%; height:60px; padding:10px; border-radius:10px; margin:10px 0; background:#1e2a3a; color:#eaf2fb; border:1px solid #F6B45F; }
     </style>
 </head>
 <body>
-    <h2 style="color:#F6B45F;">Bugout XOX - Bağlantı Testi</h2>
-    <input type="text" id="roomInput" placeholder="Oda kodu (boş bırak= yeni oda)" style="padding:10px; width:80%; border-radius:10px; margin:10px 0;">
+    <h2 style="color:#F6B45F;">WebRTC Bağlantı Testi</h2>
+    <p style="color:#9bb7d4; font-size:0.8rem; margin-bottom:12px;">
+        📋 <strong>Nasıl kullanılır?</strong><br>
+        ❶ <strong>"Yeni Oda Oluştur"</strong>a bas.<br>
+        ❷ Çıkan <strong>ODA KODUNU</strong> kopyala, arkadaşına gönder.<br>
+        ❸ Arkadaşın kodu yapıştırıp <strong>"Odaya Katıl"</strong>a bassın.<br>
+        ❹ Bağlantı kurulunca mesajlaşmaya başlayabilirsiniz!
+    </p>
+
+    <button class="btn" id="createBtn">🎯 Yeni Oda Oluştur</button>
     <br>
-    <button class="btn" id="connectBtn">Odaya Bağlan</button>
+    <textarea id="codeArea" placeholder="Oda kodu burada görünecek..."></textarea>
+    <br>
+    <button class="btn" id="joinBtn">🚪 Odaya Katıl</button>
+
     <div class="info" id="status"></div>
+    <div style="margin-top:20px;">
+        <input type="text" id="msgInput" placeholder="Mesaj yaz..." style="padding:10px; width:70%; border-radius:10px;">
+        <button class="btn" id="sendBtn" style="padding:10px 20px;">Gönder</button>
+    </div>
+    <div id="messages" style="margin-top:10px; text-align:left; max-height:200px; overflow-y:auto;"></div>
 
     <script>
-        document.getElementById('connectBtn').addEventListener('click', function() {
-            var roomId = document.getElementById('roomInput').value.trim();
-            var statusEl = document.getElementById('status');
+        var pc = null;
+        var dc = null;
+        var myCode = '';
 
-            statusEl.innerText = 'Bağlantı kuruluyor...';
+        function log(msg) {
+            document.getElementById('status').innerHTML = msg;
+        }
 
+        function addMessage(msg) {
+            var div = document.getElementById('messages');
+            div.innerHTML += '<div style="padding:4px;color:#eaf2fb;">' + msg + '</div>';
+        }
+
+        // Basit bir oda kodu üret
+        function generateCode() {
+            return 'PACDI-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+        }
+
+        // WebRTC bağlantısı kur
+        function createPeerConnection() {
+            pc = new RTCPeerConnection({
+                iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+            });
+
+            dc = pc.createDataChannel('game');
+            setupDataChannel(dc);
+
+            pc.onicecandidate = function(e) {
+                if (e.candidate) {
+                    // Adayları topla (basit demo için ilk adayı kullan)
+                }
+            };
+
+            pc.createOffer().then(function(offer) {
+                return pc.setLocalDescription(offer);
+            }).then(function() {
+                // SDP'yi kod olarak kullan
+                myCode = btoa(JSON.stringify(pc.localDescription));
+                document.getElementById('codeArea').value = myCode;
+                log('✅ Oda oluşturuldu! Kodu arkadaşına gönder.');
+            });
+        }
+
+        function joinRoom(code) {
             try {
-                var bugout = roomId ? new Bugout(roomId) : new Bugout();
-
-                bugout.address().then(function(address) {
-                    statusEl.innerHTML = '✅ Bağlantı başarılı!<br>📡 <b>Senin kodun:</b> ' + address + '<br><br>Bu kodu arkadaşına gönder.';
-                }).catch(function(err) {
-                    statusEl.innerText = '❌ Hata: ' + err.message;
+                var desc = JSON.parse(atob(code));
+                pc = new RTCPeerConnection({
+                    iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
                 });
 
+                pc.ondatachannel = function(e) {
+                    dc = e.channel;
+                    setupDataChannel(dc);
+                };
+
+                pc.setRemoteDescription(new RTCSessionDescription(desc)).then(function() {
+                    return pc.createAnswer();
+                }).then(function(answer) {
+                    return pc.setLocalDescription(answer);
+                }).then(function() {
+                    log('✅ Odaya katıldın! Bağlantı kuruldu.');
+                });
             } catch(e) {
-                statusEl.innerText = '❌ Bugout yüklenemedi: ' + e.message;
+                log('❌ Geçersiz kod: ' + e.message);
+            }
+        }
+
+        function setupDataChannel(channel) {
+            channel.onopen = function() {
+                log('🔗 Bağlantı hazır! Mesajlaşabilirsiniz.');
+            };
+            channel.onmessage = function(e) {
+                addMessage('📩 Gelen: ' + e.data);
+            };
+            channel.onclose = function() {
+                log('🔌 Bağlantı koptu.');
+            };
+        }
+
+        document.getElementById('createBtn').addEventListener('click', function() {
+            createPeerConnection();
+        });
+
+        document.getElementById('joinBtn').addEventListener('click', function() {
+            var code = document.getElementById('codeArea').value.trim();
+            if (code) joinRoom(code);
+            else log('⚠️ Lütfen bir oda kodu girin.');
+        });
+
+        document.getElementById('sendBtn').addEventListener('click', function() {
+            var msg = document.getElementById('msgInput').value.trim();
+            if (msg && dc && dc.readyState === 'open') {
+                dc.send(msg);
+                addMessage('📤 Sen: ' + msg);
+                document.getElementById('msgInput').value = '';
+            } else {
+                log('⚠️ Bağlantı henüz hazır değil.');
             }
         });
     </script>
