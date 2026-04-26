@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>PACDI Games</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+        body { background:#04162E; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
+        .game-container { max-width:500px; width:100%; background:rgba(4,22,46,0.85); border-radius:56px; padding:24px 20px; box-shadow:0 20px 35px rgba(0,0,0,0.5); border:1px solid rgba(246,180,95,0.3); text-align:center; }
+        .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+        .logo { font-size:1.4rem; font-weight:800; color:#F6B45F; }
+        .top-actions { display:flex; gap:8px; align-items:center; }
+        .lang-btn { font-size:1.3rem; cursor:pointer; background:#0a1018; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:1px solid rgba(246,180,95,0.3); }
+        .back-link { color:#F6B45F; text-decoration:none; font-weight:bold; font-size:0.75rem; background:#0a1018; padding:5px 10px; border-radius:30px; border:1px solid rgba(246,180,95,0.3); }
+        .game-area { background:#0a1018; border-radius:28px; padding:20px 16px; margin-bottom:20px; }
+        .message { color:#F6B45F; font-size:1rem; font-weight:bold; min-height:24px; margin:8px 0; }
+        .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:12px; }
+        .btn { background:#F6B45F; border:none; font-weight:bold; padding:10px 20px; border-radius:40px; color:#04162E; cursor:pointer; font-size:0.85rem; margin:4px; }
+        .btn:active { transform:scale(0.96); }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="top-bar">
+        <div class="logo" id="gameTitle">OYUN</div>
+        <div class="top-actions">
+            <div class="lang-btn" id="langToggle" title="Dil değiştir">🌐</div>
+            <a href="index.html" class="back-link" id="backLink">← Geri</a>
+        </div>
+    </div>
+    <div class="game-area">
+        <!-- OYUN İÇERİĞİ BURAYA -->
+        <div class="message" id="welcomeMsg">Hoş geldin!</div>
+    </div>
+    <div class="footer" id="footerText">PACDI Games</div>
+</div>
+
+<script>
+// ========== PACDI MASTER TEMPLATE v1.0 ==========
+(function() {
+    // 📚 Dil Verileri - Her oyun için özelleştir
+    var L = {
+        tr: {
+            title: "OYUN ADI",
+            back: "← Geri",
+            welcome: "Hoş geldin! 🎉",
+            footer: "PACDI Games · Oyun açıklaması",
+            nextLang: "de"
+        },
+        de: {
+            title: "SPIEL NAME",
+            back: "← Zurück",
+            welcome: "Willkommen! 🎉",
+            footer: "PACDI Games · Spielbeschreibung",
+            nextLang: "en"
+        },
+        en: {
+            title: "GAME NAME",
+            back: "← Back",
+            welcome: "Welcome! 🎉",
+            footer: "PACDI Games · Game description",
+            nextLang: "tr"
+        }
+    };
+
+    // 🧠 Otomatik Dil Algılama
+    function detectLang() {
+        var nav = (navigator.language || 'en').toLowerCase();
+        if (nav.indexOf('tr') === 0) return 'tr';
+        if (nav.indexOf('de') === 0) return 'de';
+        return 'en';
+    }
+
+    // 🔄 Dil Değiştirme
+    function setLang(lang) {
+        localStorage.setItem('pacdi_lang', lang);
+        var t = L[lang];
+        document.getElementById('gameTitle').innerText = t.title;
+        document.getElementById('backLink').innerText = t.back;
+        document.getElementById('welcomeMsg').innerText = t.welcome;
+        document.getElementById('footerText').innerText = t.footer;
+        return lang;
+    }
+
+    // 🚀 Başlangıç
+    var saved = localStorage.getItem('pacdi_lang');
+    var current = (saved && L[saved]) ? saved : detectLang();
+    setLang(current);
+
+    // 🌐 Manuel Dil Değiştirme Butonu
+    document.getElementById('langToggle').addEventListener('click', function() {
+        var next = L[current].nextLang;
+        current = setLang(next);
+    });
+})();
+</script>
+</body>
+</html>
