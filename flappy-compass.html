@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Flappy Compass | PACDI Games</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+        body { background:#04162E; display:flex; justify-content:center; align-items:center; min-height:100vh; touch-action:manipulation; overflow:hidden; }
+        canvas { border-radius:24px; background:linear-gradient(180deg, #1a3a5c 0%, #2c5f8a 100%); border:2px solid #F6B45F; display:block; max-width:100%; }
+    </style>
+</head>
+<body>
+<canvas id="gameCanvas" width="400" height="600"></canvas>
+<script>
+(function(){
+    var canvas = document.getElementById('gameCanvas');
+    var ctx = canvas.getContext('2d');
+    var bird = { x:80, y:250, w:34, h:26, vy:0 };
+    var gravity = 0.4;
+    var jump = -7;
+    var pipes = [];
+    var pipeW = 55;
+    var pipeGap = 130;
+    var pipeSpeed = 2.5;
+    var score = 0;
+    var bestScore = 0;
+    var gameOver = false;
+    var gameStarted = false;
+    var frameCount = 0;
+
+    bestScore = parseInt(localStorage.getItem('flappy_best') || '0');
+
+    function reset() {
+        bird.y = 250; bird.vy = 0;
+        pipes = [];
+        score = 0;
+        gameOver = false;
+        gameStarted = false;
+        frameCount = 0;
+    }
+
+    function spawnPipe() {
+        var minH = 60;
+        var maxH = canvas.height - pipeGap - minH;
+        var topH = minH + Math.random() * (maxH - minH);
+        pipes.push({ x:canvas.width, topH:topH, passed:false });
+    }
+
+    function update() {
+        if(!gameStarted || gameOver) return;
+        bird.vy += gravity;
+        bird.y += bird.vy;
+        if(bird.y + bird.h >= canvas.height) { bird.y = canvas.height - bird.h; gameOver = true; }
+        if(bird.y <= 0) { bird.y = 0; bird.vy = 0; }
+        if(frameCount % 75 === 0) spawnPipe();
+        for(var i=pipes.length-1; i>=0; i--) {
+            pipes[i].x -= pipeSpeed;
+            if(!pipes[i].passed && pipes[i].x + pipeW < bird.x) {
+                pipes[i].passed = true;
+                score++;
+            }
+            if(pipes[i].x + pipeW < -50) pipes.splice(i,1);
+            if(bird.x + bird.w > pipes[i].x && bird.x < pipes[i].x + pipeW) {
+                if(bird.y < pipes[i].topH || bird.y + bird.h > pipes[i].topH + pipeGap) gameOver = true;
+            }
+        }
+        if(gameOver && score > bestScore) { bestScore = score; localStorage.setItem('flappy_best', bestScore); }
+        frameCount++;
+    }
+
+    function draw() {
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        for(var i=0;i<pipes.length;i++) {
+            var p = pipes[i];
+            ctx.fillStyle = '#F6B45F';
+            ctx.fillRect(p.x, 0, pipeW, p.topH);
+            ctx.fillRect(p.x, p.topH + pipeGap, pipeW, canvas.height - p.topH - pipeGap);
+            ctx.fillStyle = '#d4953f';
+            ctx.fillRect(p.x-3, p.topH-22, pipeW+6, 25);
+            ctx.fillRect(p.x-3, p.topH + pipeGap, pipeW+6, 25);
+        }
+        // Bird (compass needle style)
+        ctx.fillStyle = '#F6B45F';
+        ctx.beginPath();
+        var cx = bird.x + bird.w/2;
+        var cy = bird.y + bird.h/2;
+        ctx.moveTo(cx, bird.y);
+        ctx.lineTo(cx + bird.w/2, bird.y + bird.h);
+        ctx.lineTo(cx - bird.w/2, bird.y + bird.h);
+        ctx.fill();
+        // Eye
+        ctx.fillStyle = '#04162E';
+        ctx.beginPath();
+        ctx.arc(cx + 6, bird.y + 10, 4, 0, Math.PI*2);
+        ctx.fill();
+        // Ground
+        ctx.fillStyle = '#0a3d2e';
+        ctx.fillRect(0, canvas.height-10, canvas.width, 10);
+        // Score
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 40px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(score, canvas.width/2, 60);
+        if(!gameStarted) {
+            ctx.fillStyle = 'rgba(0,0,0,0.5)';
+            ctx.fillRect(0,0,canvas.width,canvas.height);
+            ctx.fillStyle = '#F6B45F';
+            ctx.font = 'bold 22px sans-serif';
+            ctx.fillText('FLAPPY COMPASS', canvas.width/2, 240);
+            ctx.font = '16px sans-serif';
+            ctx.fillText('Dokun / Tıkla', canvas.width/2, 280);
+            ctx.fillText('En İyi: ' + bestScore, canvas.width/2, 310);
+        }
+        if(gameOver) {
+            ctx.fillStyle = 'rgba(0,0,0,0.4)';
+            ctx.fillRect(0,0,canvas.width,canvas.height);
+            ctx.fillStyle = '#E74C3C';
+            ctx.font = 'bold 28px sans-serif';
+            ctx.fillText('OYUN BİTTİ', canvas.width/2, 240);
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = '16px sans-serif';
+            ctx.fillText('Skor: ' + score + '  |  En İyi: ' + bestScore, canvas.width/2, 275);
+            ctx.fillText('Tekrar oynamak için dokun', canvas.width/2, 305);
+        }
+    }
+
+    function loop() {
+        update();
+        draw();
+        requestAnimationFrame(loop);
+    }
+
+    canvas.addEventListener('click', function() {
+        if(gameOver) { reset(); return; }
+        if(!gameStarted) { gameStarted = true; }
+        bird.vy = jump;
+    });
+    canvas.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        if(gameOver) { reset(); return; }
+        if(!gameStarted) { gameStarted = true; }
+        bird.vy = jump;
+    });
+    document.addEventListener('keydown', function(e) {
+        if(e.code === 'Space') {
+            e.preventDefault();
+            if(gameOver) { reset(); return; }
+            if(!gameStarted) { gameStarted = true; }
+            bird.vy = jump;
+        }
+    });
+
+    reset();
+    loop();
+})();
+</script>
+</body>
+</html>

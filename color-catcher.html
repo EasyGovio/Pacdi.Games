@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Renk Yakalama | PACDI Games</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+        body { background:#04162E; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
+        .game-container { max-width:500px; width:100%; background:rgba(4,22,46,0.85); border-radius:56px; padding:20px 16px 24px; box-shadow:0 20px 35px rgba(0,0,0,0.5); backdrop-filter:blur(2px); border:1px solid rgba(246,180,95,0.3); text-align:center; }
+        .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+        .logo { font-size:1.3rem; font-weight:800; color:#F6B45F; }
+        .back-link { color:#F6B45F; text-decoration:none; font-weight:bold; font-size:0.78rem; background:#0a1018; padding:5px 12px; border-radius:40px; border:1px solid rgba(246,180,95,0.3); }
+        .info-bar { display:flex; justify-content:space-between; align-items:center; background:#0a1018; border-radius:40px; padding:7px 16px; margin-bottom:14px; }
+        .info-box { color:#F6B45F; font-weight:bold; font-size:0.78rem; }
+        .new-btn { background:#F6B45F; border:none; font-weight:bold; padding:5px 14px; border-radius:40px; color:#04162E; cursor:pointer; font-size:0.78rem; }
+        .game-area { background:#0a1018; border-radius:28px; padding:16px; margin-bottom:20px; min-height:350px; position:relative; overflow:hidden; }
+        .target-color { width:60px; height:60px; border-radius:50%; position:absolute; cursor:pointer; transition:0.08s; box-shadow:0 0 12px rgba(255,255,255,0.3); }
+        .target-color:active { transform:scale(1.3); }
+        .lives { display:flex; justify-content:center; gap:6px; margin:10px 0; }
+        .heart { font-size:1.5rem; }
+        .timer-bar { height:4px; background:#1e2a3a; border-radius:4px; margin:10px 0; overflow:hidden; }
+        .timer-fill { height:100%; background:#F6B45F; transition:width 0.1s; }
+        .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:12px; }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="top-bar">
+        <div class="logo" id="gameTitle">RENK YAKALAMA</div>
+        <a href="index.html" class="back-link" id="backLink">← Geri</a>
+    </div>
+    <div class="info-bar">
+        <div class="info-box" id="scoreLabel">🎯 Skor: <span id="scoreNum">0</span></div>
+        <div class="info-box" id="bestLabel">🏆 En İyi: <span id="bestNum">—</span></div>
+        <button class="new-btn" id="startBtn"><span id="startText">▶ Başla</span></button>
+    </div>
+    <div class="game-area" id="gameArea">
+        <div style="color:#9bb7d4; padding-top:100px; font-size:1.2rem;" id="waitText">Başlamak için butona bas</div>
+    </div>
+    <div class="lives" id="livesDisplay">
+        <span class="heart">❤️</span>
+        <span class="heart">❤️</span>
+        <span class="heart">❤️</span>
+    </div>
+    <div class="timer-bar"><div class="timer-fill" id="timerFill" style="width:100%"></div></div>
+    <div class="footer" id="footerText">PACDI Games · Hedef rengi yakala, reflekslerini test et.</div>
+</div>
+<script>
+(function(){
+    var langData = {
+        tr: { title:"RENK YAKALAMA", back:"← Geri", score:"🎯 Skor:", best:"🏆 En İyi:", start:"▶ Başla", reset:"↺ Yeniden", wait:"Başlamak için butona bas", gameOver:"Oyun Bitti! Skor: ", footer:"PACDI Games · Hedef rengi yakala, reflekslerini test et." },
+        de: { title:"FARBENFÄNGER", back:"← Zurück", score:"🎯 Punkt:", best:"🏆 Beste:", start:"▶ Start", reset:"↺ Neustart", wait:"Zum Starten klicken", gameOver:"Spiel vorbei! Punkt: ", footer:"PACDI Games · Fange die Zielfarbe, teste deine Reflexe." },
+        en: { title:"COLOR CATCHER", back:"← Back", score:"🎯 Score:", best:"🏆 Best:", start:"▶ Start", reset:"↺ Restart", wait:"Click to start", gameOver:"Game Over! Score: ", footer:"PACDI Games · Catch the target color, test your reflexes." }
+    };
+    var currentLang = "tr";
+    var score = 0, bestScore = 0, lives = 3, gameActive = false, targetTimeout = null;
+    var colors = ['#E74C3C','#2ECC71','#3498DB','#F6B45F','#9B59B6','#1ABC9C','#E67E22','#F1C40F'];
+
+    function loadBest() { var s=localStorage.getItem('colorcatcher_best_'+currentLang); bestScore=s?parseInt(s):0; document.getElementById('bestNum').innerText=bestScore||'—'; }
+    function saveBest() { if(score>bestScore){ bestScore=score; localStorage.setItem('colorcatcher_best_'+currentLang,bestScore); document.getElementById('bestNum').innerText=bestScore; } }
+
+    function updateLanguage() {
+        var t=langData[currentLang];
+        document.getElementById('gameTitle').innerText=t.title;
+        document.getElementById('backLink').innerText=t.back;
+        document.getElementById('scoreLabel').innerHTML=t.score+' <span id="scoreNum">'+score+'</span>';
+        document.getElementById('bestLabel').innerHTML=t.best+' <span id="bestNum">'+(bestScore||'—')+'</span>';
+        document.getElementById('startText').innerText = gameActive ? t.reset : t.start;
+        document.getElementById('footerText').innerText=t.footer;
+        if(!gameActive && score===0) document.getElementById('waitText').innerText = t.wait;
+    }
+
+    function setLanguage(lang) {
+        currentLang=lang; updateLanguage(); loadBest();
+        var btns=document.querySelectorAll('.lang-btn');
+        for(var i=0;i<btns.length;i++) btns[i].classList.toggle('active', btns[i].getAttribute('data-lang')===lang);
+    }
+
+    function spawnTarget() {
+        if(!gameActive) return;
+        var area = document.getElementById('gameArea');
+        var existing = area.querySelector('.target-color');
+        if(existing) existing.remove();
+
+        var target = document.createElement('div');
+        target.className = 'target-color';
+        var color = colors[Math.floor(Math.random()*colors.length)];
+        target.style.backgroundColor = color;
+        var maxX = area.clientWidth - 60;
+        var maxY = area.clientHeight - 60;
+        target.style.left = Math.random()*maxX + 'px';
+        target.style.top = Math.random()*maxY + 'px';
+
+        target.addEventListener('click', function(e){
+            e.stopPropagation();
+            if(!gameActive) return;
+            score++;
+            document.getElementById('scoreNum').innerText = score;
+            saveBest();
+            this.remove();
+            clearTimeout(targetTimeout);
+            spawnTarget();
+        });
+
+        area.appendChild(target);
+
+        var baseTime = Math.max(400, 1500 - score*15);
+        targetTimeout = setTimeout(function(){
+            if(target.parentNode) target.remove();
+            lives--;
+            updateLives();
+            if(lives<=0) endGame();
+            else spawnTarget();
+        }, baseTime);
+    }
+
+    function updateLives() {
+        var display = document.getElementById('livesDisplay');
+        display.innerHTML = '';
+        for(var i=0;i<lives;i++) display.innerHTML += '<span class="heart">❤️</span>';
+        for(var j=lives;j<3;j++) display.innerHTML += '<span style="font-size:1.5rem;opacity:0.3">🖤</span>';
+    }
+
+    function startGame() {
+        score = 0; lives = 3; gameActive = true;
+        document.getElementById('scoreNum').innerText = '0';
+        document.getElementById('waitText').innerHTML = '';
+        updateLives();
+        updateLanguage();
+        spawnTarget();
+    }
+
+    function endGame() {
+        gameActive = false;
+        var area = document.getElementById('gameArea');
+        area.innerHTML = '<div style="color:#E74C3C; padding-top:100px; font-size:1.4rem; font-weight:bold;">' + langData[currentLang].gameOver + score + '</div>';
+        document.getElementById('startText').innerText = langData[currentLang].reset;
+        saveBest();
+    }
+
+    document.getElementById('startBtn').addEventListener('click', function(){
+        if(gameActive) { gameActive=false; clearTimeout(targetTimeout); }
+        startGame();
+    });
+
+    document.getElementById('gameArea').addEventListener('click', function(e){
+        if(e.target === this && gameActive) {
+            lives--;
+            updateLives();
+            if(lives<=0) endGame();
+        }
+    });
+
+    var langBtns=document.querySelectorAll('.lang-btn');
+    for(var i=0;i<langBtns.length;i++) langBtns[i].addEventListener('click', function(){ var l=this.getAttribute('data-lang'); if(l!==currentLang) setLanguage(l); });
+
+    setLanguage('tr'); loadBest();
+})();
+</script>
+</body>
+</html>

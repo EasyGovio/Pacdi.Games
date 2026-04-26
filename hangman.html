@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Adam Asmaca | PACDI Games</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+        body { background:#04162E; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
+        .game-container { max-width:500px; width:100%; background:rgba(4,22,46,0.85); border-radius:56px; padding:20px 16px 24px; box-shadow:0 20px 35px rgba(0,0,0,0.5); backdrop-filter:blur(2px); border:1px solid rgba(246,180,95,0.3); text-align:center; }
+        .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+        .logo { font-size:1.3rem; font-weight:800; color:#F6B45F; }
+        .back-link { color:#F6B45F; text-decoration:none; font-weight:bold; font-size:0.78rem; background:#0a1018; padding:5px 12px; border-radius:40px; border:1px solid rgba(246,180,95,0.3); }
+        .lang-selector { display:flex; gap:6px; margin-bottom:12px; justify-content:flex-end; }
+        .lang-btn { background:#0a1018; border:1px solid #F6B45F; color:#F6B45F; font-size:0.7rem; padding:3px 10px; border-radius:30px; cursor:pointer; }
+        .lang-btn.active { background:#F6B45F; color:#04162E; }
+        .info-bar { display:flex; justify-content:space-between; align-items:center; background:#0a1018; border-radius:40px; padding:7px 16px; margin-bottom:14px; }
+        .info-box { color:#F6B45F; font-weight:bold; font-size:0.78rem; }
+        .new-btn { background:#F6B45F; border:none; font-weight:bold; padding:5px 14px; border-radius:40px; color:#04162E; cursor:pointer; font-size:0.78rem; }
+        .hangman-area { background:#0a1018; border-radius:28px; padding:20px; margin-bottom:20px; }
+        .word-display { display:flex; justify-content:center; gap:8px; flex-wrap:wrap; margin:20px 0; }
+        .letter-box { width:36px; height:44px; border-bottom:2px solid #F6B45F; display:flex; align-items:flex-end; justify-content:center; font-size:1.4rem; font-weight:bold; color:#eaf2fb; padding-bottom:4px; }
+        .letter-box.revealed { color:#F6B45F; }
+        .hangman-figure { font-size:1.5rem; font-family:monospace; white-space:pre; color:#eaf2fb; line-height:1.3; margin:10px 0; }
+        .keyboard { display:flex; flex-wrap:wrap; gap:4px; justify-content:center; margin-top:16px; }
+        .key { width:36px; height:42px; background:#1e2a3a; border:1px solid rgba(246,180,95,0.3); border-radius:8px; color:#eaf2fb; font-weight:bold; font-size:1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+        .key:active { background:#F6B45F; color:#04162E; }
+        .key.used { opacity:0.3; pointer-events:none; }
+        .key.correct { background:#2ECC71; border-color:#2ECC71; color:#04162E; }
+        .key.wrong { background:#E74C3C; border-color:#E74C3C; color:#fff; }
+        .feedback { margin:12px 0; font-size:0.9rem; font-weight:bold; min-height:30px; color:#2ECC71; }
+        .feedback.error { color:#E74C3C; }
+        .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:12px; }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="top-bar">
+        <div class="logo" id="gameTitle">ADAM ASMACA</div>
+        <a href="index.html" class="back-link" id="backLink">← Geri</a>
+    </div>
+    <div class="lang-selector">
+        <button class="lang-btn active" data-lang="tr">TR</button>
+        <button class="lang-btn" data-lang="de">DE</button>
+        <button class="lang-btn" data-lang="en">EN</button>
+    </div>
+    <div class="info-bar">
+        <div class="info-box" id="scoreLabel">🎯 Skor: <span id="scoreNum">0</span></div>
+        <div class="info-box" id="bestLabel">🏆 En İyi: <span id="bestNum">—</span></div>
+        <button class="new-btn" id="resetBtn"><span id="resetText">↺ Yeni Oyun</span></button>
+    </div>
+    <div class="hangman-area">
+        <div class="hangman-figure" id="hangmanFigure">
+            +---+<br>
+            |   |<br>
+                |<br>
+                |<br>
+                |<br>
+                |<br>
+           ======
+        </div>
+        <div class="word-display" id="wordDisplay"></div>
+        <div class="keyboard" id="keyboard"></div>
+    </div>
+    <div class="feedback" id="feedbackMsg"></div>
+    <div class="footer">PACDI Games · Harf tahmin et, adamı kurtar.</div>
+</div>
+<script>
+(function(){
+    var wordLists = {
+        tr: ["KALEM","MASA","KİTAP","GÜNEŞ","TOPRAK","ÇİÇEK","KEDİ","FİLİZ","KUMRU","SOKAK","BALIK","KAPI","AYNA","KÜPE","HALI","GÖZLÜK","ANAHTAR","ŞEMSİYE","ÇANTA","BIÇAK"],
+        de: ["BLUME","STERN","WASSER","LICHT","NACHT","STUHL","TISCH","WELT","FREUDE","MUTIG","HIMMEL","KATZE","HUND","WALD","BERG"],
+        en: ["TABLE","CHAIR","LIGHT","WATER","PLANT","HAPPY","SMILE","CLOUD","STONE","BRAIN","HOUSE","GARDEN","MUSIC","DANCE","PEACE"]
+    };
+    var langData = {
+        tr: { title:"ADAM ASMACA", back:"← Geri", score:"🎯 Skor:", best:"🏆 En İyi:", reset:"↺ Yeni Oyun", win:"🎉 TEBRİKLER! Kazandın!", lose:"😔 Kaybettin! Kelime: ", footer:"PACDI Games · Harf tahmin et, adamı kurtar." },
+        de: { title:"GALGENMÄNNCHEN", back:"← Zurück", score:"🎯 Punkt:", best:"🏆 Beste:", reset:"↺ Neues Spiel", win:"🎉 GLÜCKWUNSCH! Gewonnen!", lose:"😔 Verloren! Wort: ", footer:"PACDI Games · Buchstaben raten, Mann retten." },
+        en: { title:"HANGMAN", back:"← Back", score:"🎯 Score:", best:"🏆 Best:", reset:"↺ New Game", win:"🎉 CONGRATULATIONS! You won!", lose:"😔 You lost! Word: ", footer:"PACDI Games · Guess letters, save the man." }
+    };
+    var hangmanStages = [
+        "  +---+<br>  |   |<br>      |<br>      |<br>      |<br>      |<br> ======",
+        "  +---+<br>  |   |<br>  O   |<br>      |<br>      |<br>      |<br> ======",
+        "  +---+<br>  |   |<br>  O   |<br>  |   |<br>      |<br>      |<br> ======",
+        "  +---+<br>  |   |<br>  O   |<br> /|   |<br>      |<br>      |<br> ======",
+        "  +---+<br>  |   |<br>  O   |<br> /|\\  |<br>      |<br>      |<br> ======",
+        "  +---+<br>  |   |<br>  O   |<br> /|\\  |<br> /    |<br>      |<br> ======",
+        "  +---+<br>  |   |<br>  O   |<br> /|\\  |<br> / \\  |<br>      |<br> ======"
+    ];
+
+    var currentLang = "tr";
+    var targetWord = "";
+    var guessedLetters = [];
+    var wrongGuesses = 0;
+    var maxWrong = 6;
+    var score = 0;
+    var bestScore = 0;
+    var gameActive = true;
+
+    function loadBest() { var s=localStorage.getItem('hangman_best_'+currentLang); bestScore=s?parseInt(s):0; document.getElementById('bestNum').innerText=bestScore||'—'; }
+    function saveBest() { if(score>bestScore){ bestScore=score; localStorage.setItem('hangman_best_'+currentLang,bestScore); document.getElementById('bestNum').innerText=bestScore; } }
+
+    function updateLanguage() {
+        var t=langData[currentLang];
+        document.getElementById('gameTitle').innerText=t.title;
+        document.getElementById('backLink').innerText=t.back;
+        document.getElementById('scoreLabel').innerHTML=t.score+' <span id="scoreNum">'+score+'</span>';
+        document.getElementById('bestLabel').innerHTML=t.best+' <span id="bestNum">'+(bestScore||'—')+'</span>';
+        document.getElementById('resetText').innerText=t.reset;
+        document.querySelector('.footer').innerText=t.footer;
+    }
+
+    function setLanguage(lang) {
+        currentLang=lang; updateLanguage(); loadBest();
+        var btns=document.querySelectorAll('.lang-btn');
+        for(var i=0;i<btns.length;i++) btns[i].classList.toggle('active', btns[i].getAttribute('data-lang')===lang);
+        resetGame();
+    }
+
+    function pickWord() {
+        var list = wordLists[currentLang];
+        return list[Math.floor(Math.random()*list.length)].toUpperCase();
+    }
+
+    function renderGame() {
+        var wd = document.getElementById('wordDisplay');
+        wd.innerHTML = '';
+        for(var i=0;i<targetWord.length;i++) {
+            var box = document.createElement('div');
+            box.className = 'letter-box' + (guessedLetters.indexOf(targetWord[i])!==-1 ? ' revealed' : '');
+            box.innerText = guessedLetters.indexOf(targetWord[i])!==-1 ? targetWord[i] : '';
+            wd.appendChild(box);
+        }
+        document.getElementById('hangmanFigure').innerHTML = hangmanStages[wrongGuesses];
+        document.getElementById('feedbackMsg').innerHTML = '';
+        renderKeyboard();
+    }
+
+    function renderKeyboard() {
+        var kb = document.getElementById('keyboard');
+        kb.innerHTML = '';
+        var letters = 'ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ'.split('');
+        for(var i=0;i<letters.length;i++) {
+            var key = document.createElement('button');
+            key.className = 'key';
+            key.innerText = letters[i];
+            var isGuessed = guessedLetters.indexOf(letters[i])!==-1;
+            if(isGuessed) {
+                key.classList.add('used');
+                if(targetWord.indexOf(letters[i])!==-1) key.classList.add('correct');
+                else key.classList.add('wrong');
+            }
+            key.addEventListener('click', (function(l){ return function(){ guessLetter(l); }; })(letters[i]));
+            kb.appendChild(key);
+        }
+    }
+
+    function guessLetter(letter) {
+        if(!gameActive) return;
+        if(guessedLetters.indexOf(letter)!==-1) return;
+        guessedLetters.push(letter);
+        if(targetWord.indexOf(letter)===-1) wrongGuesses++;
+        var won = true;
+        for(var i=0;i<targetWord.length;i++) {
+            if(guessedLetters.indexOf(targetWord[i])===-1) { won=false; break; }
+        }
+        if(won) {
+            gameActive=false; score++; saveBest();
+            document.getElementById('scoreNum').innerText=score;
+            document.getElementById('feedbackMsg').innerHTML=langData[currentLang].win;
+            document.getElementById('feedbackMsg').style.color='#2ECC71';
+        } else if(wrongGuesses >= maxWrong) {
+            gameActive=false;
+            document.getElementById('feedbackMsg').innerHTML=langData[currentLang].lose + targetWord;
+            document.getElementById('feedbackMsg').style.color='#E74C3C';
+        }
+        renderGame();
+    }
+
+    function resetGame() {
+        gameActive=true; targetWord=pickWord(); guessedLetters=[]; wrongGuesses=0;
+        document.getElementById('scoreNum').innerText=score;
+        renderGame();
+    }
+
+    document.getElementById('resetBtn').addEventListener('click', resetGame);
+    var langBtns=document.querySelectorAll('.lang-btn');
+    for(var i=0;i<langBtns.length;i++) langBtns[i].addEventListener('click', function(){ var l=this.getAttribute('data-lang'); if(l!==currentLang) setLanguage(l); });
+
+    document.addEventListener('keydown', function(e){
+        if(!gameActive) return;
+        var key = e.key.toUpperCase();
+        var letters = 'ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ';
+        if(letters.indexOf(key)!==-1) guessLetter(key);
+    });
+
+    setLanguage('tr'); loadBest(); resetGame();
+})();
+</script>
+</body>
+</html>

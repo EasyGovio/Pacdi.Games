@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Döviz Çevirici | PACDI Games</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+        body { background:#04162E; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
+        .game-container { max-width:500px; width:100%; background:rgba(4,22,46,0.85); border-radius:56px; padding:20px 16px 24px; box-shadow:0 20px 35px rgba(0,0,0,0.5); backdrop-filter:blur(2px); border:1px solid rgba(246,180,95,0.3); text-align:center; }
+        .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+        .logo { font-size:1.3rem; font-weight:800; color:#F6B45F; }
+        .back-link { color:#F6B45F; text-decoration:none; font-weight:bold; font-size:0.78rem; background:#0a1018; padding:5px 12px; border-radius:40px; border:1px solid rgba(246,180,95,0.3); }
+        .lang-selector { display:flex; gap:6px; margin-bottom:12px; justify-content:flex-end; }
+        .lang-btn { background:#0a1018; border:1px solid #F6B45F; color:#F6B45F; font-size:0.7rem; padding:3px 10px; border-radius:30px; cursor:pointer; }
+        .lang-btn.active { background:#F6B45F; color:#04162E; }
+        .converter-area { background:#0a1018; border-radius:28px; padding:24px 16px; margin-bottom:20px; }
+        .amount-input { width:100%; padding:14px 16px; border-radius:16px; border:2px solid rgba(246,180,95,0.3); background:#1e2a3a; color:#eaf2fb; font-size:1.3rem; text-align:center; outline:none; font-family:inherit; margin-bottom:16px; }
+        .amount-input:focus { border-color:#F6B45F; }
+        .currency-selectors { display:flex; justify-content:center; align-items:center; gap:10px; margin-bottom:16px; }
+        .currency-select { background:#1e2a3a; border:2px solid rgba(246,180,95,0.3); border-radius:16px; padding:10px 14px; color:#eaf2fb; font-size:1rem; font-weight:bold; outline:none; cursor:pointer; font-family:inherit; }
+        .swap-btn { background:#F6B45F; border:none; width:40px; height:40px; border-radius:50%; color:#04162E; font-size:1.2rem; cursor:pointer; font-weight:bold; }
+        .result-display { background:#1e2a3a; border-radius:20px; padding:20px; margin:16px 0; font-size:1.6rem; font-weight:800; color:#F6B45F; min-height:70px; display:flex; align-items:center; justify-content:center; }
+        .rate-info { font-size:0.75rem; color:#9bb7d4; }
+        .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:12px; }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="top-bar">
+        <div class="logo" id="gameTitle">DÖVİZ ÇEVİRİCİ</div>
+        <a href="index.html" class="back-link" id="backLink">← Geri</a>
+    </div>
+    <div class="lang-selector">
+        <button class="lang-btn active" data-lang="tr">TR</button>
+        <button class="lang-btn" data-lang="de">DE</button>
+        <button class="lang-btn" data-lang="en">EN</button>
+    </div>
+    <div class="converter-area">
+        <input type="number" class="amount-input" id="amountInput" value="1" min="0" step="any" placeholder="Miktar">
+        <div class="currency-selectors">
+            <select class="currency-select" id="fromCurrency">
+                <option value="EUR">€ EUR</option>
+                <option value="TRY">₺ TRY</option>
+                <option value="USD">$ USD</option>
+                <option value="GBP">£ GBP</option>
+                <option value="CHF">CHF</option>
+            </select>
+            <button class="swap-btn" id="swapBtn">⇄</button>
+            <select class="currency-select" id="toCurrency">
+                <option value="TRY">₺ TRY</option>
+                <option value="EUR">€ EUR</option>
+                <option value="USD">$ USD</option>
+                <option value="GBP">£ GBP</option>
+                <option value="CHF">CHF</option>
+            </select>
+        </div>
+        <div class="result-display" id="resultDisplay">—</div>
+        <div class="rate-info" id="rateInfo">Kurlar yükleniyor...</div>
+    </div>
+    <div class="footer" id="footerText">PACDI Games · Anlık döviz kurları, hızlı çeviri.</div>
+</div>
+<script>
+(function(){
+    var langData = {
+        tr: { title:"DÖVİZ ÇEVİRİCİ", back:"← Geri", loading:"Kurlar yükleniyor...", error:"Kurlar alınamadı", footer:"PACDI Games · Anlık döviz kurları, hızlı çeviri." },
+        de: { title:"WÄHRUNGSRECHNER", back:"← Zurück", loading:"Kurse werden geladen...", error:"Kurse nicht verfügbar", footer:"PACDI Games · Live-Wechselkurse, schnelle Umrechnung." },
+        en: { title:"CURRENCY CONVERTER", back:"← Back", loading:"Loading rates...", error:"Rates unavailable", footer:"PACDI Games · Live exchange rates, fast conversion." }
+    };
+    var currentLang = "tr";
+    var rates = {};
+    var staticRates = { EUR:1, TRY:31.5, USD:1.08, GBP:0.86, CHF:0.99 };
+
+    function updateLanguage() {
+        var t=langData[currentLang];
+        document.getElementById('gameTitle').innerText=t.title;
+        document.getElementById('backLink').innerText=t.back;
+        document.getElementById('footerText').innerText=t.footer;
+    }
+
+    function setLanguage(lang) {
+        currentLang=lang; updateLanguage();
+        var btns=document.querySelectorAll('.lang-btn');
+        for(var i=0;i<btns.length;i++) btns[i].classList.toggle('active', btns[i].getAttribute('data-lang')===lang);
+    }
+
+    function fetchRates() {
+        document.getElementById('rateInfo').innerText = langData[currentLang].loading;
+        fetch('https://open.er-api.com/v6/latest/EUR')
+            .then(function(r){ return r.json(); })
+            .then(function(data){
+                if(data && data.rates) {
+                    rates = data.rates;
+                    var t = data.rates.TRY;
+                    document.getElementById('rateInfo').innerText = 'EUR/TRY = ' + (t ? t.toFixed(2) : staticRates.TRY) + ' · Canlı';
+                }
+                convert();
+            })
+            .catch(function(){
+                rates = staticRates;
+                document.getElementById('rateInfo').innerText = 'EUR/TRY = ' + staticRates.TRY + ' · Statik';
+                convert();
+            });
+    }
+
+    function convert() {
+        var amount = parseFloat(document.getElementById('amountInput').value) || 0;
+        var from = document.getElementById('fromCurrency').value;
+        var to = document.getElementById('toCurrency').value;
+        if(!rates[from] || !rates[to]) {
+            document.getElementById('resultDisplay').innerText = langData[currentLang].error;
+            return;
+        }
+        var eurAmount = amount / rates[from];
+        var result = eurAmount * rates[to];
+        document.getElementById('resultDisplay').innerText = result.toFixed(2) + ' ' + to;
+    }
+
+    document.getElementById('amountInput').addEventListener('input', convert);
+    document.getElementById('fromCurrency').addEventListener('change', convert);
+    document.getElementById('toCurrency').addEventListener('change', convert);
+
+    document.getElementById('swapBtn').addEventListener('click', function(){
+        var from = document.getElementById('fromCurrency');
+        var to = document.getElementById('toCurrency');
+        var temp = from.value;
+        from.value = to.value;
+        to.value = temp;
+        convert();
+    });
+
+    var langBtns=document.querySelectorAll('.lang-btn');
+    for(var i=0;i<langBtns.length;i++) langBtns[i].addEventListener('click', function(){ var l=this.getAttribute('data-lang'); if(l!==currentLang) setLanguage(l); });
+
+    setLanguage('tr');
+    fetchRates();
+})();
+</script>
+</body>
+</html>

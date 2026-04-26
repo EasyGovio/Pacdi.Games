@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Labirent Koşusu | PACDI Games</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+        body { background:#04162E; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
+        .game-container { max-width:500px; width:100%; background:rgba(4,22,46,0.85); border-radius:56px; padding:20px 16px 24px; box-shadow:0 20px 35px rgba(0,0,0,0.5); backdrop-filter:blur(2px); border:1px solid rgba(246,180,95,0.3); text-align:center; }
+        .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+        .logo { font-size:1.3rem; font-weight:800; color:#F6B45F; }
+        .back-link { color:#F6B45F; text-decoration:none; font-weight:bold; font-size:0.78rem; background:#0a1018; padding:5px 12px; border-radius:40px; border:1px solid rgba(246,180,95,0.3); }
+        .lang-selector { display:flex; gap:6px; margin-bottom:12px; justify-content:flex-end; }
+        .lang-btn { background:#0a1018; border:1px solid #F6B45F; color:#F6B45F; font-size:0.7rem; padding:3px 10px; border-radius:30px; cursor:pointer; }
+        .lang-btn.active { background:#F6B45F; color:#04162E; }
+        .info-bar { display:flex; justify-content:space-between; align-items:center; background:#0a1018; border-radius:40px; padding:7px 16px; margin-bottom:14px; }
+        .info-box { color:#F6B45F; font-weight:bold; font-size:0.78rem; }
+        .new-btn { background:#F6B45F; border:none; font-weight:bold; padding:5px 14px; border-radius:40px; color:#04162E; cursor:pointer; font-size:0.78rem; }
+        canvas { display:block; margin:10px auto; background:#0a1018; border-radius:24px; border:2px solid rgba(246,180,95,0.3); width:100%; max-width:400px; aspect-ratio:1; cursor:pointer; }
+        .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:12px; }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="top-bar">
+        <div class="logo" id="gameTitle">LABİRENT</div>
+        <a href="index.html" class="back-link" id="backLink">← Geri</a>
+    </div>
+    <div class="lang-selector">
+        <button class="lang-btn active" data-lang="tr">TR</button>
+        <button class="lang-btn" data-lang="de">DE</button>
+        <button class="lang-btn" data-lang="en">EN</button>
+    </div>
+    <div class="info-bar">
+        <div class="info-box" id="levelLabel">🌀 Seviye: <span id="levelNum">1</span></div>
+        <button class="new-btn" id="resetBtn"><span id="resetText">↺ Yeni Labirent</span></button>
+    </div>
+    <canvas id="mazeCanvas" width="400" height="400"></canvas>
+    <div class="footer" id="footerText">PACDI Games · Labirentten çık, zihnini keskinleştir.</div>
+</div>
+<script>
+(function(){
+    var langData = {
+        tr: { title:"LABİRENT", back:"← Geri", level:"🌀 Seviye:", reset:"↺ Yeni Labirent", win:"🎉 Çıktın! Sonraki seviye...", footer:"PACDI Games · Labirentten çık, zihnini keskinleştir." },
+        de: { title:"LABYRINTH", back:"← Zurück", level:"🌀 Level:", reset:"↺ Neues Labyrinth", win:"🎉 Geschafft! Nächstes Level...", footer:"PACDI Games · Entkomme dem Labyrinth, schärfe deinen Geist." },
+        en: { title:"MAZE RUNNER", back:"← Back", level:"🌀 Level:", reset:"↺ New Maze", win:"🎉 You escaped! Next level...", footer:"PACDI Games · Escape the maze, sharpen your mind." }
+    };
+    var currentLang = "tr";
+    var canvas = document.getElementById('mazeCanvas');
+    var ctx = canvas.getContext('2d');
+    var level = 1;
+    var mazeSize = 15;
+    var cellSize = canvas.width / mazeSize;
+    var maze = [];
+    var player = { x:0, y:0 };
+    var exit = { x:mazeSize-1, y:mazeSize-1 };
+    var gameActive = true;
+
+    function updateLanguage() {
+        var t=langData[currentLang];
+        document.getElementById('gameTitle').innerText=t.title;
+        document.getElementById('backLink').innerText=t.back;
+        document.getElementById('levelLabel').innerHTML=t.level+' <span id="levelNum">'+level+'</span>';
+        document.getElementById('resetText').innerText=t.reset;
+        document.getElementById('footerText').innerText=t.footer;
+    }
+
+    function setLanguage(lang) {
+        currentLang=lang; updateLanguage();
+        var btns=document.querySelectorAll('.lang-btn');
+        for(var i=0;i<btns.length;i++) btns[i].classList.toggle('active', btns[i].getAttribute('data-lang')===lang);
+    }
+
+    function generateMaze() {
+        var size = mazeSize;
+        maze = [];
+        for(var r=0;r<size;r++) {
+            maze[r]=[];
+            for(var c=0;c<size;c++) maze[r][c]={ top:true, right:true, bottom:true, left:true, visited:false };
+        }
+        function carve(r,c) {
+            maze[r][c].visited = true;
+            var dirs = shuffle(['top','right','bottom','left']);
+            for(var i=0;i<dirs.length;i++) {
+                var nr=r, nc=c;
+                if(dirs[i]==='top') nr--;
+                if(dirs[i]==='bottom') nr++;
+                if(dirs[i]==='left') nc--;
+                if(dirs[i]==='right') nc++;
+                if(nr>=0 && nr<size && nc>=0 && nc<size && !maze[nr][nc].visited) {
+                    maze[r][c][dirs[i]] = false;
+                    var opp = dirs[i]==='top'?'bottom':dirs[i]==='bottom'?'top':dirs[i]==='left'?'right':'left';
+                    maze[nr][nc][opp] = false;
+                    carve(nr,nc);
+                }
+            }
+        }
+        carve(0,0);
+        player = { x:0, y:0 };
+        exit = { x:size-1, y:size-1 };
+        gameActive = true;
+    }
+
+    function shuffle(a) { for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i];a[i]=a[j];a[j]=t; } return a; }
+
+    function drawMaze() {
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        var cs = cellSize;
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#F6B45F';
+        for(var r=0;r<mazeSize;r++) {
+            for(var c=0;c<mazeSize;c++) {
+                var x=c*cs, y=r*cs;
+                if(maze[r][c].top) { ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+cs,y); ctx.stroke(); }
+                if(maze[r][c].right) { ctx.beginPath(); ctx.moveTo(x+cs,y); ctx.lineTo(x+cs,y+cs); ctx.stroke(); }
+                if(maze[r][c].bottom) { ctx.beginPath(); ctx.moveTo(x,y+cs); ctx.lineTo(x+cs,y+cs); ctx.stroke(); }
+                if(maze[r][c].left) { ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x,y+cs); ctx.stroke(); }
+            }
+        }
+        // Exit
+        ctx.fillStyle = '#2ECC71';
+        ctx.fillRect(exit.c*cs+4, exit.y*cs+4, cs-8, cs-8);
+        // Player
+        ctx.fillStyle = '#F6B45F';
+        ctx.beginPath();
+        ctx.arc(player.x*cs+cs/2, player.y*cs+cs/2, cs/3, 0, Math.PI*2);
+        ctx.fill();
+    }
+
+    function movePlayer(dx, dy) {
+        if(!gameActive) return;
+        var nx = player.x + dx;
+        var ny = player.y + dy;
+        if(nx<0 || nx>=mazeSize || ny<0 || ny>=mazeSize) return;
+        if(dx===1 && maze[player.y][player.x].right) return;
+        if(dx===-1 && maze[player.y][player.x].left) return;
+        if(dy===1 && maze[player.y][player.x].bottom) return;
+        if(dy===-1 && maze[player.y][player.x].top) return;
+        player.x = nx;
+        player.y = ny;
+        drawMaze();
+        if(player.x === exit.x && player.y === exit.y) {
+            gameActive = false;
+            level++;
+            mazeSize = Math.min(15, mazeSize+2);
+            cellSize = canvas.width / mazeSize;
+            document.getElementById('levelNum').innerText = level;
+            generateMaze();
+            drawMaze();
+        }
+    }
+
+    canvas.addEventListener('click', function(e) {
+        var rect = canvas.getBoundingClientRect();
+        var scaleX = canvas.width / rect.width;
+        var scaleY = canvas.height / rect.height;
+        var cx = (e.clientX - rect.left) * scaleX;
+        var cy = (e.clientY - rect.top) * scaleY;
+        var px = player.x * cellSize + cellSize/2;
+        var py = player.y * cellSize + cellSize/2;
+        var dx = cx - px;
+        var dy = cy - py;
+        if(Math.abs(dx) > Math.abs(dy)) movePlayer(dx>0?1:-1, 0);
+        else movePlayer(0, dy>0?1:-1);
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if(e.key==='ArrowUp'||e.key==='w') { e.preventDefault(); movePlayer(0,-1); }
+        if(e.key==='ArrowDown'||e.key==='s') { e.preventDefault(); movePlayer(0,1); }
+        if(e.key==='ArrowLeft'||e.key==='a') { e.preventDefault(); movePlayer(-1,0); }
+        if(e.key==='ArrowRight'||e.key==='d') { e.preventDefault(); movePlayer(1,0); }
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', function(){
+        level=1; mazeSize=15; cellSize=canvas.width/mazeSize;
+        document.getElementById('levelNum').innerText=level;
+        generateMaze(); drawMaze();
+    });
+
+    var langBtns=document.querySelectorAll('.lang-btn');
+    for(var i=0;i<langBtns.length;i++) langBtns[i].addEventListener('click', function(){ var l=this.getAttribute('data-lang'); if(l!==currentLang) setLanguage(l); });
+
+    setLanguage('tr');
+    generateMaze();
+    drawMaze();
+})();
+</script>
+</body>
+</html>

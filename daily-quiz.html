@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Günlük Quiz | PACDI Games</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+        body { background:#04162E; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
+        .game-container { max-width:550px; width:100%; background:rgba(4,22,46,0.85); border-radius:56px; padding:20px 16px 24px; box-shadow:0 20px 35px rgba(0,0,0,0.5); backdrop-filter:blur(2px); border:1px solid rgba(246,180,95,0.3); text-align:center; }
+        .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+        .logo { font-size:1.3rem; font-weight:800; color:#F6B45F; }
+        .back-link { color:#F6B45F; text-decoration:none; font-weight:bold; font-size:0.78rem; background:#0a1018; padding:5px 12px; border-radius:40px; border:1px solid rgba(246,180,95,0.3); }
+        .info-bar { display:flex; justify-content:space-between; align-items:center; background:#0a1018; border-radius:40px; padding:7px 16px; margin-bottom:14px; }
+        .info-box { color:#F6B45F; font-weight:bold; font-size:0.78rem; }
+        .question-area { background:#0a1018; border-radius:28px; padding:20px; margin-bottom:20px; }
+        .question-text { font-size:1.1rem; font-weight:bold; color:#F6B45F; margin-bottom:20px; line-height:1.4; }
+        .options-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+        .opt-btn { background:#1e2a3a; border:2px solid #1ABC9C; border-radius:60px; padding:14px 10px; font-weight:bold; color:#1ABC9C; cursor:pointer; font-size:0.9rem; }
+        .opt-btn:active { background:#1ABC9C; color:#04162E; transform:scale(0.96); }
+        .opt-btn.correct-answer { background:#2ECC71; border-color:#2ECC71; color:#04162E; }
+        .opt-btn.wrong-answer { background:#E74C3C; border-color:#E74C3C; color:#fff; }
+        .feedback { margin:12px 0; font-size:0.9rem; font-weight:bold; min-height:30px; }
+        .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:12px; }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="top-bar">
+        <div class="logo" id="gameTitle">GÜNLÜK QUIZ</div>
+        <a href="index.html" class="back-link" id="backLink">← Geri</a>
+    </div>
+    <div class="info-bar">
+        <div class="info-box" id="scoreLabel">🎯 Skor: <span id="scoreNum">0</span></div>
+        <div class="info-box" id="questionLabel">📋 Soru: <span id="questionNum">1</span>/5</div>
+    </div>
+    <div class="question-area">
+        <div class="question-text" id="questionText">Soru yükleniyor...</div>
+        <div class="options-grid" id="optionsGrid"></div>
+    </div>
+    <div class="feedback" id="feedbackMsg"></div>
+    <div class="footer" id="footerText">PACDI Games · Her gün yeni sorular, her gün yeni bilgiler.</div>
+</div>
+<script>
+(function(){
+    var dailyQuestions = [
+        { q:"Türkiye'nin en kalabalık şehri hangisidir?", opts:["Ankara","İstanbul","İzmir","Bursa"], correct:"İstanbul" },
+        { q:"Dünya üzerindeki okyanus sayısı kaçtır?", opts:["3","4","5","7"], correct:"5" },
+        { q:"Bir yıl kaç gündür?", opts:["360","365","366","356"], correct:"365" },
+        { q:"Türk Lirası'nın kısaltması nedir?", opts:["TL","TRL","TKL","TRY"], correct:"TL" },
+        { q:"En büyük gezegen hangisidir?", opts:["Mars","Venüs","Jüpiter","Satürn"], correct:"Jüpiter" }
+    ];
+    var langData = {
+        tr: { title:"GÜNLÜK QUIZ", back:"← Geri", score:"🎯 Skor:", question:"📋 Soru:", correct:"✅ Doğru! +1 puan", wrong:"❌ Yanlış! Doğru cevap: ", footer:"PACDI Games · Her gün yeni sorular, her gün yeni bilgiler." },
+        de: { title:"TÄGLICHES QUIZ", back:"← Zurück", score:"🎯 Punkt:", question:"📋 Frage:", correct:"✅ Richtig! +1 Punkt", wrong:"❌ Falsch! Richtige Antwort: ", footer:"PACDI Games · Jeden Tag neue Fragen, jeden Tag neues Wissen." },
+        en: { title:"DAILY QUIZ", back:"← Back", score:"🎯 Score:", question:"📋 Question:", correct:"✅ Correct! +1 point", wrong:"❌ Wrong! Correct answer: ", footer:"PACDI Games · New questions every day, new knowledge every day." }
+    };
+    var currentLang = "tr";
+    var currentQuestion = 0;
+    var totalQuestions = 5;
+    var score = 0;
+
+    function updateLanguage() {
+        var t=langData[currentLang];
+        document.getElementById('gameTitle').innerText=t.title;
+        document.getElementById('backLink').innerText=t.back;
+        document.getElementById('scoreLabel').innerHTML=t.score+' <span id="scoreNum">'+score+'</span>';
+        document.getElementById('questionLabel').innerHTML=t.question+' <span id="questionNum">'+(currentQuestion+1)+'</span>/'+totalQuestions;
+        document.getElementById('footerText').innerText=t.footer;
+    }
+
+    function loadQuestion() {
+        if(currentQuestion >= totalQuestions) {
+            document.getElementById('questionText').innerText = "Quiz tamamlandı! Skorunuz: " + score + "/" + totalQuestions;
+            document.getElementById('optionsGrid').innerHTML = '<button class="opt-btn" onclick="resetQuiz()">Yeniden Başla</button>';
+            return;
+        }
+        var q = dailyQuestions[currentQuestion];
+        document.getElementById('questionText').innerText = q.q;
+        document.getElementById('questionNum').innerText = currentQuestion + 1;
+        var opts = q.opts.slice();
+        var grid = document.getElementById('optionsGrid');
+        grid.innerHTML = '';
+        for(var i=0;i<opts.length;i++) {
+            var btn = document.createElement('button');
+            btn.className = 'opt-btn';
+            btn.innerText = opts[i];
+            btn.addEventListener('click', (function(selected, correct){ return function(){
+                if(selected === correct) {
+                    score++;
+                    document.getElementById('scoreNum').innerText = score;
+                    document.getElementById('feedbackMsg').innerHTML = langData[currentLang].correct;
+                    document.getElementById('feedbackMsg').style.color = '#2ECC71';
+                    this.classList.add('correct-answer');
+                } else {
+                    document.getElementById('feedbackMsg').innerHTML = langData[currentLang].wrong + correct;
+                    document.getElementById('feedbackMsg').style.color = '#E74C3C';
+                    this.classList.add('wrong-answer');
+                    var allBtns = document.querySelectorAll('.opt-btn');
+                    for(var j=0;j<allBtns.length;j++) {
+                        if(allBtns[j].innerText === correct) allBtns[j].classList.add('correct-answer');
+                    }
+                }
+                var allBtns = document.querySelectorAll('.opt-btn');
+                for(var k=0;k<allBtns.length;k++) allBtns[k].style.pointerEvents = 'none';
+                setTimeout(function(){
+                    currentQuestion++;
+                    document.getElementById('feedbackMsg').innerHTML = '';
+                    updateLanguage();
+                    loadQuestion();
+                }, 1000);
+            }; })(opts[i], q.correct));
+            grid.appendChild(btn);
+        }
+    }
+
+    window.resetQuiz = function() {
+        currentQuestion = 0;
+        score = 0;
+        document.getElementById('scoreNum').innerText = '0';
+        document.getElementById('feedbackMsg').innerHTML = '';
+        updateLanguage();
+        loadQuestion();
+    };
+
+    var langBtns=document.querySelectorAll('.lang-btn');
+    for(var i=0;i<langBtns.length;i++) langBtns[i].addEventListener('click', function(){ var l=this.getAttribute('data-lang'); if(l!==currentLang) { currentLang=l; updateLanguage(); resetQuiz(); } });
+
+    updateLanguage();
+    loadQuestion();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Günün Sözü | PACDI Games</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+        body { background:#04162E; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
+        .game-container { max-width:500px; width:100%; background:rgba(4,22,46,0.85); border-radius:56px; padding:20px 16px 24px; box-shadow:0 20px 35px rgba(0,0,0,0.5); backdrop-filter:blur(2px); border:1px solid rgba(246,180,95,0.3); text-align:center; }
+        .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+        .logo { font-size:1.3rem; font-weight:800; color:#F6B45F; }
+        .back-link { color:#F6B45F; text-decoration:none; font-weight:bold; font-size:0.78rem; background:#0a1018; padding:5px 12px; border-radius:40px; border:1px solid rgba(246,180,95,0.3); }
+        .lang-selector { display:flex; gap:6px; margin-bottom:12px; justify-content:flex-end; }
+        .lang-btn { background:#0a1018; border:1px solid #F6B45F; color:#F6B45F; font-size:0.7rem; padding:3px 10px; border-radius:30px; cursor:pointer; }
+        .lang-btn.active { background:#F6B45F; color:#04162E; }
+        .quote-area { background:#0a1018; border-radius:28px; padding:30px 20px; margin-bottom:20px; }
+        .quote-icon { font-size:3rem; margin-bottom:10px; }
+        .quote-text { font-size:1.2rem; color:#eaf2fb; font-style:italic; line-height:1.6; margin-bottom:16px; min-height:80px; display:flex; align-items:center; justify-content:center; }
+        .quote-author { font-size:0.9rem; color:#F6B45F; font-weight:bold; }
+        .share-btn { background:#1ABC9C; border:none; font-weight:bold; padding:12px 28px; border-radius:60px; color:#04162E; cursor:pointer; font-size:0.9rem; margin-top:16px; }
+        .share-btn:active { transform:scale(0.96); }
+        .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:12px; }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="top-bar">
+        <div class="logo" id="gameTitle">GÜNÜN SÖZÜ</div>
+        <a href="index.html" class="back-link" id="backLink">← Geri</a>
+    </div>
+    <div class="lang-selector">
+        <button class="lang-btn active" data-lang="tr">TR</button>
+        <button class="lang-btn" data-lang="de">DE</button>
+        <button class="lang-btn" data-lang="en">EN</button>
+    </div>
+    <div class="quote-area">
+        <div class="quote-icon">💬</div>
+        <div class="quote-text" id="quoteText">"Hayatta en hakiki mürşit ilimdir."</div>
+        <div class="quote-author" id="quoteAuthor">— Mustafa Kemal Atatürk</div>
+        <button class="share-btn" id="shareBtn">📤 Paylaş</button>
+    </div>
+    <div class="footer" id="footerText">PACDI Games · Her gün yeni bir ilham.</div>
+</div>
+<script>
+(function(){
+    var quotes = {
+        tr: [
+            { text:"Hayatta en hakiki mürşit ilimdir.", author:"Mustafa Kemal Atatürk" },
+            { text:"Bir milletin ahlakı, dişleri gibidir. Çürüdüğü zaman acısını hissetmemesi imkansızdır.", author:"Hz. Mevlana" },
+            { text:"Dünyayı değiştirmek için önce kendini değiştir.", author:"Mahatma Gandhi" },
+            { text:"Başarı, her zaman büyük bir tutkunun peşinden gitmekle gelir.", author:"Steve Jobs" },
+            { text:"Hiçbir şey imkansız değildir, yeter ki inan.", author:"Anonim" }
+        ],
+        de: [
+            { text:"Das Leben ist das, was passiert, während du beschäftigt bist, andere Pläne zu machen.", author:"John Lennon" },
+            { text:"Sei du selbst die Veränderung, die du dir wünschst für diese Welt.", author:"Mahatma Gandhi" },
+            { text:"Phantasie ist wichtiger als Wissen.", author:"Albert Einstein" }
+        ],
+        en: [
+            { text:"In the middle of difficulty lies opportunity.", author:"Albert Einstein" },
+            { text:"Be the change that you wish to see in the world.", author:"Mahatma Gandhi" },
+            { text:"The only way to do great work is to love what you do.", author:"Steve Jobs" }
+        ]
+    };
+    var langData = {
+        tr: { title:"GÜNÜN SÖZÜ", back:"← Geri", share:"📤 Paylaş", footer:"PACDI Games · Her gün yeni bir ilham." },
+        de: { title:"ZITAT DES TAGES", back:"← Zurück", share:"📤 Teilen", footer:"PACDI Games · Täglich neue Inspiration." },
+        en: { title:"DAILY QUOTE", back:"← Back", share:"📤 Share", footer:"PACDI Games · Daily inspiration." }
+    };
+    var currentLang = "tr";
+
+    function updateLanguage() {
+        var t=langData[currentLang];
+        document.getElementById('gameTitle').innerText=t.title;
+        document.getElementById('backLink').innerText=t.back;
+        document.getElementById('shareBtn').innerText=t.share;
+        document.getElementById('footerText').innerText=t.footer;
+    }
+
+    function setLanguage(lang) {
+        currentLang=lang; updateLanguage();
+        var btns=document.querySelectorAll('.lang-btn');
+        for(var i=0;i<btns.length;i++) btns[i].classList.toggle('active', btns[i].getAttribute('data-lang')===lang);
+        loadQuote();
+    }
+
+    function loadQuote() {
+        var list = quotes[currentLang];
+        var d = new Date();
+        var idx = (d.getFullYear()*10000 + (d.getMonth()+1)*100 + d.getDate()) % list.length;
+        var q = list[idx];
+        document.getElementById('quoteText').innerText = '"' + q.text + '"';
+        document.getElementById('quoteAuthor').innerText = '— ' + q.author;
+    }
+
+    document.getElementById('shareBtn').addEventListener('click', function(){
+        var text = document.getElementById('quoteText').innerText + ' ' + document.getElementById('quoteAuthor').innerText;
+        if(navigator.share) {
+            navigator.share({ title:'Günün Sözü', text:text });
+        } else {
+            navigator.clipboard.writeText(text).then(function(){ alert('Panoya kopyalandı!'); });
+        }
+    });
+
+    var langBtns=document.querySelectorAll('.lang-btn');
+    for(var i=0;i<langBtns.length;i++) langBtns[i].addEventListener('click', function(){ var l=this.getAttribute('data-lang'); if(l!==currentLang) setLanguage(l); });
+
+    setLanguage('tr');
+    loadQuote();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Hızlı Yazma | PACDI Games</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+        body { background:#04162E; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
+        .game-container { max-width:550px; width:100%; background:rgba(4,22,46,0.85); border-radius:56px; padding:20px 16px 24px; box-shadow:0 20px 35px rgba(0,0,0,0.5); backdrop-filter:blur(2px); border:1px solid rgba(246,180,95,0.3); text-align:center; }
+        .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+        .logo { font-size:1.3rem; font-weight:800; color:#F6B45F; }
+        .back-link { color:#F6B45F; text-decoration:none; font-weight:bold; font-size:0.78rem; background:#0a1018; padding:5px 12px; border-radius:40px; border:1px solid rgba(246,180,95,0.3); }
+        .info-bar { display:flex; justify-content:space-between; align-items:center; background:#0a1018; border-radius:40px; padding:7px 16px; margin-bottom:14px; }
+        .info-box { color:#F6B45F; font-weight:bold; font-size:0.78rem; }
+        .new-btn { background:#F6B45F; border:none; font-weight:bold; padding:5px 14px; border-radius:40px; color:#04162E; cursor:pointer; font-size:0.78rem; }
+        .game-area { background:#0a1018; border-radius:28px; padding:24px 16px; margin-bottom:20px; }
+        .target-text { font-size:1.4rem; color:#eaf2fb; margin-bottom:16px; line-height:1.5; min-height:60px; display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:2px; }
+        .char { padding:2px 1px; border-radius:4px; transition:0.05s; }
+        .char.correct-char { background:#2ECC71; color:#04162E; }
+        .char.wrong-char { background:#E74C3C; color:#fff; }
+        .char.current-char { border-bottom:2px solid #F6B45F; }
+        .input-field { width:100%; padding:14px 16px; border-radius:16px; border:2px solid rgba(246,180,95,0.3); background:#1e2a3a; color:#eaf2fb; font-size:1.1rem; text-align:center; outline:none; font-family:inherit; }
+        .input-field:focus { border-color:#F6B45F; }
+        .timer-bar { height:6px; background:#1e2a3a; border-radius:6px; margin:12px 0; overflow:hidden; }
+        .timer-fill { height:100%; background:#F6B45F; transition:width 0.1s linear; }
+        .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:12px; }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="top-bar">
+        <div class="logo" id="gameTitle">HIZLI YAZMA</div>
+        <a href="index.html" class="back-link" id="backLink">← Geri</a>
+    </div>
+    <div class="info-bar">
+        <div class="info-box" id="scoreLabel">🎯 Skor: <span id="scoreNum">0</span></div>
+        <div class="info-box" id="timeLabel">⏱️ Süre: <span id="timeNum">30</span>s</div>
+        <button class="new-btn" id="startBtn"><span id="startText">▶ Başla</span></button>
+    </div>
+    <div class="game-area">
+        <div class="target-text" id="targetText">Başlamak için butona bas</div>
+        <div class="timer-bar"><div class="timer-fill" id="timerFill" style="width:100%"></div></div>
+        <input type="text" class="input-field" id="inputField" placeholder="Buraya yazın..." disabled autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    </div>
+    <div class="footer" id="footerText">PACDI Games · Hızlı yaz, zihnini aç.</div>
+</div>
+<script>
+(function(){
+    var texts = {
+        tr: ["hızlı kahverengi tilki tembel köpeğin üzerinden atladı","bugün hava çok güzel ve güneş parlıyor","yazılım geliştirmek sabır ve emek ister","her gün yeni bir şey öğrenmek için harika bir fırsattır","kitap okumak zihni açar ve kelime dağarcığını geliştirir"],
+        de: ["der schnelle braune fuchs springt über den faulen hund","heute ist das wetter sehr schön und die sonne scheint","programmieren erfordert geduld und fleiß","jeden tag gibt es eine wunderbare gelegenheit etwas neues zu lernen","lesen öffnet den geist und erweitert den wortschatz"],
+        en: ["the quick brown fox jumps over the lazy dog","today the weather is very nice and the sun is shining","software development requires patience and hard work","every day is a wonderful opportunity to learn something new","reading opens the mind and expands vocabulary"]
+    };
+    var langData = {
+        tr: { title:"HIZLI YAZMA", back:"← Geri", score:"🎯 Skor:", time:"⏱️ Süre:", start:"▶ Başla", reset:"↺ Yeniden", wait:"Başlamak için butona bas", gameOver:"Süre doldu! Skor: ", placeholder:"Buraya yazın...", footer:"PACDI Games · Hızlı yaz, zihnini aç." },
+        de: { title:"SCHNELLSCHREIBEN", back:"← Zurück", score:"🎯 Punkt:", time:"⏱️ Zeit:", start:"▶ Start", reset:"↺ Neustart", wait:"Zum Starten klicken", gameOver:"Zeit abgelaufen! Punkt: ", placeholder:"Hier tippen...", footer:"PACDI Games · Schnell schreiben, Geist öffnen." },
+        en: { title:"SPEED TYPING", back:"← Back", score:"🎯 Score:", time:"⏱️ Time:", start:"▶ Start", reset:"↺ Restart", wait:"Click to start", gameOver:"Time's up! Score: ", placeholder:"Type here...", footer:"PACDI Games · Type fast, open your mind." }
+    };
+    var currentLang = "tr";
+    var score = 0, bestScore = 0, timeLeft = 30, totalTime = 30, gameActive = false, timerInterval = null;
+    var currentText = "", currentIndex = 0;
+
+    function loadBest() { var s=localStorage.getItem('typing_best_'+currentLang); bestScore=s?parseInt(s):0; document.getElementById('bestNum') ? null : document.getElementById('bestNum'); }
+    function saveBest() { if(score>bestScore){ bestScore=score; localStorage.setItem('typing_best_'+currentLang,bestScore); } }
+
+    function updateLanguage() {
+        var t=langData[currentLang];
+        document.getElementById('gameTitle').innerText=t.title;
+        document.getElementById('backLink').innerText=t.back;
+        document.getElementById('scoreLabel').innerHTML=t.score+' <span id="scoreNum">'+score+'</span>';
+        document.getElementById('timeLabel').innerHTML=t.time+' <span id="timeNum">'+timeLeft+'</span>s';
+        document.getElementById('startText').innerText = gameActive ? t.reset : t.start;
+        document.getElementById('inputField').placeholder = t.placeholder;
+        document.getElementById('footerText').innerText=t.footer;
+        if(!gameActive && score===0) document.getElementById('targetText').innerText = t.wait;
+    }
+
+    function setLanguage(lang) {
+        currentLang=lang; updateLanguage(); loadBest();
+        var btns=document.querySelectorAll('.lang-btn');
+        for(var i=0;i<btns.length;i++) btns[i].classList.toggle('active', btns[i].getAttribute('data-lang')===lang);
+    }
+
+    function getRandomText() {
+        var list = texts[currentLang];
+        return list[Math.floor(Math.random()*list.length)];
+    }
+
+    function renderTarget() {
+        var target = document.getElementById('targetText');
+        target.innerHTML = '';
+        for(var i=0;i<currentText.length;i++) {
+            var span = document.createElement('span');
+            span.className = 'char';
+            span.innerText = currentText[i];
+            if(i < currentIndex) span.classList.add('correct-char');
+            else if(i === currentIndex) span.classList.add('current-char');
+            target.appendChild(span);
+        }
+    }
+
+    function startGame() {
+        score = 0; timeLeft = totalTime; gameActive = true; currentText = getRandomText(); currentIndex = 0;
+        document.getElementById('scoreNum').innerText = '0';
+        document.getElementById('timeNum').innerText = timeLeft;
+        document.getElementById('inputField').disabled = false;
+        document.getElementById('inputField').value = '';
+        document.getElementById('inputField').focus();
+        updateLanguage();
+        renderTarget();
+        if(timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(function(){
+            timeLeft--;
+            document.getElementById('timeNum').innerText = timeLeft;
+            document.getElementById('timerFill').style.width = (timeLeft/totalTime*100) + '%';
+            if(timeLeft<=0) endGame();
+        }, 1000);
+    }
+
+    function endGame() {
+        gameActive = false; clearInterval(timerInterval);
+        document.getElementById('inputField').disabled = true;
+        document.getElementById('targetText').innerHTML = '<span style="color:#E74C3C;font-weight:bold">' + langData[currentLang].gameOver + score + '</span>';
+        document.getElementById('startText').innerText = langData[currentLang].reset;
+        saveBest();
+    }
+
+    document.getElementById('startBtn').addEventListener('click', function(){
+        if(timerInterval) clearInterval(timerInterval);
+        startGame();
+    });
+
+    document.getElementById('inputField').addEventListener('input', function(e){
+        if(!gameActive) return;
+        var typed = this.value;
+        if(typed === currentText) {
+            score++;
+            document.getElementById('scoreNum').innerText = score;
+            currentText = getRandomText();
+            currentIndex = 0;
+            this.value = '';
+            renderTarget();
+            return;
+        }
+        currentIndex = typed.length;
+        var isCorrect = true;
+        for(var i=0;i<typed.length;i++) {
+            if(typed[i] !== currentText[i]) { isCorrect = false; break; }
+        }
+        if(!isCorrect) {
+            this.value = typed.substring(0, typed.length-1);
+            currentIndex = this.value.length;
+        }
+        renderTarget();
+    });
+
+    var langBtns=document.querySelectorAll('.lang-btn');
+    for(var i=0;i<langBtns.length;i++) langBtns[i].addEventListener('click', function(){ var l=this.getAttribute('data-lang'); if(l!==currentLang) setLanguage(l); });
+
+    setLanguage('tr'); loadBest();
+})();
+</script>
+</body>
+</html>
