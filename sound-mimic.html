@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Ses Taklidi | PACDI Games</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+        body { background:#04162E; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
+        .game-container { max-width:500px; width:100%; background:rgba(4,22,46,0.85); border-radius:56px; padding:20px 16px 24px; box-shadow:0 20px 35px rgba(0,0,0,0.5); backdrop-filter:blur(2px); border:1px solid rgba(246,180,95,0.3); text-align:center; }
+        .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+        .logo { font-size:1.3rem; font-weight:800; color:#F6B45F; }
+        .back-link { color:#F6B45F; text-decoration:none; font-weight:bold; font-size:0.78rem; background:#0a1018; padding:5px 12px; border-radius:40px; border:1px solid rgba(246,180,95,0.3); }
+        .lang-selector { display:flex; gap:6px; margin-bottom:12px; justify-content:flex-end; }
+        .lang-btn { background:#0a1018; border:1px solid #F6B45F; color:#F6B45F; font-size:0.7rem; padding:3px 10px; border-radius:30px; cursor:pointer; }
+        .lang-btn.active { background:#F6B45F; color:#04162E; }
+        .info-bar { display:flex; justify-content:space-between; align-items:center; background:#0a1018; border-radius:40px; padding:7px 16px; margin-bottom:14px; }
+        .info-box { color:#F6B45F; font-weight:bold; font-size:0.78rem; }
+        .new-btn { background:#F6B45F; border:none; font-weight:bold; padding:5px 14px; border-radius:40px; color:#04162E; cursor:pointer; font-size:0.78rem; }
+        .game-area { background:#0a1018; border-radius:28px; padding:24px 16px; margin-bottom:20px; }
+        .sound-wave { display:flex; align-items:flex-end; justify-content:center; gap:4px; height:80px; margin:20px 0; }
+        .wave-bar { width:12px; background:#F6B45F; border-radius:6px; transition:height 0.05s; }
+        .target-note { font-size:2rem; font-weight:800; color:#F6B45F; margin:10px 0; }
+        .listen-btn { background:#1ABC9C; border:none; font-weight:bold; padding:14px 32px; border-radius:60px; color:#04162E; cursor:pointer; font-size:1rem; margin:10px; }
+        .listen-btn:active { transform:scale(0.96); }
+        .mic-btn { background:#E74C3C; border:none; font-weight:bold; padding:14px 32px; border-radius:60px; color:#fff; cursor:pointer; font-size:1rem; margin:10px; }
+        .mic-btn.active-mic { background:#2ECC71; animation:pulse 0.5s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.7} }
+        .match-display { font-size:1.5rem; font-weight:800; margin:12px 0; }
+        .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:12px; }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="top-bar">
+        <div class="logo" id="gameTitle">SES TAKLİDİ</div>
+        <a href="index.html" class="back-link" id="backLink">← Geri</a>
+    </div>
+    <div class="lang-selector">
+        <button class="lang-btn active" data-lang="tr">TR</button>
+        <button class="lang-btn" data-lang="de">DE</button>
+        <button class="lang-btn" data-lang="en">EN</button>
+    </div>
+    <div class="info-bar">
+        <div class="info-box" id="scoreLabel">🎯 Skor: <span id="scoreNum">0</span></div>
+        <div class="info-box" id="bestLabel">🏆 En İyi: <span id="bestNum">—</span></div>
+        <button class="new-btn" id="newGameBtn"><span id="newGameText">↺ Yeni Ses</span></button>
+    </div>
+    <div class="game-area">
+        <div class="target-note" id="targetNote">🎵</div>
+        <div class="sound-wave" id="soundWave">
+            <div class="wave-bar" style="height:20px"></div>
+            <div class="wave-bar" style="height:30px"></div>
+            <div class="wave-bar" style="height:40px"></div>
+            <div class="wave-bar" style="height:50px"></div>
+            <div class="wave-bar" style="height:40px"></div>
+            <div class="wave-bar" style="height:30px"></div>
+            <div class="wave-bar" style="height:20px"></div>
+        </div>
+        <button class="listen-btn" id="listenBtn">🔊 Hedef Sesi Dinle</button>
+        <button class="mic-btn" id="micBtn">🎤 Mikrofonu Aç</button>
+        <div class="match-display" id="matchDisplay">Hazır</div>
+    </div>
+    <div class="footer" id="footerText">PACDI Games · Hedef sesi taklit et, kulağını test et.</div>
+</div>
+<script>
+(function(){
+    var langData = {
+        tr: { title:"SES TAKLİDİ", back:"← Geri", score:"🎯 Skor:", best:"🏆 En İyi:", newGame:"↺ Yeni Ses", listen:"🔊 Hedef Sesi Dinle", mic:"🎤 Mikrofonu Aç", micActive:"🎤 Dinliyor...", ready:"Hazır", match:"Eşleşme: %{0}", perfect:"🎉 Mükemmel! +1 puan", footer:"PACDI Games · Hedef sesi taklit et, kulağını test et." },
+        de: { title:"STIMMIMITATION", back:"← Zurück", score:"🎯 Punkt:", best:"🏆 Beste:", newGame:"↺ Neuer Ton", listen:"🔊 Zielton anhören", mic:"🎤 Mikrofon an", micActive:"🎤 Hört zu...", ready:"Bereit", match:"Übereinstimmung: %{0}", perfect:"🎉 Perfekt! +1 Punkt", footer:"PACDI Games · Imitiere den Zielton, teste dein Gehör." },
+        en: { title:"SOUND MIMIC", back:"← Back", score:"🎯 Score:", best:"🏆 Best:", newGame:"↺ New Sound", listen:"🔊 Listen to Target", mic:"🎤 Start Mic", micActive:"🎤 Listening...", ready:"Ready", match:"Match: {0}%", perfect:"🎉 Perfect! +1 point", footer:"PACDI Games · Mimic the target sound, test your ear." }
+    };
+
+    var currentLang = "tr";
+    var score = 0, bestScore = 0;
+    var audioContext = null;
+    var targetFrequency = 440;
+    var isListening = false;
+    var micStream = null;
+    var analyserNode = null;
+    var animationId = null;
+
+    var notes = [
+        { name:"Do", freq:262 },
+        { name:"Re", freq:294 },
+        { name:"Mi", freq:330 },
+        { name:"Fa", freq:349 },
+        { name:"Sol", freq:392 },
+        { name:"La", freq:440 },
+        { name:"Si", freq:494 },
+        { name:"Do (ince)", freq:523 }
+    ];
+
+    function loadBest() { var s=localStorage.getItem('mimic_best_'+currentLang); bestScore=s?parseInt(s):0; document.getElementById('bestNum').innerText=bestScore||'—'; }
+    function saveBest() { if(score>bestScore){ bestScore=score; localStorage.setItem('mimic_best_'+currentLang,bestScore); document.getElementById('bestNum').innerText=bestScore; } }
+
+    function updateLanguage() {
+        var t=langData[currentLang];
+        document.getElementById('gameTitle').innerText=t.title;
+        document.getElementById('backLink').innerText=t.back;
+        document.getElementById('scoreLabel').innerHTML=t.score+' <span id="scoreNum">'+score+'</span>';
+        document.getElementById('bestLabel').innerHTML=t.best+' <span id="bestNum">'+(bestScore||'—')+'</span>';
+        document.getElementById('newGameText').innerText=t.newGame;
+        document.getElementById('listenBtn').innerText=t.listen;
+        document.getElementById('micBtn').innerText = isListening ? t.micActive : t.mic;
+        document.getElementById('footerText').innerText=t.footer;
+    }
+
+    function setLanguage(lang) {
+        currentLang=lang; updateLanguage(); loadBest();
+        var btns=document.querySelectorAll('.lang-btn');
+        for(var i=0;i<btns.length;i++) btns[i].classList.toggle('active', btns[i].getAttribute('data-lang')===lang);
+    }
+
+    function initAudio() {
+        if(!audioContext) {
+            var AC = window.AudioContext || window.webkitAudioContext;
+            if(AC) audioContext = new AC();
+        }
+        if(audioContext && audioContext.state === 'suspended') audioContext.resume();
+        return audioContext;
+    }
+
+    function newTarget() {
+        var note = notes[Math.floor(Math.random() * notes.length)];
+        targetFrequency = note.freq;
+        document.getElementById('targetNote').innerText = '🎵 ' + note.name + ' (' + note.freq + ' Hz)';
+        document.getElementById('matchDisplay').innerText = langData[currentLang].ready;
+        document.getElementById('matchDisplay').style.color = '#eaf2fb';
+        updateWaveBars(0);
+    }
+
+    function playTargetSound() {
+        var ctx = initAudio();
+        if(!ctx) return;
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = targetFrequency;
+        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.8);
+    }
+
+    function startMicrophone() {
+        if(isListening) { stopMicrophone(); return; }
+        var ctx = initAudio();
+        if(!ctx) return;
+        navigator.mediaDevices.getUserMedia({ audio:true }).then(function(stream){
+            micStream = stream;
+            var source = ctx.createMediaStreamSource(stream);
+            analyserNode = ctx.createAnalyser();
+            analyserNode.fftSize = 2048;
+            source.connect(analyserNode);
+            isListening = true;
+            document.getElementById('micBtn').innerText = langData[currentLang].micActive;
+            document.getElementById('micBtn').classList.add('active-mic');
+            analyzePitch();
+        }).catch(function(){
+            alert('Mikrofon erişimi reddedildi.');
+        });
+    }
+
+    function stopMicrophone() {
+        isListening = false;
+        if(micStream) { micStream.getTracks().forEach(function(t){ t.stop(); }); micStream = null; }
+        if(animationId) { cancelAnimationFrame(animationId); animationId = null; }
+        document.getElementById('micBtn').innerText = langData[currentLang].mic;
+        document.getElementById('micBtn').classList.remove('active-mic');
+        updateWaveBars(0);
+    }
+
+    function analyzePitch() {
+        if(!isListening || !analyserNode) return;
+        var buffer = new Float32Array(analyserNode.fftSize);
+        analyserNode.getFloatTimeDomainData(buffer);
+        var corr = autoCorrelate(buffer, audioContext.sampleRate);
+        var matchPercent = 0;
+        if(corr > 50 && corr < 2000) {
+            var diff = Math.abs(corr - targetFrequency);
+            matchPercent = Math.max(0, Math.round((1 - diff / targetFrequency) * 100));
+            if(matchPercent > 95) {
+                score++;
+                document.getElementById('scoreNum').innerText = score;
+                saveBest();
+                document.getElementById('matchDisplay').innerText = langData[currentLang].perfect;
+                document.getElementById('matchDisplay').style.color = '#2ECC71';
+                newTarget();
+                setTimeout(function(){ document.getElementById('matchDisplay').innerText = langData[currentLang].ready; }, 1500);
+            } else {
+                document.getElementById('matchDisplay').innerText = langData[currentLang].match.replace('{0}', matchPercent);
+                document.getElementById('matchDisplay').style.color = matchPercent > 70 ? '#F6B45F' : '#eaf2fb';
+            }
+        }
+        updateWaveBars(matchPercent);
+        animationId = requestAnimationFrame(analyzePitch);
+    }
+
+    function autoCorrelate(buffer, sampleRate) {
+        var size = buffer.length;
+        var maxSamples = Math.floor(size / 2);
+        var bestOffset = -1, bestCorrelation = 0, rms = 0;
+        for(var i=0;i<size;i++) rms += buffer[i]*buffer[i];
+        rms = Math.sqrt(rms/size);
+        if(rms < 0.01) return -1;
+        for(var offset=0; offset<maxSamples; offset++) {
+            var correlation = 0;
+            for(var i=0; i<maxSamples; i++) correlation += buffer[i] * buffer[i+offset];
+            correlation = correlation / maxSamples;
+            if(correlation > bestCorrelation) { bestCorrelation = correlation; bestOffset = offset; }
+        }
+        return sampleRate / bestOffset;
+    }
+
+    function updateWaveBars(percent) {
+        var bars = document.querySelectorAll('.wave-bar');
+        var count = bars.length;
+        for(var i=0;i<count;i++) {
+            var h = 10 + Math.random() * (percent/2);
+            if(!isListening) h = 5 + Math.sin(Date.now()/200 + i)*3 + 8;
+            bars[i].style.height = Math.max(4, h) + 'px';
+        }
+    }
+
+    document.getElementById('listenBtn').addEventListener('click', playTargetSound);
+    document.getElementById('micBtn').addEventListener('click', startMicrophone);
+    document.getElementById('newGameBtn').addEventListener('click', function(){ stopMicrophone(); newTarget(); });
+
+    var langBtns=document.querySelectorAll('.lang-btn');
+    for(var i=0;i<langBtns.length;i++) langBtns[i].addEventListener('click', function(){ var l=this.getAttribute('data-lang'); if(l!==currentLang) { currentLang=l; updateLanguage(); loadBest(); } });
+
+    setLanguage('tr'); loadBest(); newTarget();
+})();
+</script>
+</body>
+</html>

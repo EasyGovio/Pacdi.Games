@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Bayrak Bulmaca | PACDI Games</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+        body { background:#04162E; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
+        .game-container { max-width:550px; width:100%; background:rgba(4,22,46,0.85); border-radius:56px; padding:20px 16px 24px; box-shadow:0 20px 35px rgba(0,0,0,0.5); backdrop-filter:blur(2px); border:1px solid rgba(246,180,95,0.3); text-align:center; }
+        .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+        .logo { font-size:1.3rem; font-weight:800; color:#F6B45F; }
+        .back-link { color:#F6B45F; text-decoration:none; font-weight:bold; font-size:0.78rem; background:#0a1018; padding:5px 12px; border-radius:40px; border:1px solid rgba(246,180,95,0.3); }
+        .lang-selector { display:flex; gap:6px; margin-bottom:12px; justify-content:flex-end; }
+        .lang-btn { background:#0a1018; border:1px solid #F6B45F; color:#F6B45F; font-size:0.7rem; padding:3px 10px; border-radius:30px; cursor:pointer; }
+        .lang-btn.active { background:#F6B45F; color:#04162E; }
+        .info-bar { display:flex; justify-content:space-between; align-items:center; background:#0a1018; border-radius:40px; padding:7px 16px; margin-bottom:14px; }
+        .info-box { color:#F6B45F; font-weight:bold; font-size:0.78rem; }
+        .new-btn { background:#F6B45F; border:none; font-weight:bold; padding:5px 14px; border-radius:40px; color:#04162E; cursor:pointer; font-size:0.78rem; }
+        .question-area { background:#0a1018; border-radius:28px; padding:20px 16px; margin-bottom:20px; }
+        .flag-display { font-size:6rem; margin:10px 0; line-height:1.2; }
+        .question-text { font-size:0.9rem; color:#9bb7d4; margin-bottom:16px; }
+        .options-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+        .opt-btn { background:#1e2a3a; border:2px solid #1ABC9C; border-radius:60px; padding:14px 10px; font-weight:bold; color:#1ABC9C; cursor:pointer; font-size:0.9rem; }
+        .opt-btn:active { background:#1ABC9C; color:#04162E; transform:scale(0.96); }
+        .opt-btn.correct-answer { background:#2ECC71; border-color:#2ECC71; color:#04162E; }
+        .opt-btn.wrong-answer { background:#E74C3C; border-color:#E74C3C; color:#fff; }
+        .feedback { margin:12px 0; font-size:0.9rem; font-weight:bold; min-height:30px; }
+        .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:12px; }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="top-bar">
+        <div class="logo" id="gameTitle">BAYRAK BULMACA</div>
+        <a href="index.html" class="back-link" id="backLink">← Geri</a>
+    </div>
+    <div class="lang-selector">
+        <button class="lang-btn active" data-lang="tr">TR</button>
+        <button class="lang-btn" data-lang="de">DE</button>
+        <button class="lang-btn" data-lang="en">EN</button>
+    </div>
+    <div class="info-bar">
+        <div class="info-box" id="scoreLabel">🎯 Skor: <span id="scoreNum">0</span></div>
+        <div class="info-box" id="bestLabel">🏆 En İyi: <span id="bestNum">—</span></div>
+        <button class="new-btn" id="resetBtn"><span id="resetText">↺ Yeni Oyun</span></button>
+    </div>
+    <div class="question-area">
+        <div class="flag-display" id="flagDisplay">🌍</div>
+        <div class="question-text" id="questionText">Bu hangi ülkenin bayrağı?</div>
+        <div class="options-grid" id="optionsGrid"></div>
+    </div>
+    <div class="feedback" id="feedbackMsg"></div>
+    <div class="footer" id="footerText">PACDI Games · Bayrakları tanı, dünyayı öğren.</div>
+</div>
+<script>
+(function(){
+    var flags = [
+        { flag:"🇹🇷", name:"Türkiye" },
+        { flag:"🇩🇪", name:"Almanya" },
+        { flag:"🇫🇷", name:"Fransa" },
+        { flag:"🇮🇹", name:"İtalya" },
+        { flag:"🇪🇸", name:"İspanya" },
+        { flag:"🇬🇧", name:"İngiltere" },
+        { flag:"🇺🇸", name:"ABD" },
+        { flag:"🇧🇷", name:"Brezilya" },
+        { flag:"🇯🇵", name:"Japonya" },
+        { flag:"🇨🇳", name:"Çin" },
+        { flag:"🇷🇺", name:"Rusya" },
+        { flag:"🇨🇦", name:"Kanada" },
+        { flag:"🇰🇷", name:"Güney Kore" },
+        { flag:"🇮🇳", name:"Hindistan" },
+        { flag:"🇲🇽", name:"Meksika" }
+    ];
+    var langData = {
+        tr: { title:"BAYRAK BULMACA", back:"← Geri", score:"🎯 Skor:", best:"🏆 En İyi:", reset:"↺ Yeni Oyun", question:"Bu hangi ülkenin bayrağı?", correct:"✅ Doğru! +1 puan", wrong:"❌ Yanlış! Doğru cevap: ", gameOver:"🎉 Harika! Skor: ", footer:"PACDI Games · Bayrakları tanı, dünyayı öğren." },
+        de: { title:"FAHNENQUIZ", back:"← Zurück", score:"🎯 Punkt:", best:"🏆 Beste:", reset:"↺ Neues Spiel", question:"Welches Land ist das?", correct:"✅ Richtig! +1 Punkt", wrong:"❌ Falsch! Richtige Antwort: ", gameOver:"🎉 Super! Punkt: ", footer:"PACDI Games · Erkenne Flaggen, lerne die Welt." },
+        en: { title:"FLAG QUIZ", back:"← Back", score:"🎯 Score:", best:"🏆 Best:", reset:"↺ New Game", question:"Which country is this?", correct:"✅ Correct! +1 point", wrong:"❌ Wrong! Correct answer: ", gameOver:"🎉 Great! Score: ", footer:"PACDI Games · Know your flags, learn the world." }
+    };
+    var currentLang = "tr";
+    var score = 0, bestScore = 0, currentIndex = 0, totalQuestions = 10, gameActive = true;
+    var questionOrder = [];
+
+    function loadBest() { var s=localStorage.getItem('flag_best_'+currentLang); bestScore=s?parseInt(s):0; document.getElementById('bestNum').innerText=bestScore||'—'; }
+    function saveBest() { if(score>bestScore){ bestScore=score; localStorage.setItem('flag_best_'+currentLang,bestScore); document.getElementById('bestNum').innerText=bestScore; } }
+
+    function shuffle(a) { for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i];a[i]=a[j];a[j]=t; } return a; }
+
+    function updateLanguage() {
+        var t=langData[currentLang];
+        document.getElementById('gameTitle').innerText=t.title;
+        document.getElementById('backLink').innerText=t.back;
+        document.getElementById('scoreLabel').innerHTML=t.score+' <span id="scoreNum">'+score+'</span>';
+        document.getElementById('bestLabel').innerHTML=t.best+' <span id="bestNum">'+(bestScore||'—')+'</span>';
+        document.getElementById('resetText').innerText=t.reset;
+        document.getElementById('questionText').innerText=t.question;
+        document.getElementById('footerText').innerText=t.footer;
+    }
+
+    function setLanguage(lang) {
+        currentLang=lang; updateLanguage(); loadBest();
+        var btns=document.querySelectorAll('.lang-btn');
+        for(var i=0;i<btns.length;i++) btns[i].classList.toggle('active', btns[i].getAttribute('data-lang')===lang);
+        resetGame();
+    }
+
+    function loadQuestion() {
+        if(currentIndex >= totalQuestions) {
+            endGame();
+            return;
+        }
+        var q = flags[questionOrder[currentIndex]];
+        document.getElementById('flagDisplay').innerText = q.flag;
+        var opts = [q.name];
+        var allNames = flags.map(function(f){ return f.name; });
+        while(opts.length < 4) {
+            var r = allNames[Math.floor(Math.random()*allNames.length)];
+            if(opts.indexOf(r)===-1) opts.push(r);
+        }
+        opts = shuffle(opts);
+        var grid = document.getElementById('optionsGrid');
+        grid.innerHTML = '';
+        for(var i=0;i<opts.length;i++) {
+            var btn = document.createElement('button');
+            btn.className = 'opt-btn';
+            btn.innerText = opts[i];
+            btn.addEventListener('click', (function(selected, correct){ return function(){
+                if(!gameActive) return;
+                if(selected === correct) {
+                    score++;
+                    document.getElementById('scoreNum').innerText = score;
+                    saveBest();
+                    document.getElementById('feedbackMsg').innerHTML = langData[currentLang].correct;
+                    document.getElementById('feedbackMsg').style.color = '#2ECC71';
+                    this.classList.add('correct-answer');
+                } else {
+                    document.getElementById('feedbackMsg').innerHTML = langData[currentLang].wrong + correct;
+                    document.getElementById('feedbackMsg').style.color = '#E74C3C';
+                    this.classList.add('wrong-answer');
+                    var allBtns = document.querySelectorAll('.opt-btn');
+                    for(var j=0;j<allBtns.length;j++) {
+                        if(allBtns[j].innerText === correct) allBtns[j].classList.add('correct-answer');
+                    }
+                }
+                var allBtns = document.querySelectorAll('.opt-btn');
+                for(var k=0;k<allBtns.length;k++) allBtns[k].style.pointerEvents = 'none';
+                setTimeout(function(){
+                    currentIndex++;
+                    document.getElementById('feedbackMsg').innerHTML = '';
+                    loadQuestion();
+                }, 1000);
+            }; })(opts[i], q.name));
+            grid.appendChild(btn);
+        }
+    }
+
+    function endGame() {
+        gameActive = false;
+        document.getElementById('flagDisplay').innerText = '🏆';
+        document.getElementById('questionText').innerText = langData[currentLang].gameOver + score + '/' + totalQuestions;
+        document.getElementById('optionsGrid').innerHTML = '<button class="opt-btn" onclick="resetGame()">' + langData[currentLang].reset + '</button>';
+    }
+
+    function resetGame() {
+        score = 0; currentIndex = 0; gameActive = true;
+        document.getElementById('scoreNum').innerText = '0';
+        document.getElementById('feedbackMsg').innerHTML = '';
+        questionOrder = shuffle(flags.map(function(_,i){ return i; }));
+        loadQuestion();
+    }
+
+    document.getElementById('resetBtn').addEventListener('click', resetGame);
+
+    var langBtns=document.querySelectorAll('.lang-btn');
+    for(var i=0;i<langBtns.length;i++) langBtns[i].addEventListener('click', function(){ var l=this.getAttribute('data-lang'); if(l!==currentLang) setLanguage(l); });
+
+    setLanguage('tr'); loadBest(); resetGame();
+})();
+</script>
+</body>
+</html>
