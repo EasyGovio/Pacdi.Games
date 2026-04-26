@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Peg Düello | PACDI Games</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+        body { background:#04162E; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
+        .game-container { max-width:500px; width:100%; background:rgba(4,22,46,0.85); border-radius:56px; padding:20px 16px 24px; box-shadow:0 20px 35px rgba(0,0,0,0.5); border:1px solid rgba(246,180,95,0.3); text-align:center; }
+        .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+        .logo { font-size:1.3rem; font-weight:800; color:#F6B45F; }
+        .back-link { color:#F6B45F; text-decoration:none; font-weight:bold; font-size:0.78rem; background:#0a1018; padding:5px 12px; border-radius:40px; border:1px solid rgba(246,180,95,0.3); }
+        .info-bar { display:flex; justify-content:space-between; align-items:center; background:#0a1018; border-radius:40px; padding:7px 16px; margin-bottom:14px; }
+        .player-turn { color:#F6B45F; font-weight:bold; font-size:0.9rem; }
+        .new-btn { background:#F6B45F; border:none; font-weight:bold; padding:5px 14px; border-radius:40px; color:#04162E; cursor:pointer; font-size:0.78rem; }
+        canvas { display:block; margin:10px auto; border-radius:24px; border:2px solid rgba(246,180,95,0.3); max-width:400px; width:100%; aspect-ratio:1; cursor:pointer; background:#0a1018; }
+        .score-bar { display:flex; justify-content:space-around; margin:8px 0; }
+        .score-box { background:#0a1018; border-radius:20px; padding:8px 16px; font-weight:bold; font-size:0.85rem; }
+        .message { color:#F6B45F; font-size:0.9rem; font-weight:bold; min-height:30px; margin:4px 0; }
+        .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:12px; }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="top-bar">
+        <div class="logo">PEG DÜELLO</div>
+        <a href="index.html" class="back-link">← Geri</a>
+    </div>
+    <div class="info-bar">
+        <div class="player-turn" id="turnDisplay">Sıra: <span style="color:#3498DB">Mavi</span></div>
+        <button class="new-btn" onclick="resetGame()">↺ Yeni Oyun</button>
+    </div>
+    <div class="score-bar">
+        <div class="score-box" style="color:#3498DB">Mavi: <span id="scoreBlue">0</span></div>
+        <div class="score-box" style="color:#E74C3C">Kırmızı: <span id="scoreRed">0</span></div>
+    </div>
+    <canvas id="pegCanvas" width="400" height="400"></canvas>
+    <div class="message" id="message">Bir çiviyi seç, boşluğa atla</div>
+    <div class="footer">PACDI Games · İki kişilik peg düello, en çok çiviyi topla.</div>
+</div>
+<script>
+(function(){
+    var canvas = document.getElementById('pegCanvas');
+    var ctx = canvas.getContext('2d');
+    var rows = 7, cols = 7;
+    var cellSize = canvas.width / cols;
+    var board = [];
+    var isValid = [];
+    var currentPlayer = 0;
+    var selectedRow = null, selectedCol = null;
+    var scores = [0, 0];
+    var gameOver = false;
+
+    function initBoard() {
+        isValid = [];
+        board = [];
+        for(var r=0;r<rows;r++) {
+            isValid[r] = [];
+            board[r] = [];
+            for(var c=0;c<cols;c++) {
+                isValid[r][c] = ((r<=1||r>=5)&&c>=2&&c<=4) || (r>=2&&r<=4&&c>=0&&c<=6);
+                if(isValid[r][c]) {
+                    if(r===3 && c===3) board[r][c] = null;
+                    else if(r<3) board[r][c] = 0;
+                    else board[r][c] = 1;
+                } else {
+                    board[r][c] = -1;
+                }
+            }
+        }
+        board[3][3] = null;
+    }
+
+    function resetGame() {
+        initBoard();
+        currentPlayer = 0;
+        selectedRow = null;
+        selectedCol = null;
+        scores = [0, 0];
+        gameOver = false;
+        updateScoreDisplay();
+        document.getElementById('message').innerText = 'Bir çiviyi seç, boşluğa atla';
+        document.getElementById('turnDisplay').innerHTML = 'Sıra: <span style="color:#3498DB">Mavi</span>';
+        drawBoard();
+    }
+
+    function updateScoreDisplay() {
+        document.getElementById('scoreBlue').innerText = scores[0];
+        document.getElementById('scoreRed').innerText = scores[1];
+    }
+
+    function drawBoard() {
+        var cs = cellSize;
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        for(var r=0;r<rows;r++) {
+            for(var c=0;c<cols;c++) {
+                if(isValid[r][c]) {
+                    ctx.beginPath();
+                    ctx.arc(c*cs+cs/2, r*cs+cs/2, cs/3, 0, Math.PI*2);
+                    if(board[r][c] === null) {
+                        ctx.fillStyle = '#1e2a3a';
+                        ctx.strokeStyle = 'rgba(246,180,95,0.3)';
+                    } else if(board[r][c] === 0) {
+                        ctx.fillStyle = '#3498DB';
+                        ctx.strokeStyle = '#fff';
+                    } else if(board[r][c] === 1) {
+                        ctx.fillStyle = '#E74C3C';
+                        ctx.strokeStyle = '#fff';
+                    }
+                    ctx.fill();
+                    ctx.stroke();
+                } else {
+                    ctx.fillStyle = '#0a1018';
+                    ctx.fillRect(c*cs, r*cs, cs, cs);
+                }
+            }
+        }
+        if(selectedRow !== null) {
+            ctx.strokeStyle = '#F6B45F';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(selectedCol*cs+cs/2, selectedRow*cs+cs/2, cs/3+4, 0, Math.PI*2);
+            ctx.stroke();
+        }
+    }
+
+    function isValidMove(fr, fc, tr, tc) {
+        if(!isValid[tr] || !isValid[tr][tc] || board[tr][tc] !== null) return false;
+        var dr = tr - fr, dc = tc - fc;
+        if(Math.abs(dr) === 2 && dc === 0) {
+            var mr = (fr+tr)/2;
+            if(isValid[mr][fc] && board[mr][fc] !== null && board[mr][fc] !== currentPlayer) return true;
+        }
+        if(Math.abs(dc) === 2 && dr === 0) {
+            var mc = (fc+tc)/2;
+            if(isValid[fr][mc] && board[fr][mc] !== null && board[fr][mc] !== currentPlayer) return true;
+        }
+        return false;
+    }
+
+    function hasAnyMove(player) {
+        for(var r=0;r<rows;r++) {
+            for(var c=0;c<cols;c++) {
+                if(board[r][c] === player) {
+                    var dirs = [[-2,0],[2,0],[0,-2],[0,2]];
+                    for(var d=0;d<dirs.length;d++) {
+                        var tr = r+dirs[d][0], tc = c+dirs[d][1];
+                        if(tr>=0 && tr<rows && tc>=0 && tc<cols && isValid[tr] && isValid[tr][tc] && board[tr][tc]===null) {
+                            var mr = (r+tr)/2, mc = (c+tc)/2;
+                            if(board[mr] && board[mr][mc] !== null && board[mr][mc] !== player) return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    function countPlayerPegs(player) {
+        var cnt = 0;
+        for(var r=0;r<rows;r++) for(var c=0;c<cols;c++) if(board[r][c] === player) cnt++;
+        return cnt;
+    }
+
+    function movePiece(fr, fc, tr, tc) {
+        var mr = (fr+tr)/2, mc = (fc+tc)/2;
+        var captured = board[mr][mc];
+        board[fr][fc] = null;
+        board[mr][mc] = null;
+        board[tr][tc] = currentPlayer;
+        scores[currentPlayer]++;
+        updateScoreDisplay();
+        if(!hasAnyMove(1-currentPlayer)) {
+            gameOver = true;
+            scores[1-currentPlayer] += countPlayerPegs(1-currentPlayer);
+            updateScoreDisplay();
+            if(scores[0] > scores[1]) document.getElementById('message').innerText = '🎉 Mavi kazandı!';
+            else if(scores[1] > scores[0]) document.getElementById('message').innerText = '🎉 Kırmızı kazandı!';
+            else document.getElementById('message').innerText = '🤝 Berabere!';
+        }
+        document.getElementById('turnDisplay').innerHTML = 'Sıra: <span style="color:' + (currentPlayer===0?'#E74C3C':'#3498DB') + '">' + (currentPlayer===0?'Kırmızı':'Mavi') + '</span>';
+        currentPlayer = 1 - currentPlayer;
+    }
+
+    canvas.addEventListener('click', function(e) {
+        if(gameOver) return;
+        var rect = canvas.getBoundingClientRect();
+        var scaleX = canvas.width / rect.width;
+        var scaleY = canvas.height / rect.height;
+        var cx = (e.clientX - rect.left) * scaleX;
+        var cy = (e.clientY - rect.top) * scaleY;
+        var c = Math.floor(cx / cellSize);
+        var r = Math.floor(cy / cellSize);
+        if(r<0||r>=rows||c<0||c>=cols||!isValid[r][c]) return;
+
+        if(selectedRow === null) {
+            if(board[r][c] === currentPlayer) {
+                selectedRow = r;
+                selectedCol = c;
+                document.getElementById('message').innerText = 'Şimdi atlayacağın boşluğa tıkla';
+            }
+        } else {
+            if(isValidMove(selectedRow, selectedCol, r, c)) {
+                movePiece(selectedRow, selectedCol, r, c);
+                selectedRow = null;
+                selectedCol = null;
+                if(!gameOver) document.getElementById('message').innerText = (currentPlayer===0?'Mavi':'Kırmızı') + ' oynuyor';
+            } else if(board[r][c] === currentPlayer) {
+                selectedRow = r;
+                selectedCol = c;
+                document.getElementById('message').innerText = 'Şimdi atlayacağın boşluğa tıkla';
+            } else {
+                selectedRow = null;
+                selectedCol = null;
+                document.getElementById('message').innerText = 'Geçersiz hamle';
+            }
+        }
+        drawBoard();
+    });
+
+    resetGame();
+})();
+</script>
+</body>
+</html>

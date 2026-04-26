@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Kelime Kapmaca | PACDI Games</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+        body { background:#04162E; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
+        .game-container { max-width:500px; width:100%; background:rgba(4,22,46,0.85); border-radius:56px; padding:20px 16px 24px; box-shadow:0 20px 35px rgba(0,0,0,0.5); border:1px solid rgba(246,180,95,0.3); text-align:center; }
+        .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+        .logo { font-size:1.3rem; font-weight:800; color:#F6B45F; }
+        .back-link { color:#F6B45F; text-decoration:none; font-weight:bold; font-size:0.78rem; background:#0a1018; padding:5px 12px; border-radius:40px; border:1px solid rgba(246,180,95,0.3); }
+        .info-bar { display:flex; justify-content:space-between; align-items:center; background:#0a1018; border-radius:40px; padding:7px 16px; margin-bottom:14px; }
+        .player-turn { color:#F6B45F; font-weight:bold; font-size:0.9rem; }
+        .new-btn { background:#F6B45F; border:none; font-weight:bold; padding:5px 14px; border-radius:40px; color:#04162E; cursor:pointer; font-size:0.78rem; }
+        .letters-area { background:#0a1018; border-radius:24px; padding:20px; margin-bottom:16px; }
+        .letters-row { display:flex; justify-content:center; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+        .letter-chip { width:44px; height:44px; border-radius:12px; background:#1e2a3a; border:2px solid rgba(246,180,95,0.3); display:flex; align-items:center; justify-content:center; font-size:1.3rem; font-weight:bold; color:#eaf2fb; cursor:pointer; transition:0.1s; }
+        .letter-chip:active { background:#F6B45F; color:#04162E; transform:scale(0.95); }
+        .letter-chip.selected { background:#2ECC71; border-color:#2ECC71; color:#04162E; }
+        .letter-chip.used { opacity:0.2; pointer-events:none; }
+        .input-row { display:flex; gap:8px; justify-content:center; align-items:center; }
+        .word-input { padding:10px 14px; border-radius:12px; border:2px solid rgba(246,180,95,0.3); background:#1e2a3a; color:#eaf2fb; font-size:1rem; text-align:center; outline:none; width:150px; font-family:inherit; }
+        .submit-btn { background:#F6B45F; border:none; padding:10px 18px; border-radius:12px; font-weight:bold; color:#04162E; cursor:pointer; font-size:0.85rem; }
+        .score-box { display:flex; justify-content:space-around; margin:10px 0; }
+        .player-score { background:#0a1018; padding:8px 16px; border-radius:20px; font-weight:bold; }
+        .word-list { display:flex; flex-wrap:wrap; gap:4px; justify-content:center; margin-top:8px; }
+        .word-tag { background:#1e2a3a; padding:3px 10px; border-radius:12px; font-size:0.7rem; color:#9bb7d4; }
+        .message { color:#F6B45F; font-size:0.9rem; font-weight:bold; min-height:24px; margin:4px 0; }
+        .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:12px; }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="top-bar">
+        <div class="logo">KELİME KAPMACA</div>
+        <a href="index.html" class="back-link">← Geri</a>
+    </div>
+    <div class="info-bar">
+        <div class="player-turn" id="turnDisplay">Sıra: <span style="color:#3498DB">Oyuncu 1</span></div>
+        <button class="new-btn" onclick="resetGame()">↺ Yeni Oyun</button>
+    </div>
+    <div class="letters-area">
+        <div class="letters-row" id="lettersRow"></div>
+        <div class="input-row">
+            <input type="text" class="word-input" id="wordInput" placeholder="Kelime..." maxlength="10" autocomplete="off" autocapitalize="off">
+            <button class="submit-btn" id="submitBtn">Onayla</button>
+        </div>
+    </div>
+    <div class="score-box">
+        <div class="player-score" style="color:#3498DB">Oyuncu 1: <span id="score1">0</span> puan</div>
+        <div class="player-score" style="color:#E74C3C">Oyuncu 2: <span id="score2">0</span> puan</div>
+    </div>
+    <div class="word-list" id="wordList"></div>
+    <div class="message" id="message">Harflerden bir kelime türet!</div>
+    <div class="footer">PACDI Games · İki kişilik kelime kapmaca.</div>
+</div>
+<script>
+(function(){
+    var letters = [];
+    var scores = [0, 0];
+    var currentPlayer = 0;
+    var gameOver = false;
+    var usedWords = [];
+    var selectedLetters = [];
+
+    var letterPool = 'AEIOUBKLMNPRSTÇ'.split('');
+
+    function generateLetters(count) {
+        var l = [];
+        for(var i=0; i<count; i++) {
+            l.push(letterPool[Math.floor(Math.random() * letterPool.length)]);
+        }
+        return l;
+    }
+
+    function initRound() {
+        letters = generateLetters(10);
+        selectedLetters = [];
+        usedWords = [];
+        scores = [0, 0];
+        currentPlayer = 0;
+        gameOver = false;
+        document.getElementById('wordInput').value = '';
+        updateDisplay();
+    }
+
+    function resetGame() {
+        initRound();
+        document.getElementById('message').innerText = 'Harflerden bir kelime türet!';
+        document.getElementById('turnDisplay').innerHTML = 'Sıra: <span style="color:#3498DB">Oyuncu 1</span>';
+    }
+
+    function updateDisplay() {
+        var lr = document.getElementById('lettersRow');
+        lr.innerHTML = '';
+        for(var i=0; i<letters.length; i++) {
+            var chip = document.createElement('div');
+            chip.className = 'letter-chip';
+            chip.innerText = letters[i];
+            if(selectedLetters.indexOf(i) !== -1) chip.classList.add('selected');
+            chip.addEventListener('click', (function(idx) {
+                return function() { toggleLetter(idx); };
+            })(i));
+            lr.appendChild(chip);
+        }
+        document.getElementById('score1').innerText = scores[0];
+        document.getElementById('score2').innerText = scores[1];
+
+        var wl = document.getElementById('wordList');
+        wl.innerHTML = '';
+        for(var j=0; j<usedWords.length; j++) {
+            var tag = document.createElement('span');
+            tag.className = 'word-tag';
+            tag.innerText = usedWords[j].word + ' (' + usedWords[j].player + ')';
+            wl.appendChild(tag);
+        }
+    }
+
+    function toggleLetter(idx) {
+        if(gameOver) return;
+        var pos = selectedLetters.indexOf(idx);
+        if(pos !== -1) {
+            selectedLetters.splice(pos, 1);
+        } else {
+            selectedLetters.push(idx);
+        }
+        var input = document.getElementById('wordInput');
+        var word = '';
+        for(var i=0; i<selectedLetters.length; i++) {
+            word += letters[selectedLetters[i]];
+        }
+        input.value = word;
+        updateDisplay();
+    }
+
+    document.getElementById('submitBtn').addEventListener('click', function() {
+        if(gameOver) return;
+        var word = document.getElementById('wordInput').value.trim().toUpperCase();
+        if(word.length < 2) { document.getElementById('message').innerText = 'En az 2 harfli kelime girin!'; return; }
+
+        var used = false;
+        for(var i=0; i<usedWords.length; i++) {
+            if(usedWords[i].word === word) { used = true; break; }
+        }
+        if(used) { document.getElementById('message').innerText = 'Bu kelime zaten kullanıldı!'; return; }
+
+        // Harf kontrolü
+        var remainingLetters = letters.slice();
+        var valid = true;
+        for(var j=0; j<word.length; j++) {
+            var idx = remainingLetters.indexOf(word[j]);
+            if(idx === -1) { valid = false; break; }
+            remainingLetters.splice(idx, 1);
+        }
+        if(!valid) { document.getElementById('message').innerText = 'Bu harflerle bu kelime yapılamaz!'; return; }
+
+        var points = word.length;
+        scores[currentPlayer] += points;
+        usedWords.push({ word:word, player:'Oyuncu ' + (currentPlayer+1), points:points });
+        document.getElementById('message').innerText = 'Oyuncu ' + (currentPlayer+1) + ' +' + points + ' puan!';
+
+        // Harfleri kaldır
+        var newLetters = [];
+        var usedIndices = [];
+        for(var k=0; k<word.length; k++) {
+            for(var l=0; l<letters.length; l++) {
+                if(letters[l] === word[k] && usedIndices.indexOf(l) === -1) {
+                    usedIndices.push(l);
+                    break;
+                }
+            }
+        }
+        for(var m=0; m<letters.length; m++) {
+            if(usedIndices.indexOf(m) === -1) newLetters.push(letters[m]);
+        }
+        letters = newLetters;
+        selectedLetters = [];
+        document.getElementById('wordInput').value = '';
+
+        if(letters.length < 2) {
+            gameOver = true;
+            if(scores[0] > scores[1]) document.getElementById('message').innerText = '🎉 Oyuncu 1 kazandı!';
+            else if(scores[1] > scores[0]) document.getElementById('message').innerText = '🎉 Oyuncu 2 kazandı!';
+            else document.getElementById('message').innerText = '🤝 Berabere!';
+        }
+
+        currentPlayer = 1 - currentPlayer;
+        document.getElementById('turnDisplay').innerHTML = 'Sıra: <span style="color:' + (currentPlayer===0?'#3498DB':'#E74C3C') + '">Oyuncu ' + (currentPlayer+1) + '</span>';
+        updateDisplay();
+    });
+
+    document.getElementById('wordInput').addEventListener('keydown', function(e) {
+        if(e.key === 'Enter') document.getElementById('submitBtn').click();
+    });
+
+    resetGame();
+})();
+</script>
+</body>
+</html>

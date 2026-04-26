@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>XOX Düello | PACDI Games</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+        body { background:#04162E; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
+        .game-container { max-width:500px; width:100%; background:rgba(4,22,46,0.85); border-radius:56px; padding:20px 16px 24px; box-shadow:0 20px 35px rgba(0,0,0,0.5); border:1px solid rgba(246,180,95,0.3); text-align:center; }
+        .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+        .logo { font-size:1.3rem; font-weight:800; color:#F6B45F; }
+        .back-link { color:#F6B45F; text-decoration:none; font-weight:bold; font-size:0.78rem; background:#0a1018; padding:5px 12px; border-radius:40px; border:1px solid rgba(246,180,95,0.3); }
+        .info-bar { display:flex; justify-content:space-between; align-items:center; background:#0a1018; border-radius:40px; padding:7px 16px; margin-bottom:14px; }
+        .player-turn { color:#F6B45F; font-weight:bold; font-size:1rem; }
+        .new-btn { background:#F6B45F; border:none; font-weight:bold; padding:5px 14px; border-radius:40px; color:#04162E; cursor:pointer; font-size:0.78rem; }
+        .board-xox { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; max-width:300px; margin:20px auto; }
+        .cell-xox { aspect-ratio:1; background:#1e2a3a; border:2px solid rgba(246,180,95,0.3); border-radius:16px; display:flex; align-items:center; justify-content:center; font-size:3rem; font-weight:bold; cursor:pointer; color:#eaf2fb; transition:0.1s; }
+        .cell-xox:active { background:#F6B45F; transform:scale(0.95); }
+        .cell-xox.x-mark { color:#3498DB; }
+        .cell-xox.o-mark { color:#E74C3C; }
+        .message { color:#F6B45F; font-size:0.9rem; font-weight:bold; min-height:30px; margin:8px 0; }
+        .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:12px; }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="top-bar">
+        <div class="logo">XOX DÜELLO</div>
+        <a href="index.html" class="back-link">← Geri</a>
+    </div>
+    <div class="info-bar">
+        <div class="player-turn" id="turnDisplay">Sıra: <span style="color:#3498DB">X</span></div>
+        <button class="new-btn" onclick="resetGame()">↺ Yeni Oyun</button>
+    </div>
+    <div class="board-xox" id="boardXox"></div>
+    <div class="message" id="message">Sıra X'te</div>
+    <div class="footer">PACDI Games · İki kişilik XOX, sırayla oynayın.</div>
+</div>
+<script>
+(function(){
+    var board = [];
+    var currentPlayer = 'X';
+    var gameOver = false;
+
+    function initBoard() {
+        board = [['','',''],['','',''],['','','']];
+    }
+
+    function resetGame() {
+        initBoard();
+        currentPlayer = 'X';
+        gameOver = false;
+        document.getElementById('message').innerText = 'Sıra X\'te';
+        document.getElementById('turnDisplay').innerHTML = 'Sıra: <span style="color:#3498DB">X</span>';
+        renderBoard();
+    }
+
+    function renderBoard() {
+        var boardDiv = document.getElementById('boardXox');
+        boardDiv.innerHTML = '';
+        for(var r=0; r<3; r++) {
+            for(var c=0; c<3; c++) {
+                var cell = document.createElement('div');
+                cell.className = 'cell-xox';
+                cell.innerText = board[r][c];
+                if(board[r][c] === 'X') cell.classList.add('x-mark');
+                else if(board[r][c] === 'O') cell.classList.add('o-mark');
+                cell.addEventListener('click', (function(row, col) {
+                    return function() { makeMove(row, col); };
+                })(r, c));
+                boardDiv.appendChild(cell);
+            }
+        }
+    }
+
+    function makeMove(r, c) {
+        if(gameOver || board[r][c] !== '') return;
+        board[r][c] = currentPlayer;
+        renderBoard();
+
+        if(checkWin(currentPlayer)) {
+            gameOver = true;
+            document.getElementById('message').innerText = '🎉 ' + currentPlayer + ' kazandı!';
+            document.getElementById('turnDisplay').innerHTML = '🏆 Oyun Bitti';
+            return;
+        }
+        if(isBoardFull()) {
+            gameOver = true;
+            document.getElementById('message').innerText = '🤝 Berabere!';
+            document.getElementById('turnDisplay').innerHTML = '🤝 Oyun Bitti';
+            return;
+        }
+
+        currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+        document.getElementById('message').innerText = 'Sıra ' + currentPlayer + '\'de';
+        document.getElementById('turnDisplay').innerHTML = 'Sıra: <span style="color:' + (currentPlayer==='X'?'#3498DB':'#E74C3C') + '">' + currentPlayer + '</span>';
+    }
+
+    function checkWin(p) {
+        for(var i=0; i<3; i++) {
+            if(board[i][0]===p && board[i][1]===p && board[i][2]===p) return true;
+            if(board[0][i]===p && board[1][i]===p && board[2][i]===p) return true;
+        }
+        if(board[0][0]===p && board[1][1]===p && board[2][2]===p) return true;
+        if(board[0][2]===p && board[1][1]===p && board[2][0]===p) return true;
+        return false;
+    }
+
+    function isBoardFull() {
+        for(var r=0; r<3; r++)
+            for(var c=0; c<3; c++)
+                if(board[r][c] === '') return false;
+        return true;
+    }
+
+    resetGame();
+})();
+</script>
+</body>
+</html>

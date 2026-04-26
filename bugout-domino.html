@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Bugout Domino | PACDI Games</title>
+  <!-- Bugout kütüphanesini çağırıyoruz -->
+  <script src="https://cdn.jsdelivr.net/npm/bugout@0.0.13/dist/bugout.min.js"></script>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+    body { background:#04162E; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
+    .game-container { max-width:600px; width:100%; background:rgba(4,22,46,0.85); border-radius:56px; padding:20px 16px 24px; box-shadow:0 20px 35px rgba(0,0,0,0.5); border:1px solid rgba(246,180,95,0.3); text-align:center; }
+    .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+    .logo { font-size:1.3rem; font-weight:800; color:#F6B45F; }
+    .back-link { color:#F6B45F; text-decoration:none; font-weight:bold; font-size:0.78rem; background:#0a1018; padding:5px 12px; border-radius:40px; border:1px solid rgba(246,180,95,0.3); }
+    
+    /* Lobi ve oyun alanları */
+    .lobby-area, .game-area { background:#0a1018; border-radius:28px; padding:20px 16px; margin-bottom:20px; }
+    .lobby-area h3, .game-area h3 { color:#F6B45F; margin-bottom:12px; }
+    
+    .room-input, .peer-id-input { width:100%; padding:12px 16px; border-radius:16px; border:2px solid rgba(246,180,95,0.3); background:#1e2a3a; color:#eaf2fb; font-size:1rem; text-align:center; outline:none; margin-bottom:10px; }
+    .btn { background:#F6B45F; border:none; font-weight:bold; padding:12px 24px; border-radius:40px; color:#04162E; cursor:pointer; font-size:0.9rem; margin:6px; }
+    .btn:active { transform:scale(0.96); }
+    .btn.secondary { background:#1e2a3a; border:2px solid #F6B45F; color:#F6B45F; }
+    
+    .board-domino { display:flex; flex-wrap:wrap; justify-content:center; gap:4px; margin:10px 0; }
+    .board-tile { width:60px; height:30px; border-radius:8px; border:2px solid rgba(255,255,255,0.3); display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:0.8rem; background:rgba(46,204,113,0.1); }
+    .hand-tiles { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; }
+    .tile { width:64px; height:34px; background:#1e2a3a; border:2px solid rgba(246,180,95,0.3); border-radius:10px; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:0.85rem; color:#eaf2fb; cursor:pointer; transition:0.1s; }
+    .tile:active { background:#F6B45F; color:#04162E; transform:scale(0.95); }
+    .tile.playable { border-color:#2ECC71; }
+    .tile.not-playable { opacity:0.3; pointer-events:none; }
+    
+    .message { color:#F6B45F; font-size:0.9rem; font-weight:bold; min-height:30px; margin:8px 0; }
+    .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:12px; }
+    .hidden { display:none; }
+  </style>
+</head>
+<body>
+<div class="game-container">
+  <div class="top-bar">
+    <div class="logo">BUG DOMINO</div>
+    <a href="index.html" class="back-link">← Geri</a>
+  </div>
+
+  <!-- Lobi (Bağlantı kurma) alanı -->
+  <div id="lobbyArea" class="lobby-area">
+    <h3>Oyun Odasına Katıl</h3>
+    <input type="text" id="roomIdInput" class="room-input" placeholder="Oda kodunu gir... (boş bırakırsan yeni oda oluşturulur)">
+    <button id="connectBtn" class="btn">Odaya Bağlan</button>
+    <p style="color:#9bb7d4; font-size:0.8rem; margin-top:8px;" id="roomInfo"></p>
+  </div>
+
+  <!-- Oyun alanı (Bağlantı kurulduktan sonra gösterilecek) -->
+  <div id="gameArea" class="game-area hidden">
+    <h3>🀄 Bugout Domino</h3>
+    <div class="board-domino" id="boardDomino"></div>
+    <div style="color:#9bb7d4; margin:8px 0;" id="handTitle">Senin Taşların</div>
+    <div class="hand-tiles" id="handTiles"></div>
+    <div class="message" id="gameMessage">Rakip bekleniyor...</div>
+    <button id="passBtn" class="btn secondary hidden">Pas Geç</button>
+  </div>
+
+  <div class="footer">PACDI Games · Bugout ile uzaktan domino.</div>
+</div>
+
+<script>
+  // --- Bugout bağlantısı ve oyun durumu ---
+  var bugout;
+  var myId = null;             // Bu cihazın Bugout adresi
+  var peerId = null;           // Rakibin Bugout adresi
+  var isHost = false;          // Odayı kuran oyuncu mu?
+  
+  // Oyun değişkenleri (önceki domino mantığıyla aynı)
+  var tiles = [];
+  var board = [];
+  var myHand = [];
+  var currentPlayer = null;    // 'me' veya 'peer'
+  var gameOver = false;
+
+  // --- Lobi ve Bağlantı Yönetimi ---
+  document.getElementById('connectBtn').addEventListener('click', function() {
+    var roomId = document.getElementById('roomIdInput').value.trim();
+    
+    // Bugout örneğini oluştur. Oda kodu verilmişse ona katıl, yoksa yeni oda oluştur.
+    bugout = roomId ? new Bugout(roomId) : new Bugout();
+    
+    // Kendi adresimizi alır almaz ekrana yazdır ve beklemeye başla
+    bugout.on('connections', function() {
+      // Bu olay bağlantı sayısı değiştiğinde tetiklenir.
+    });
+
+    // Daha güvenli yöntem: Kendi adresimizi ve gelen mesajları dinleyelim
+    bugout.address().then(function(address) {
+      myId = address;
+      document.getElementById('roomInfo').innerHTML = 'Senin adresin: <b>' + myId + '</b><br>Bu kodu arkadaşına gönder.';
+      
+      // Eğer bir oda koduyla bağlanmadıysak, odayı biz kurduk demektir.
+      if (!roomId) isHost = true;
+    });
+
+    // Gelen mesajları dinle
+    bugout.on('message', function(address, message) {
+      if (!peerId) {
+        peerId = address;
+        // Rakip bağlandı!
+        document.getElementById('lobbyArea').classList.add('hidden');
+        document.getElementById('gameArea').classList.remove('hidden');
+        
+        // Rolleri belirle: host olan oyuncu 1 (mavi), diğeri 2 (kırmızı)
+        currentPlayer = isHost ? 'me' : 'peer';
+        
+        if (isHost) {
+          // Oyunu başlatan taraf ilk taşları dağıtır ve oyunu başlatır
+          initGame();
+          sendGameState(); // Oyun durumunu rakibe gönder
+        }
+      }
+      
+      // Gelen mesajı işle
+      handleMessage(message);
+    });
+
+    // Periyodik olarak bağlantıyı tazeleyelim (isteğe bağlı)
+  });
+
+  // --- Oyun Mantığı ---
+  function generateTiles() {
+    var t = [];
+    for(var i=0;i<=6;i++) for(var j=i;j<=6;j++) t.push([i,j]);
+    return t;
+  }
+
+  function shuffle(a) { for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i];a[i]=a[j];a[j]=t; } return a; }
+
+  function initGame() {
+    var allTiles = shuffle(generateTiles());
+    myHand = allTiles.slice(0, 7);
+    board = [];
+    gameOver = false;
+    updateDisplay();
+  }
+
+  function getBoardEnds() {
+    if(board.length === 0) return null;
+    return { left: board[0][0], right: board[board.length-1][1] };
+  }
+
+  function canPlay(tile) {
+    var ends = getBoardEnds();
+    if(!ends) return true;
+    return tile[0] === ends.left || tile[1] === ends.left || tile[0] === ends.right || tile[1] === ends.right;
+  }
+
+  function playTile(tileIndex) {
+    if(gameOver || currentPlayer !== 'me') return;
+    var tile = myHand[tileIndex];
+    if(!canPlay(tile)) return;
+
+    myHand.splice(tileIndex, 1);
+    var ends = getBoardEnds();
+    if(!ends) {
+      board.push([tile[0], tile[1]]);
+    } else {
+      if(tile[1] === ends.left) board.unshift([tile[1], tile[0]]);
+      else if(tile[0] === ends.left) board.unshift([tile[0], tile[1]]);
+      else if(tile[0] === ends.right) board.push([tile[0], tile[1]]);
+      else if(tile[1] === ends.right) board.push([tile[1], tile[0]]);
+    }
+
+    // Hamleyi rakibe gönder
+    sendMessage({ type: 'move', tile: tile, board: board, handCount: myHand.length });
+    
+    // Kazanma kontrolü
+    if(myHand.length === 0) {
+      gameOver = true;
+      sendMessage({ type: 'gameOver', winner: 'me' });
+      document.getElementById('gameMessage').innerText = '🎉 Sen kazandın!';
+    }
+    
+    currentPlayer = 'peer';
+    updateDisplay();
+    document.getElementById('gameMessage').innerText = 'Sıra rakibinde...';
+    
+    // Pas butonunu gizle
+    document.getElementById('passBtn').classList.add('hidden');
+  }
+
+  // --- İletişim ---
+  function sendMessage(data) {
+    if (bugout && peerId) {
+      bugout.send(peerId, JSON.stringify(data));
+    }
+  }
+
+  function handleMessage(rawMsg) {
+    var msg;
+    try { msg = JSON.parse(rawMsg); } catch(e) { return; }
+
+    if (msg.type === 'move') {
+      // Rakibin hamlesini tahtaya uygula
+      board = msg.board; // Direkt güncel tahtayı al
+      currentPlayer = 'me';
+      document.getElementById('gameMessage').innerText = 'Sıra sende!';
+      
+      // Eğer oynayacak taşımız varsa pas butonunu gizleyelim
+      var canMove = false;
+      for(var i=0; i<myHand.length; i++) {
+        if(canPlay(myHand[i])) { canMove = true; break; }
+      }
+      if(!canMove) document.getElementById('passBtn').classList.remove('hidden');
+      else document.getElementById('passBtn').classList.add('hidden');
+      
+      updateDisplay();
+    }
+    else if (msg.type === 'gameOver') {
+      gameOver = true;
+      document.getElementById('gameMessage').innerText = msg.winner === 'me' ? '🎉 Sen kazandın!' : '😔 Rakip kazandı.';
+      currentPlayer = null;
+      updateDisplay();
+    }
+    else if (msg.type === 'boardUpdate') {
+      // Host'tan gelen tam tahta güncellemesi (oyun başlangıcı)
+      board = msg.board;
+      myHand = msg.hand;
+      currentPlayer = 'me'; // Host ilk hamleyi yaptıysa sıra bendedir
+      updateDisplay();
+    }
+  }
+
+  function sendGameState() {
+    // Oyun başlangıcında, host kendi elini ve tahtasını gönderir
+    sendMessage({ type: 'boardUpdate', board: board, hand: myHand });
+  }
+
+  // --- Arayüz Güncellemeleri ---
+  function updateDisplay() {
+    var boardDiv = document.getElementById('boardDomino');
+    boardDiv.innerHTML = '';
+    for(var i=0; i<board.length; i++) {
+      var tile = document.createElement('div');
+      tile.className = 'board-tile';
+      tile.innerText = board[i][0] + '|' + board[i][1];
+      boardDiv.appendChild(tile);
+    }
+
+    var handDiv = document.getElementById('handTiles');
+    handDiv.innerHTML = '';
+    for(var i=0; i<myHand.length; i++) {
+      var t = document.createElement('div');
+      t.className = 'tile';
+      t.innerText = myHand[i][0] + '|' + myHand[i][1];
+      if(canPlay(myHand[i]) && currentPlayer === 'me') t.classList.add('playable');
+      else if(currentPlayer === 'me') t.classList.add('not-playable');
+      t.addEventListener('click', (function(idx){ return function(){ playTile(idx); }; })(i));
+      handDiv.appendChild(t);
+    }
+  }
+
+  // Pas geçme (eğer oynayacak taş yoksa)
+  document.getElementById('passBtn').addEventListener('click', function() {
+    if(currentPlayer !== 'me') return;
+    sendMessage({ type: 'pass' });
+    currentPlayer = 'peer';
+    document.getElementById('gameMessage').innerText = 'Pas geçtin. Sıra rakibinde...';
+    document.getElementById('passBtn').classList.add('hidden');
+  });
+
+</script>
+</body>
+</html>
