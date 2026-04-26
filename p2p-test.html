@@ -81,9 +81,20 @@
                 });
 
                 // Tam SDP'yi kod olarak göster
-                var code = btoa(JSON.stringify(pc.localDescription));
-                document.getElementById('myCode').value = code;
-                setStatus('✅ Oda hazır! Kodu arkadaşına gönder.', 'success');
+var code = btoa(JSON.stringify(pc.localDescription));
+var codeArea = document.getElementById('myCode');
+codeArea.value = code;
+
+// Otomatik kopyalama dene
+try {
+    navigator.clipboard.writeText(code).then(function() {
+        setStatus('✅ Oda hazır! Kod otomatik kopyalandı. Arkadaşına gönder.', 'success');
+    }).catch(function() {
+        setStatus('✅ Oda hazır! Kodu seçip kopyala (CTRL+C / uzun bas).', 'success');
+    });
+} catch(e) {
+    setStatus('✅ Oda hazır! Kodu seçip kopyala.', 'success');
+}
 
             } catch(e) {
                 setStatus('❌ Hata: ' + e.message, 'error');
