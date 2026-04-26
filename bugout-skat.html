@@ -43,11 +43,18 @@
         <a href="index.html" class="back-link">← Geri</a>
     </div>
     <div id="lobbyArea" class="lobby-area">
-        <h3>Oyun Odasına Katıl</h3>
-        <input type="text" id="roomIdInput" class="room-input" placeholder="Oda kodunu gir... (boş bırakırsan yeni oda)">
-        <button id="connectBtn" class="btn">Odaya Bağlan</button>
-        <p style="color:#9bb7d4; font-size:0.8rem; margin-top:8px;" id="roomInfo"></p>
-    </div>
+  <h3>Oyun Odasına Katıl</h3>
+  <div style="color:#9bb7d4; font-size:0.72rem; margin-bottom:12px; line-height:1.5; text-align:left; background:rgba(246,180,95,0.05); padding:10px; border-radius:12px; border:1px solid rgba(246,180,95,0.15);">
+    <strong style="color:#F6B45F;">📋 Nasıl oynanır?</strong><br>
+    ❶ Kutuyu boş bırakıp <strong>"Odaya Bağlan"</strong>a bas.<br>
+    ❷ Çıkan <strong>kodu arkadaşına</strong> gönder.<br>
+    ❸ Arkadaşın kodu girip <strong>"Odaya Bağlan"</strong>a bassın.<br>
+    ❹ 🎮 Oyun başlasın!
+  </div>
+  <input type="text" id="roomIdInput" class="room-input" placeholder="Arkadaşından aldığın kodu buraya yaz...">
+  <button id="connectBtn" class="btn">Odaya Bağlan</button>
+  <p style="color:#9bb7d4; font-size:0.8rem; margin-top:8px;" id="roomInfo"></p>
+</div>
     <div id="gameArea" class="game-area hidden">
         <h3>🃏 Bugout Skat</h3>
         <div class="trump-select" id="trumpSelect">
