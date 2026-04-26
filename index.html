@@ -126,33 +126,109 @@
     };
 
     var games = {
-        reflex: [
-            { name: "Reaction Tap", icon: "⚡", file: "reaction-tap.html" },
-            { name: "Flappy Compass", icon: "🧭", file: "flappy-compass.html" }
-        ],
-        logic: [
-            { name: "Logic Compass", icon: "🧩", file: "logic-compass.html" },
-            { name: "Sudoku", icon: "🔢", file: "sudoku.html" }
-        ],
-        visual: [
-            { name: "Water Sort Pro", icon: "💧", file: "water-sort-pro.html" }
-        ],
-        culture: [
-            { name: "Emekli Pusulası", icon: "🧓", file: "emekli-pusulasi.html" },
-            { name: "Nefes Pusulası", icon: "🌬️", file: "breathing.html" }
-        ],
-        tools: [
-            { name: "Döviz Çevirici", icon: "💱", file: "currency-converter.html" }
-        ],
-        duo: [
-            { name: "Domino", icon: "🀄", file: "domino.html" },
-            { name: "Kızma Birader", icon: "🎲", file: "ludo.html" }
-        ],
-        bugout: [
-            { name: "Bugout Domino", icon: "🌐🀄", file: "bugout-domino.html" },
-            { name: "Bugout XOX", icon: "🌐❌", file: "bugout-xox.html" }
-        ]
-    };
+    reflex: [
+        { name: "Reaction Tap", icon: "⚡", file: "reaction-tap.html" },
+        { name: "Stroop Testi", icon: "🎨", file: "stroop.html" },
+        { name: "Number Hunt", icon: "🔢", file: "number-hunt.html" },
+        { name: "Odd One Out", icon: "🔍", file: "odd-one-out.html" },
+        { name: "Visual Hunt", icon: "👀", file: "visual.html" },
+        { name: "Helix Jump", icon: "🌀", file: "helix-jump.html" },
+        { name: "Bio Sync Rhythm", icon: "🎵", file: "bio-synch-rhthym.html" },
+        { name: "Renk Algısı", icon: "🎯", file: "color.html" },
+        { name: "Flappy Compass", icon: "🧭", file: "flappy-compass.html" },
+        { name: "Renk Yakalama", icon: "🎨", file: "color-catcher.html" },
+        { name: "Ses Taklidi", icon: "🎤", file: "sound-mimic.html" }
+    ],
+    logic: [
+        { name: "Logic Compass", icon: "🧩", file: "logic-compass.html" },
+        { name: "Sudoku", icon: "🔢", file: "sudoku.html" },
+        { name: "Merge", icon: "🔀", file: "merge.html" },
+        { name: "Nova 2048", icon: "🌌", file: "nova2048.html" },
+        { name: "2048", icon: "🧱", file: "2048.html" },
+        { name: "Memory Pair", icon: "🃟", file: "memory.html" },
+        { name: "Sıra Hatırlama", icon: "🔁", file: "sequence.html" },
+        { name: "Kelime Türetme", icon: "📖", file: "word.html" },
+        { name: "Math Sprint", icon: "🧮", file: "math.html" },
+        { name: "Sayılar", icon: "#️⃣", file: "numbers.html" },
+        { name: "Kelime Bahçesi", icon: "🌻", file: "word-garden.html" },
+        { name: "Mahjong", icon: "🀄", file: "mahjong.html" },
+        { name: "Adam Asmaca", icon: "💀", file: "hangman.html" },
+        { name: "Taş Kağıt Makas", icon: "✂️", file: "rock-paper-scissors.html" },
+        { name: "Günlük Quiz", icon: "❓", file: "daily-quiz.html" },
+        { name: "Hızlı Yazma", icon: "⌨️", file: "speed-typing.html" },
+        { name: "Bayrak Bulmaca", icon: "🌍", file: "flag-quiz.html" }
+    ],
+    visual: [
+        { name: "Rotate", icon: "🔄", file: "rotate.html" },
+        { name: "Shadow Match", icon: "🌑", file: "shadow-match.html" },
+        { name: "Color Lines", icon: "🌈", file: "color-lines.html" },
+        { name: "Counterfeit", icon: "💰", file: "counterfeit.html" },
+        { name: "Pattern Match", icon: "🔲", file: "pattern-match.html" },
+        { name: "Hidden Object", icon: "🔎", file: "hidden-object.html" },
+        { name: "Water Sort Pro", icon: "💧", file: "water-sort-pro.html" },
+        { name: "Water Sort X", icon: "🧪", file: "watersortx.html" },
+        { name: "Fark Avcısı", icon: "🔍", file: "fark-avcisi.html" },
+        { name: "Match Three", icon: "💎", file: "match-three.html" },
+        { name: "PACDI Run", icon: "🏃", file: "pacdi-run.html" },
+        { name: "Labirent", icon: "🌀", file: "maze-runner.html" }
+    ],
+    culture: [
+        { name: "Emekli Pusulası", icon: "🧓", file: "emekli-pusulasi.html" },
+        { name: "Nefes Pusulası", icon: "🌬️", file: "breathing.html" },
+        { name: "Günlük Pusula", icon: "📅", file: "daily-compass.html" },
+        { name: "Geçmişin Yankısı", icon: "📻", file: "echo-of-the-past.html" },
+        { name: "Ata Albümü", icon: "📸", file: "ancestors-album.html" },
+        { name: "İyiliğin Grameri", icon: "🕊️", file: "eti-grammar.html" },
+        { name: "Unutulmuş Zariflikler", icon: "🎩", file: "forgotten-graces.html" },
+        { name: "Bilgelik Halkası", icon: "🏵️", file: "wisdom-circle.html" },
+        { name: "Dijital Miras", icon: "🖼️", file: "legacy-puzzle.html" },
+        { name: "Sesli Hafıza", icon: "🎤", file: "sesli-hafiza.html" },
+        { name: "Peg Solitaire", icon: "⚪", file: "peg.html" },
+        { name: "Plaka Kodları", icon: "🚗", file: "plaka-kodu.html" },
+        { name: "Kelime Avı", icon: "🔤", file: "word-hunt.html" },
+        { name: "Dünya Şehirleri", icon: "🌍", file: "world-cities.html" },
+        { name: "Günün Sözü", icon: "💬", file: "daily-quote.html" }
+    ],
+    tools: [
+        { name: "Döviz Çevirici", icon: "💱", file: "currency-converter.html" },
+        { name: "QR Kod Oluşturucu", icon: "📱", file: "qr-generator.html" },
+        { name: "Su İçme Hatırlatıcı", icon: "💧", file: "water-reminder.html" },
+        { name: "Yapılacaklar Listesi", icon: "✅", file: "todo-list.html" },
+        { name: "Zar Atma", icon: "🎲", file: "dice-roller.html" }
+    ],
+    duo: [
+        { name: "Domino", icon: "🀄", file: "domino.html" },
+        { name: "Dama", icon: "⏺️", file: "checkers.html" },
+        { name: "Satranç", icon: "♟️", file: "chess.html" },
+        { name: "Dokuz Taş", icon: "⚫", file: "nine-morris.html" },
+        { name: "Mangala", icon: "🕳️", file: "mangala.html" },
+        { name: "Kızma Birader", icon: "🎲", file: "ludo.html" },
+        { name: "Kniffel", icon: "🎯", file: "kniffel.html" },
+        { name: "Rommé", icon: "🃏", file: "romme.html" },
+        { name: "Skat", icon: "♠️", file: "skat.html" },
+        { name: "Peg Düello", icon: "⚪", file: "peg-duello.html" },
+        { name: "XOX Düello", icon: "❌", file: "xox-duello.html" },
+        { name: "Deniz Savaşı", icon: "🚢", file: "battleship-duello.html" },
+        { name: "Kelime Kapmaca", icon: "📝", file: "word-duello.html" },
+        { name: "Kuleden Kule", icon: "🗼", file: "tower-duello.html" }
+    ],
+    bugout: [
+        { name: "Bugout Domino", icon: "🌐🀄", file: "bugout-domino.html" },
+        { name: "Bugout XOX", icon: "🌐❌", file: "bugout-xox.html" },
+        { name: "Bugout Dama", icon: "🌐⏺️", file: "bugout-checkers.html" },
+        { name: "Bugout Satranç", icon: "🌐♟️", file: "bugout-chess.html" },
+        { name: "Bugout Dokuz Taş", icon: "🌐⚫", file: "bugout-nine-morris.html" },
+        { name: "Bugout Mangala", icon: "🌐🕳️", file: "bugout-mangala.html" },
+        { name: "Bugout Kızma Birader", icon: "🌐🎲", file: "bugout-ludo.html" },
+        { name: "Bugout Kniffel", icon: "🌐🎯", file: "bugout-kniffel.html" },
+        { name: "Bugout Rommé", icon: "🌐🃏", file: "bugout-romme.html" },
+        { name: "Bugout Skat", icon: "🌐♠️", file: "bugout-skat.html" },
+        { name: "Bugout Peg Düello", icon: "🌐⚪", file: "bugout-peg-duello.html" },
+        { name: "Bugout Deniz Savaşı", icon: "🌐🚢", file: "bugout-battleship.html" },
+        { name: "Bugout Kelime", icon: "🌐📝", file: "bugout-word-duello.html" },
+        { name: "Bugout Kule", icon: "🌐🗼", file: "bugout-tower-duello.html" }
+    ]
+ };
 
     function showInfoPopup(file, name) {
         var desc = gameInfos[file] || 'Bu oyunun açıklaması yakında eklenecek.';
