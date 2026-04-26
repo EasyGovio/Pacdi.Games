@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Bugout Satranç | PACDI Games</title>
+    <script src="https://cdn.jsdelivr.net/npm/bugout@0.0.13/dist/bugout.min.js"></script>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+        body { background:#04162E; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
+        .game-container { max-width:500px; width:100%; background:rgba(4,22,46,0.85); border-radius:56px; padding:20px 16px 24px; box-shadow:0 20px 35px rgba(0,0,0,0.5); border:1px solid rgba(246,180,95,0.3); text-align:center; }
+        .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+        .logo { font-size:1.3rem; font-weight:800; color:#F6B45F; }
+        .back-link { color:#F6B45F; text-decoration:none; font-weight:bold; font-size:0.78rem; background:#0a1018; padding:5px 12px; border-radius:40px; border:1px solid rgba(246,180,95,0.3); }
+        .lobby-area, .game-area { background:#0a1018; border-radius:28px; padding:20px 16px; margin-bottom:20px; }
+        h3 { color:#F6B45F; margin-bottom:10px; }
+        .room-input { width:100%; padding:12px 16px; border-radius:16px; border:2px solid rgba(246,180,95,0.3); background:#1e2a3a; color:#eaf2fb; font-size:1rem; text-align:center; outline:none; margin-bottom:10px; }
+        .btn { background:#F6B45F; border:none; font-weight:bold; padding:12px 24px; border-radius:40px; color:#04162E; cursor:pointer; font-size:0.9rem; margin:6px; }
+        canvas { display:block; margin:10px auto; border-radius:16px; border:2px solid rgba(246,180,95,0.3); max-width:400px; width:100%; aspect-ratio:1; cursor:pointer; background:#0a1018; }
+        .message { color:#F6B45F; font-size:0.9rem; font-weight:bold; min-height:30px; margin:8px 0; }
+        .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:12px; }
+        .hidden { display:none; }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="top-bar">
+        <div class="logo">BUGOUT SATRANÇ</div>
+        <a href="index.html" class="back-link">← Geri</a>
+    </div>
+
+    <div id="lobbyArea" class="lobby-area">
+        <h3>Oyun Odasına Katıl</h3>
+        <input type="text" id="roomIdInput" class="room-input" placeholder="Oda kodunu gir... (boş bırakırsan yeni oda)">
+        <button id="connectBtn" class="btn">Odaya Bağlan</button>
+        <p style="color:#9bb7d4; font-size:0.8rem; margin-top:8px;" id="roomInfo"></p>
+    </div>
+
+    <div id="gameArea" class="game-area hidden">
+        <h3>♟️ Bugout Satranç</h3>
+        <canvas id="chessCanvas" width="400" height="400"></canvas>
+        <div class="message" id="gameMessage">Rakip bekleniyor...</div>
+    </div>
+
+    <div class="footer">PACDI Games · Bugout ile uzaktan satranç.</div>
+</div>
+
+<script>
+    var bugout, myId, peerId, isHost = false;
+    var canvas = document.getElementById('chessCanvas');
+    var ctx = canvas.getContext('2d');
+    var size = 8, cellSize = canvas.width / size;
+    var board = [];
+    var myColor = null; // 'white' veya 'black'
+    var currentTurn = 'white';
+    var selectedRow = null, selectedCol = null;
+    var possibleMoves = [];
+    var gameOver = false;
+    var myPlayerLabel = '';
+
+    var pieces = {
+        white: { king:'♔', queen:'♕', rook:'♖', bishop:'♗', knight:'♘', pawn:'♙' },
+        black: { king:'♚', queen:'♛', rook:'♜', bishop:'♝', knight:'♞', pawn:'♟' }
+    };
+
+    // --- Satranç Mantığı (chess.html'den alınan çekirdek fonksiyonlar) ---
+    function initBoard() {
+        board = [];
+        for(var r=0; r<size; r++) {
+            board[r] = [];
+            for(var c=0; c<size; c++) {
+                if(r===0) {
+                    if(c===0||c===7) board[r][c] = { type:'rook', color:'black' };
+                    else if(c===1||c===6) board[r][c] = { type:'knight', color:'black' };
+                    else if(c===2||c===5) board[r][c] = { type:'bishop', color:'black' };
+                    else if(c===3) board[r][c] = { type:'queen', color:'black' };
+                    else if(c===4) board[r][c] = { type:'king', color:'black' };
+                } else if(r===1) {
+                    board[r][c] = { type:'pawn', color:'black' };
+                } else if(r===6) {
+                    board[r][c] = { type:'pawn', color:'white' };
+                } else if(r===7) {
+                    if(c===0||c===7) board[r][c] = { type:'rook', color:'white' };
+                    else if(c===1||c===6) board[r][c] = { type:'knight', color:'white' };
+                    else if(c===2||c===5) board[r][c] = { type:'bishop', color:'white' };
+                    else if(c===3) board[r][c] = { type:'queen', color:'white' };
+                    else if(c===4) board[r][c] = { type:'king', color:'white' };
+                } else {
+                    board[r][c] = null;
+                }
+            }
+        }
+    }
+
+    function drawBoard() {
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        for(var r=0; r<size; r++) {
+            for(var c=0; c<size; c++) {
+                var x = c*cellSize, y = r*cellSize;
+                ctx.fillStyle = (r+c)%2===0 ? '#1e2a3a' : '#2c3e50';
+                ctx.fillRect(x, y, cellSize, cellSize);
+                if(board[r][c]) {
+                    ctx.font = (cellSize*0.7) + 'px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillStyle = board[r][c].color === 'white' ? '#fff' : '#aaa';
+                    ctx.fillText(pieces[board[r][c].color][board[r][c].type], x+cellSize/2, y+cellSize/2);
+                }
+                if(selectedRow===r && selectedCol===c) {
+                    ctx.strokeStyle = '#F6B45F'; ctx.lineWidth = 3;
+                    ctx.strokeRect(x+2, y+2, cellSize-4, cellSize-4);
+                }
+                if(possibleMoves.some(function(m){ return m.r===r && m.c===c; })) {
+                    ctx.fillStyle = 'rgba(46,204,113,0.5)';
+                    ctx.beginPath(); ctx.arc(x+cellSize/2, y+cellSize/2, cellSize/6, 0, Math.PI*2); ctx.fill();
+                }
+            }
+        }
+    }
+
+    function getMoves(r, c) {
+        var piece = board[r][c];
+        if(!piece || piece.color !== myColor) return [];
+        // Satranç mantığı chess.html'deki getMoves fonksiyonu ile aynı, sadece currentPlayer kontrolü myColor ile değişti.
+        var moves = [];
+        var dir, nr, nc;
+        switch(piece.type) {
+            case 'pawn':
+                dir = piece.color === 'white' ? -1 : 1;
+                nr = r + dir; nc = c;
+                if(nr>=0 && nr<size && !board[nr][nc]) {
+                    moves.push({ r:nr, c:nc });
+                    if((piece.color==='white' && r===6) || (piece.color==='black' && r===1)) {
+                        var nr2 = r+2*dir;
+                        if(!board[nr2][nc]) moves.push({ r:nr2, c:nc });
+                    }
+                }
+                for(var dc=-1; dc<=1; dc+=2) {
+                    nc = c+dc; nr = r+dir;
+                    if(nr>=0 && nr<size && nc>=0 && nc<size && board[nr][nc] && board[nr][nc].color !== myColor) {
+                        moves.push({ r:nr, c:nc });
+                    }
+                }
+                break;
+            case 'rook':
+                for(var d=0; d<4; d++) {
+                    var dr = d<2 ? (d===0?-1:1) : 0;
+                    var dc2 = d>=2 ? (d===2?-1:1) : 0;
+                    nr = r+dr; nc = c+dc2;
+                    while(nr>=0 && nr<size && nc>=0 && nc<size) {
+                        if(!board[nr][nc]) moves.push({ r:nr, c:nc });
+                        else {
+                            if(board[nr][nc].color !== myColor) moves.push({ r:nr, c:nc });
+                            break;
+                        }
+                        nr+=dr; nc+=dc2;
+                    }
+                }
+                break;
+            case 'knight':
+                var jumps = [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]];
+                for(var j=0; j<jumps.length; j++) {
+                    nr = r+jumps[j][0]; nc = c+jumps[j][1];
+                    if(nr>=0 && nr<size && nc>=0 && nc<size && (!board[nr][nc] || board[nr][nc].color !== myColor)) {
+                        moves.push({ r:nr, c:nc });
+                    }
+                }
+                break;
+            case 'bishop':
+                for(var d=0; d<4; d++) {
+                    dr = d<2 ? -1 : 1;
+                    dc2 = d%2===0 ? -1 : 1;
+                    nr = r+dr; nc = c+dc2;
+                    while(nr>=0 && nr<size && nc>=0 && nc<size) {
+                        if(!board[nr][nc]) moves.push({ r:nr, c:nc });
+                        else {
+                            if(board[nr][nc].color !== myColor) moves.push({ r:nr, c:nc });
+                            break;
+                        }
+                        nr+=dr; nc+=dc2;
+                    }
+                }
+                break;
+            case 'queen':
+                return getMovesForType(r, c, 'rook').concat(getMovesForType(r, c, 'bishop'));
+            case 'king':
+                for(var dr=-1; dr<=1; dr++) {
+                    for(var dc3=-1; dc3<=1; dc3++) {
+                        if(dr===0 && dc3===0) continue;
+                        nr = r+dr; nc = c+dc3;
+                        if(nr>=0 && nr<size && nc>=0 && nc<size && (!board[nr][nc] || board[nr][nc].color !== myColor)) {
+                            moves.push({ r:nr, c:nc });
+                        }
+                    }
+                }
+                break;
+        }
+        return moves.filter(function(m){ return !isKingInCheckAfterMove(r,c,m.r,m.c); });
+    }
+
+    function getMovesForType(r, c, type) {
+        var oldType = board[r][c].type;
+        board[r][c].type = type;
+        var moves = getMoves(r, c);
+        board[r][c].type = oldType;
+        return moves;
+    }
+
+    function isKingInCheckAfterMove(fr, fc, tr, tc) {
+        var captured = board[tr][tc];
+        board[tr][tc] = board[fr][fc];
+        board[fr][fc] = null;
+        var inCheck = isKingInCheck(myColor);
+        board[fr][fc] = board[tr][tc];
+        board[tr][tc] = captured;
+        return inCheck;
+    }
+
+    function isKingInCheck(color) {
+        var kingPos = null;
+        for(var r=0; r<size; r++) for(var c=0; c<size; c++) if(board[r][c] && board[r][c].type==='king' && board[r][c].color===color) { kingPos = { r:r, c:c }; break; }
+        if(!kingPos) return true;
+        var oppColor = color==='white'?'black':'white';
+        for(var r=0; r<size; r++) for(var c=0; c<size; c++) if(board[r][c] && board[r][c].color===oppColor) {
+            var moves = getRawMoves(r, c);
+            if(moves.some(function(m){ return m.r===kingPos.r && m.c===kingPos.c; })) return true;
+        }
+        return false;
+    }
+
+    function getRawMoves(r, c) {
+        var piece = board[r][c]; if(!piece) return [];
+        var moves = []; var dir, nr, nc;
+        switch(piece.type) {
+            case 'pawn': dir = piece.color === 'white' ? -1 : 1; for(var dc=-1; dc<=1; dc+=2) { nr = r+dir; nc = c+dc; if(nr>=0 && nr<size && nc>=0 && nc<size) moves.push({ r:nr, c:nc }); } break;
+            case 'rook': for(var d=0; d<4; d++) { var dr = d<2 ? (d===0?-1:1) : 0; var dc2 = d>=2 ? (d===2?-1:1) : 0; nr = r+dr; nc = c+dc2; while(nr>=0 && nr<size && nc>=0 && nc<size) { moves.push({ r:nr, c:nc }); if(board[nr][nc]) break; nr+=dr; nc+=dc2; } } break;
+            case 'knight': var jumps = [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]]; for(var j=0; j<jumps.length; j++) moves.push({ r:r+jumps[j][0], c:c+jumps[j][1] }); break;
+            case 'bishop': for(var d=0; d<4; d++) { dr = d<2 ? -1 : 1; dc2 = d%2===0 ? -1 : 1; nr = r+dr; nc = c+dc2; while(nr>=0 && nr<size && nc>=0 && nc<size) { moves.push({ r:nr, c:nc }); if(board[nr][nc]) break; nr+=dr; nc+=dc2; } } break;
+            case 'queen': return getRawMoves(r,c).concat(getRawMovesForType(r,c,'rook')).concat(getRawMovesForType(r,c,'bishop'));
+            case 'king': for(var dr=-1; dr<=1; dr++) for(var dc3=-1; dc3<=1; dc3++) if(dr!==0 || dc3!==0) moves.push({ r:r+dr, c:c+dc3 }); break;
+        }
+        return moves.filter(function(m){ return m.r>=0 && m.r<size && m.c>=0 && m.c<size; });
+    }
+
+    function getRawMovesForType(r, c, type) { var oldType = board[r][c].type; board[r][c].type = type; var moves = getRawMoves(r, c); board[r][c].type = oldType; return moves; }
+
+    // --- Bugout İletişimi ---
+    function sendMessage(data) { if(bugout && peerId) bugout.send(peerId, JSON.stringify(data)); }
+
+    function handleMessage(rawMsg) {
+        var msg; try { msg = JSON.parse(rawMsg); } catch(e) { return; }
+        if(msg.type === 'move') {
+            board[msg.to.r][msg.to.c] = board[msg.from.r][msg.from.c];
+            board[msg.from.r][msg.from.c] = null;
+            currentTurn = myColor;
+            selectedRow = null; selectedCol = null; possibleMoves = [];
+            drawBoard();
+            document.getElementById('gameMessage').innerText = 'Sıra sende!';
+        }
+    }
+
+    // --- Canvas Tıklama ---
+    canvas.addEventListener('click', function(e) {
+        if(gameOver || currentTurn !== myColor) return;
+        var rect = canvas.getBoundingClientRect();
+        var scaleX = canvas.width / rect.width, scaleY = canvas.height / rect.height;
+        var cx = (e.clientX - rect.left) * scaleX, cy = (e.clientY - rect.top) * scaleY;
+        var c = Math.floor(cx / cellSize), r = Math.floor(cy / cellSize);
+        if(r<0 || r>=size || c<0 || c>=size) return;
+
+        if(selectedRow !== null) {
+            var isValid = possibleMoves.some(function(m){ return m.r===r && m.c===c; });
+            if(isValid) {
+                sendMessage({ type:'move', from:{r:selectedRow, c:selectedCol}, to:{r:r, c:c} });
+                board[r][c] = board[selectedRow][selectedCol];
+                board[selectedRow][selectedCol] = null;
+                selectedRow = null; selectedCol = null; possibleMoves = [];
+                currentTurn = currentTurn === 'white' ? 'black' : 'white';
+                drawBoard();
+                document.getElementById('gameMessage').innerText = 'Rakip düşünüyor...';
+                return;
+            } else if(board[r][c] && board[r][c].color === myColor) {
+                selectedRow = r; selectedCol = c;
+                possibleMoves = getMoves(r, c);
+            } else { selectedRow = null; selectedCol = null; possibleMoves = []; }
+        } else {
+            if(board[r][c] && board[r][c].color === myColor) {
+                selectedRow = r; selectedCol = c;
+                possibleMoves = getMoves(r, c);
+            }
+        }
+        drawBoard();
+    });
+
+    // --- Bağlantı ---
+    document.getElementById('connectBtn').addEventListener('click', function() {
+        var roomId = document.getElementById('roomIdInput').value.trim();
+        bugout = roomId ? new Bugout(roomId) : new Bugout();
+        bugout.address().then(function(address) {
+            myId = address;
+            document.getElementById('roomInfo').innerHTML = 'Senin adresin: <b>' + myId + '</b><br>Bu kodu arkadaşına gönder.';
+            if(!roomId) isHost = true;
+        });
+        bugout.on('message', function(address, message) {
+            if(!peerId) {
+                peerId = address;
+                document.getElementById('lobbyArea').classList.add('hidden');
+                document.getElementById('gameArea').classList.remove('hidden');
+                myColor = isHost ? 'white' : 'black';
+                initBoard();
+                drawBoard();
+                if(myColor === 'white') {
+                    currentTurn = 'white';
+                    document.getElementById('gameMessage').innerText = 'Sen Beyazsın, ilk hamleyi yap.';
+                } else {
+                    currentTurn = 'white';
+                    document.getElementById('gameMessage').innerText = 'Sen Siyahsın, rakip başlayacak...';
+                }
+            }
+            handleMessage(message);
+        });
+    });
+
+    initBoard();
+    drawBoard();
+</script>
+</body>
+</html>
