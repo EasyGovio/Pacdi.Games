@@ -130,23 +130,49 @@
 
     // Service Worker
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js');
-    }
+    navigator.serviceWorker.register('/sw.js');
+}
 
-    // PWA Install
-    var deferredPrompt;
-    window.addEventListener('beforeinstallprompt', function(e) {
-      e.preventDefault();
-      deferredPrompt = e;
-      document.getElementById('installPrompt').style.display = 'flex';
-      document.getElementById('installPrompt').innerText = '📲 Ana Ekrana Ekle';
-    });
-    window.installPWA = function() {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then(function() {
-          document.getElementById('installPrompt').style.display = 'none';
-        });
+// PWA Install - Düzeltilmiş
+var deferredPrompt;
+window.addEventListener('beforeinstallprompt', function(e) {
+    e.preventDefault();
+    deferredPrompt = e;
+    var promptEl = document.getElementById('installPrompt');
+    if (promptEl) {
+        promptEl.style.display = 'flex';
+        promptEl.innerText = '📲 Ana Ekrana Ekle';
+        promptEl.onclick = function() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then(function(result) {
+                    if (result.outcome === 'accepted') {
+                        promptEl.innerText = '✅ Eklendi!';
+                        promptEl.style.background = 'rgba(46,204,113,0.2)';
+                    }
+                    deferredPrompt = null;
+                });
+            }
+        };
+    }
+});
+
+// iOS ve manuel gösterim
+setTimeout(function() {
+    var promptEl = document.getElementById('installPrompt');
+    if (promptEl && promptEl.style.display === 'none') {
+        promptEl.style.display = 'flex';
+        promptEl.innerText = '📲 Ana Ekrana Ekle';
+        promptEl.onclick = function() {
+            var ua = navigator.userAgent || '';
+            if (/iPhone|iPad|iPod/.test(ua)) {
+                alert('iOS için: Safari\'de Paylaş (↑) butonuna basın → "Ana Ekrana Ekle"yi seçin.');
+            } else {
+                alert('Chrome menüsünden "Ana Ekrana Ekle"yi seçin.');
+            }
+        };
+    }
+}, 3000);
       } else {
         var ua = navigator.userAgent || '';
         if (/iPhone|iPad|iPod/.test(ua)) {
