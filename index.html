@@ -16,11 +16,7 @@
     .compass-icon { font-size: 1.3rem; }
     .points-value { font-size: 1.5rem; font-weight: 800; color: #F6B45F; line-height: 1; }
     .points-label { font-size: 0.7rem; color: #9bb7d4; }
-
-    /* Öne çıkan görsel */
     .hero-image { width: 100%; max-height: 280px; object-fit: cover; border-radius: 32px; margin-bottom: 1.5rem; border: 2px solid rgba(246,180,95,0.35); box-shadow: 0 16px 32px rgba(0,0,0,0.5); }
-
-    /* Emekli Pusulası geniş kart */
     .promo-spotlight { background: linear-gradient(145deg, rgba(246,180,95,0.12) 0%, rgba(10,16,24,0.9) 100%); border: 2px solid #F6B45F; border-radius: 42px; padding: 1.8rem 1.5rem; margin-bottom: 3rem; display: flex; flex-wrap: wrap; align-items: center; gap: 1.5rem; backdrop-filter: blur(8px); box-shadow: 0 20px 35px rgba(0,0,0,0.6); }
     .promo-icon { font-size: 4rem; flex-shrink: 0; }
     .promo-content { flex: 1; min-width: 240px; }
@@ -29,8 +25,6 @@
     .promo-stats { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1.2rem; }
     .promo-stat { background: #0a1018; padding: 5px 14px; border-radius: 30px; font-size: 0.75rem; color: #F6B45F; border: 1px solid rgba(246,180,95,0.3); }
     .promo-btn { display: inline-block; background: #F6B45F; color: #04162E; font-weight: bold; padding: 10px 28px; border-radius: 60px; font-size: 0.9rem; text-decoration: none; transition: 0.15s; }
-    .promo-btn:hover { background: #ffcf7a; }
-
     .category { margin-bottom: 2rem; }
     .category-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 1rem; border-left: 5px solid #F6B45F; padding-left: 1rem; display: flex; align-items: center; gap: 0.5rem; }
     .games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.5rem; }
@@ -39,8 +33,6 @@
     .game-icon { font-size: 2.3rem; margin-bottom: 0.6rem; }
     .game-name { font-size: 1.1rem; font-weight: 700; color: #F6B45F; margin-bottom: 0.3rem; }
     .game-desc { font-size: 0.75rem; color: #b8d0e8; margin-bottom: 0.8rem; line-height: 1.4; }
-    .badge-group { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-    .badge { background: #0a1018; padding: 2px 8px; border-radius: 60px; font-size: 0.6rem; font-weight: bold; color: #F6B45F; border: 1px solid #F6B45F40; }
     .play-btn { display: inline-block; margin-top: 0.8rem; background: #F6B45F; color: #04162E; font-weight: bold; padding: 6px 16px; border-radius: 60px; font-size: 0.75rem; text-decoration: none; transition: 0.1s; }
     .footer { text-align: center; margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid rgba(246,180,95,0.2); font-size: 0.7rem; color: #6c8fb0; }
     .reward-banner { background: #0a1018; border-radius: 48px; padding: 1rem; text-align: center; margin-top: 1rem; border: 1px solid #F6B45F20; }
@@ -62,10 +54,8 @@
     </div>
   </div>
 
-  <!-- OG Image -->
   <img src="og-image.jpg" alt="PACDI Games" class="hero-image" />
 
-  <!-- EMEKLİ PUSULASI GENİŞ KART -->
   <div class="promo-spotlight">
     <div class="promo-icon">🧓💰</div>
     <div class="promo-content">
@@ -86,6 +76,8 @@
   <div class="category"><div class="category-title"><span>🎨</span> Görsel Algı & Strateji</div><div class="games-grid" id="visualGrid"></div></div>
   <div class="category"><div class="category-title"><span>🌾</span> Hasat, Kültür & Onur</div><div class="games-grid" id="cultureGrid"></div></div>
   <div class="category"><div class="category-title"><span>🛠️</span> Araçlar & Günlük Hayat</div><div class="games-grid" id="toolsGrid"></div></div>
+  <div class="category"><div class="category-title"><span>👥</span> 2 Kişilik Oyunlar</div><div class="games-grid" id="duoGrid"></div></div>
+  <div class="category"><div class="category-title"><span>🌐</span> Bugout Uzaktan Oyun</div><div class="games-grid" id="bugoutGrid"></div></div>
 
   <div class="reward-banner">
     <div style="font-size: 0.8rem; color: #F6B45F;">🎉 Her oyunun sonunda ekstra puan kazan!</div>
@@ -137,7 +129,7 @@
         { name: "Taş Kağıt Makas", desc: "Klasik el oyunu, AI'ya karşı.", icon: "✂️", file: "rock-paper-scissors.html" },
         { name: "Günlük Quiz", desc: "Her gün yeni sorularla bilgi testi.", icon: "❓", file: "daily-quiz.html" },
         { name: "Hızlı Yazma", desc: "30 saniyede en hızlı sen yaz.", icon: "⌨️", file: "speed-typing.html" },
-        { name: "Bayrak Bulmaca", desc: "Ülke bayraklarını tahmin et.", icon: "🚩", file: "flag-quiz.html" }
+        { name: "Bayrak Bulmaca", desc: "Ülke bayraklarını tahmin et.", icon: "🌍", file: "flag-quiz.html" }
       ],
       visual: [
         { name: "Rotate", desc: "Şekli döndür, hedefe hizala.", icon: "🔄", file: "rotate.html" },
@@ -154,7 +146,6 @@
         { name: "Labirent", desc: "Labirentten çık, zihnini keskinleştir.", icon: "🌀", file: "maze-runner.html" }
       ],
       culture: [
-        { name: "Emekli Pusulası", desc: "Emeklilik promosyon hesaplama.", icon: "🧓", file: "emekli-pusulasi.html" },
         { name: "Nefes Pusulası", desc: "Kriz anında nefes egzersizi.", icon: "🌬️", file: "breathing.html" },
         { name: "Günlük Pusula", desc: "Namaz vakitleri, hicri takvim, ayetler.", icon: "📅", file: "daily-compass.html" },
         { name: "Geçmişin Yankısı", desc: "Anıları canlandıran bulmaca.", icon: "📻", file: "echo-of-the-past.html" },
@@ -176,6 +167,21 @@
         { name: "Su İçme Hatırlatıcı", desc: "Günlük su hedefini takip et, bildirim al.", icon: "💧", file: "water-reminder.html" },
         { name: "Yapılacaklar Listesi", desc: "Görevlerini ekle, tamamla, sil.", icon: "✅", file: "todo-list.html" },
         { name: "Zar Atma", desc: "Birden fazla zar at, toplamı gör.", icon: "🎲", file: "dice-roller.html" }
+      ],
+      duo: [
+        { name: "Domino", desc: "İki kişilik klasik domino oyunu.", icon: "🀄", file: "domino.html" },
+        { name: "Dama", desc: "Klasik 8x8 dama, sırayla oynayın.", icon: "⏺️", file: "checkers.html" },
+        { name: "Peg Düello", desc: "Rekabetçi çivi atlama düellosu.", icon: "⚪", file: "peg-duello.html" },
+        { name: "XOX Düello", desc: "Klasik 3x3 XOX oyunu.", icon: "❌", file: "xox-duello.html" },
+        { name: "Deniz Savaşı", desc: "Gemileri batır, rakibini yen.", icon: "🚢", file: "battleship-duello.html" },
+        { name: "Kelime Kapmaca", desc: "Aynı harflerden sırayla kelime türet.", icon: "📝", file: "word-duello.html" },
+        { name: "Kuleden Kule", desc: "Hanoi tarzı disk taşıma düellosu.", icon: "🗼", file: "tower-duello.html" }
+      ],
+      bugout: [
+        { name: "Bugout Domino", desc: "İnternet üzerinden uzaktan domino.", icon: "🌐🀄", file: "bugout-domino.html" },
+        { name: "Bugout XOX", desc: "İnternet üzerinden uzaktan XOX.", icon: "🌐❌", file: "bugout-xox.html" },
+        { name: "Bugout Dama", desc: "İnternet üzerinden uzaktan dama.", icon: "🌐⏺️", file: "bugout-checkers.html" },
+        { name: "Bugout Peg Düello", desc: "İnternet üzerinden uzaktan peg.", icon: "🌐⚪", file: "bugout-peg-duello.html" }
       ]
     };
 
@@ -202,8 +208,10 @@
     renderCategory('visualGrid', games.visual);
     renderCategory('cultureGrid', games.culture);
     renderCategory('toolsGrid', games.tools);
+    renderCategory('duoGrid', games.duo);
+    renderCategory('bugoutGrid', games.bugout);
 
-    var total = games.reflex.length + games.logic.length + games.visual.length + games.culture.length + games.tools.length;
+    var total = games.reflex.length + games.logic.length + games.visual.length + games.culture.length + games.tools.length + games.duo.length + games.bugout.length;
     document.getElementById('totalGamesSpan').innerText = total;
 
     var rewardBtn = document.getElementById('mockRewardBtn');
