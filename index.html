@@ -4,6 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>PACDI Games · Zihnini Oynat, Ekosistemi Büyüt</title>
+
+  <!-- PWA Meta Etiketleri -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="PACDI Games">
+  <link rel="apple-touch-icon" href="og-image.jpg">
+  <meta name="theme-color" content="#04162E">
+
   <style>
     * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
     body { background: #04162E; font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif; color: #eaf2fb; line-height: 1.5; }
@@ -25,11 +34,19 @@
     .promo-stats { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1.2rem; }
     .promo-stat { background: #0a1018; padding: 5px 14px; border-radius: 30px; font-size: 0.75rem; color: #F6B45F; border: 1px solid rgba(246,180,95,0.3); }
     .promo-btn { display: inline-block; background: #F6B45F; color: #04162E; font-weight: bold; padding: 10px 28px; border-radius: 60px; font-size: 0.9rem; text-decoration: none; transition: 0.15s; }
+
+    /* Yeni rozetler */
+    .info-badge-row { display: flex; gap: 12px; margin: 0 0 1.5rem; flex-wrap: wrap; justify-content: center; }
+    .info-badge-item { background: rgba(46,204,113,0.15); border: 1px solid rgba(46,204,113,0.4); padding: 8px 18px; border-radius: 40px; font-size: 0.85rem; color: #2ECC71; display: flex; align-items: center; gap: 6px; }
+    .info-badge-item.install-prompt { background: rgba(246,180,95,0.15); border-color: rgba(246,180,95,0.4); color: #F6B45F; cursor: pointer; }
+
     .category { margin-bottom: 2rem; }
     .category-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 1rem; border-left: 5px solid #F6B45F; padding-left: 1rem; display: flex; align-items: center; gap: 0.5rem; }
     .games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.5rem; }
-    .game-card { background: rgba(255,255,255,0.05); backdrop-filter: blur(4px); border-radius: 32px; padding: 1rem 1rem 1.2rem; transition: all 0.2s ease; border: 1px solid rgba(246,180,95,0.2); box-shadow: 0 8px 20px rgba(0,0,0,0.2); cursor: pointer; }
+    .game-card { background: rgba(255,255,255,0.05); backdrop-filter: blur(4px); border-radius: 32px; padding: 1rem 1rem 1.2rem; transition: all 0.2s ease; border: 1px solid rgba(246,180,95,0.2); box-shadow: 0 8px 20px rgba(0,0,0,0.2); cursor: pointer; position: relative; }
     .game-card:hover { transform: translateY(-5px); border-color: #F6B45F; background: rgba(255,255,255,0.08); }
+    .game-card.weekly-pick { border-color: #2ECC71; box-shadow: 0 0 20px rgba(46,204,113,0.3); }
+    .weekly-badge { position: absolute; top: -10px; right: -10px; background: #2ECC71; color: #04162E; font-weight: bold; font-size: 0.65rem; padding: 4px 10px; border-radius: 20px; }
     .game-icon { font-size: 2.3rem; margin-bottom: 0.6rem; }
     .game-name { font-size: 1.1rem; font-weight: 700; color: #F6B45F; margin-bottom: 0.3rem; }
     .game-desc { font-size: 0.75rem; color: #b8d0e8; margin-bottom: 0.8rem; line-height: 1.4; }
@@ -71,6 +88,11 @@
     </div>
   </div>
 
+  <div class="info-badge-row">
+    <div class="info-badge-item">📶 Bu oyunlar internetsiz de çalışır</div>
+    <div class="info-badge-item install-prompt" id="installPrompt" style="display:none;" onclick="installPWA()">📲 Ana Ekrana Ekle</div>
+  </div>
+
   <div class="category"><div class="category-title"><span>⚡</span> Refleks & Dikkat</div><div class="games-grid" id="reflexGrid"></div></div>
   <div class="category"><div class="category-title"><span>🧠</span> Hafıza & Mantık</div><div class="games-grid" id="logicGrid"></div></div>
   <div class="category"><div class="category-title"><span>🎨</span> Görsel Algı & Strateji</div><div class="games-grid" id="visualGrid"></div></div>
@@ -97,6 +119,36 @@
     function updatePointsUI() { pointsSpan.innerText = points; }
     function addPoints(amount) { points += amount; localStorage.setItem(POINTS_KEY, points); updatePointsUI(); pointsSpan.style.transform = 'scale(1.2)'; setTimeout(function() { pointsSpan.style.transform = ''; }, 200); }
     updatePointsUI();
+
+    // Service Worker Kaydı
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').then(function() {
+        console.log('SW registered');
+      });
+    }
+
+    // Install Prompt
+    var deferredPrompt;
+    window.addEventListener('beforeinstallprompt', function(e) {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('installPrompt').style.display = 'flex';
+    });
+    window.installPWA = function() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(function(result) {
+          document.getElementById('installPrompt').style.display = 'none';
+        });
+      }
+    };
+
+    // Haftanın Oyunu (Pazartesi günleri değişir)
+    function getWeekNumber() {
+      var now = new Date();
+      var start = new Date(now.getFullYear(), 0, 1);
+      return Math.ceil(((now - start) / 86400000 + start.getDay() + 1) / 7);
+    }
 
     var games = {
       reflex: [
@@ -174,6 +226,10 @@
         { name: "Satranç", desc: "Klasik satranç, iki kişilik.", icon: "♟️", file: "chess.html" },
         { name: "Dokuz Taş", desc: "Geleneksel dokuz taş oyunu.", icon: "⚫", file: "nine-morris.html" },
         { name: "Mangala", desc: "Klasik Türk mangala oyunu.", icon: "🕳️", file: "mangala.html" },
+        { name: "Kızma Birader", desc: "Zar at, taş kır, eve ulaş.", icon: "🎲", file: "ludo.html" },
+        { name: "Kniffel", desc: "5 zar, 3 atış, en yüksek skor.", icon: "🎯", file: "kniffel.html" },
+        { name: "Rommé", desc: "Kartları diz, setleri aç.", icon: "🃏", file: "romme.html" },
+        { name: "Skat", desc: "Alman milli kart oyunu.", icon: "♠️", file: "skat.html" },
         { name: "Peg Düello", desc: "Rekabetçi çivi atlama düellosu.", icon: "⚪", file: "peg-duello.html" },
         { name: "XOX Düello", desc: "Klasik 3x3 XOX oyunu.", icon: "❌", file: "xox-duello.html" },
         { name: "Deniz Savaşı", desc: "Gemileri batır, rakibini yen.", icon: "🚢", file: "battleship-duello.html" },
@@ -187,6 +243,10 @@
         { name: "Bugout Satranç", desc: "İnternet üzerinden uzaktan satranç.", icon: "🌐♟️", file: "bugout-chess.html" },
         { name: "Bugout Dokuz Taş", desc: "İnternet üzerinden uzaktan dokuz taş.", icon: "🌐⚫", file: "bugout-nine-morris.html" },
         { name: "Bugout Mangala", desc: "İnternet üzerinden uzaktan mangala.", icon: "🌐🕳️", file: "bugout-mangala.html" },
+        { name: "Bugout Kızma Birader", desc: "İnternet üzerinden uzaktan kızma birader.", icon: "🌐🎲", file: "bugout-ludo.html" },
+        { name: "Bugout Kniffel", desc: "İnternet üzerinden uzaktan kniffel.", icon: "🌐🎯", file: "bugout-kniffel.html" },
+        { name: "Bugout Rommé", desc: "İnternet üzerinden uzaktan rommé.", icon: "🌐🃏", file: "bugout-romme.html" },
+        { name: "Bugout Skat", desc: "İnternet üzerinden uzaktan skat.", icon: "🌐♠️", file: "bugout-skat.html" },
         { name: "Bugout Peg Düello", desc: "İnternet üzerinden uzaktan peg.", icon: "🌐⚪", file: "bugout-peg-duello.html" },
         { name: "Bugout Deniz Savaşı", desc: "İnternet üzerinden uzaktan deniz savaşı.", icon: "🌐🚢", file: "bugout-battleship.html" },
         { name: "Bugout Kelime Kapmaca", desc: "İnternet üzerinden uzaktan kelime.", icon: "🌐📝", file: "bugout-word-duello.html" },
@@ -194,8 +254,27 @@
       ]
     };
 
+    // Tüm oyunları tek bir diziye topla
+    var allGamesFlat = [];
+    for (var cat in games) {
+      for (var i = 0; i < games[cat].length; i++) {
+        allGamesFlat.push(games[cat][i]);
+      }
+    }
+
+    var weeklyGameIndex = getWeekNumber() % allGamesFlat.length;
+    var weeklyGameFile = allGamesFlat[weeklyGameIndex].file;
+    var weeklyGameName = allGamesFlat[weeklyGameIndex].name;
+
     function createGameCard(game) {
       var card = document.createElement('div'); card.className = 'game-card';
+      if (game.file === weeklyGameFile) {
+        card.classList.add('weekly-pick');
+        var badge = document.createElement('div');
+        badge.className = 'weekly-badge';
+        badge.innerText = '⭐ Haftanın Oyunu';
+        card.appendChild(badge);
+      }
       var iconDiv = document.createElement('div'); iconDiv.className = 'game-icon'; iconDiv.innerText = game.icon;
       var nameDiv = document.createElement('div'); nameDiv.className = 'game-name'; nameDiv.innerText = game.name;
       var descDiv = document.createElement('div'); descDiv.className = 'game-desc'; descDiv.innerText = game.desc;
@@ -219,7 +298,8 @@
     renderCategory('duoGrid', games.duo);
     renderCategory('bugoutGrid', games.bugout);
 
-    var total = games.reflex.length + games.logic.length + games.visual.length + games.culture.length + games.tools.length + games.duo.length + games.bugout.length;
+    var total = 0;
+    for (var cat in games) total += games[cat].length;
     document.getElementById('totalGamesSpan').innerText = total;
 
     var rewardBtn = document.getElementById('mockRewardBtn');
