@@ -1,0 +1,12 @@
+{
+  "name": "PACDI Games",
+  "short_name": "PACDI",
+  "description": "Zihnini Oynat, Ekosistemi Büyüt - 87 oyun ve araç",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#04162E",
+  "theme_color": "#F6B45F",
+  "icons": [
+    { "src": "og-image.jpg", "sizes": "512x512", "type": "image/jpeg" }
+  ]
+}
