@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Bugout Dama | PACDI Games</title>
+  <script src="https://cdn.jsdelivr.net/npm/bugout@0.0.13/dist/bugout.min.js"></script>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+    body { background:#04162E; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
+    .game-container { max-width:520px; width:100%; background:rgba(4,22,46,0.85); border-radius:56px; padding:20px 16px 24px; box-shadow:0 20px 35px rgba(0,0,0,0.5); border:1px solid rgba(246,180,95,0.3); text-align:center; }
+    .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+    .logo { font-size:1.3rem; font-weight:800; color:#F6B45F; }
+    .back-link { color:#F6B45F; text-decoration:none; font-weight:bold; font-size:0.78rem; background:#0a1018; padding:5px 12px; border-radius:40px; border:1px solid rgba(246,180,95,0.3); }
+    .lobby-area, .game-area { background:#0a1018; border-radius:28px; padding:20px 16px; margin-bottom:20px; }
+    h3 { color:#F6B45F; margin-bottom:12px; }
+    .room-input { width:100%; padding:12px 16px; border-radius:16px; border:2px solid rgba(246,180,95,0.3); background:#1e2a3a; color:#eaf2fb; font-size:1rem; text-align:center; outline:none; margin-bottom:10px; }
+    .btn { background:#F6B45F; border:none; font-weight:bold; padding:12px 24px; border-radius:40px; color:#04162E; cursor:pointer; font-size:0.9rem; margin:6px; }
+    .btn:active { transform:scale(0.96); }
+    canvas { display:block; margin:10px auto; border-radius:16px; border:2px solid rgba(246,180,95,0.3); max-width:380px; width:100%; aspect-ratio:1; cursor:pointer; background:#1a1a2e; }
+    .message { color:#F6B45F; font-size:0.9rem; font-weight:bold; min-height:30px; margin:8px 0; }
+    .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:12px; }
+    .hidden { display:none; }
+  </style>
+</head>
+<body>
+<div class="game-container">
+  <div class="top-bar">
+    <div class="logo">BUGOUT DAMA</div>
+    <a href="index.html" class="back-link">← Geri</a>
+  </div>
+
+  <div id="lobbyArea" class="lobby-area">
+    <h3>Oyun Odasına Katıl</h3>
+    <input type="text" id="roomIdInput" class="room-input" placeholder="Oda kodunu gir... (boş bırakırsan yeni oda)">
+    <button id="connectBtn" class="btn">Odaya Bağlan</button>
+    <p style="color:#9bb7d4; font-size:0.8rem; margin-top:8px;" id="roomInfo"></p>
+  </div>
+
+  <div id="gameArea" class="game-area hidden">
+    <h3>🔴🔵 Bugout Dama</h3>
+    <canvas id="boardCanvas" width="400" height="400"></canvas>
+    <div class="message" id="gameMessage">Rakip bekleniyor...</div>
+  </div>
+
+  <div class="footer">PACDI Games · Bugout ile uzaktan dama.</div>
+</div>
+
+<script>
+  var bugout;
+  var myId, peerId, isHost = false;
+  var canvas = document.getElementById('boardCanvas');
+  var ctx = canvas.getContext('2d');
+  var size = 8, cellSize = canvas.width / size;
+  var board = [];
+  var myPlayer = -1;    // 0: mavi, 1: kırmızı
+  var currentPlayer = 0; // mavi başlar
+  var selectedPiece = null;
+  var gameOver = false;
+
+  function initBoard() {
+    board = [];
+    for(var r=0; r<size; r++) {
+      board[r] = [];
+      for(var c=0; c<size; c++) {
+        if(r<3 && (r+c)%2===0) board[r][c] = { player:1, king:false };
+        else if(r>4 && (r+c)%2===0) board[r][c] = { player:0, king:false };
+        else board[r][c] = null;
+      }
+    }
+  }
+
+  function drawBoard() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    for(var r=0; r<size; r++) {
+      for(var c=0; c<size; c++) {
+        ctx.fillStyle = (r+c)%2===0 ? '#1e2a3a' : '#2c3e50';
+        ctx.fillRect(c*cellSize, r*cellSize, cellSize, cellSize);
+        if(board[r] && board[r][c]) {
+          ctx.beginPath();
+          ctx.arc(c*cellSize+cellSize/2, r*cellSize+cellSize/2, cellSize/2.5, 0, Math.PI*2);
+          ctx.fillStyle = board[r][c].player === 0 ? '#3498DB' : '#E74C3C';
+          ctx.fill();
+          if(board[r][c].king) {
+            ctx.fillStyle = '#F6B45F';
+            ctx.font = 'bold '+cellSize/2+'px sans-serif';
+            ctx.fillText('★', c*cellSize+cellSize/2-12, r*cellSize+cellSize/2+8);
+          }
+        }
+      }
+    }
+    if(selectedPiece) {
+      ctx.strokeStyle = '#F6B45F';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(selectedPiece.c*cellSize+2, selectedPiece.r*cellSize+2, cellSize-4, cellSize-4);
+    }
+  }
+
+  function isValidMove(fr, fc, tr, tc) {
+    if(tr<0 || tr>=size || tc<0 || tc>=size || board[tr][tc]) return false;
+    var dr = tr - fr, dc = tc - fc;
+    var piece = board[fr] && board[fr][fc];
+    if(!piece) return false;
+    if(Math.abs(dr)===1 && Math.abs(dc)===1) {
+      if(!piece.king) {
+        if(piece.player===0 && dr<=0) return false;
+        if(piece.player===1 && dr>=0) return false;
+      }
+      return true;
+    }
+    if(Math.abs(dr)===2 && Math.abs(dc)===2) {
+      var mr = fr+dr/2, mc = fc+dc/2;
+      if(board[mr] && board[mr][mc] && board[mr][mc].player !== currentPlayer) return true;
+    }
+    return false;
+  }
+
+  function movePiece(fr, fc, tr, tc) {
+    var piece = board[fr][fc];
+    board[fr][fc] = null;
+    board[tr][tc] = piece;
+    var wasJump = Math.abs(tr-fr)===2;
+    if(wasJump) { board[(fr+tr)/2][(fc+tc)/2] = null; }
+    if((piece.player===0 && tr===0) || (piece.player===1 && tr===size-1)) piece.king = true;
+    return wasJump && hasJump(tr, tc); // daha fazla zıplama var mı?
+  }
+
+  function hasJump(r, c) {
+    var piece = board[r] && board[r][c];
+    if(!piece) return false;
+    var dirs = piece.king ? [[-2,-2],[-2,2],[2,-2],[2,2]] : (piece.player===0 ? [[-2,-2],[-2,2]] : [[2,-2],[2,2]]);
+    for(var d=0; d<dirs.length; d++) {
+      var tr=r+dirs[d][0], tc=c+dirs[d][1], mr=r+dirs[d][0]/2, mc=c+dirs[d][1]/2;
+      if(tr>=0 && tr<size && tc>=0 && tc<size && !board[tr][tc] && board[mr] && board[mr][mc] && board[mr][mc].player !== currentPlayer) return true;
+    }
+    return false;
+  }
+
+  function switchTurn() {
+    currentPlayer = 1 - currentPlayer;
+    drawBoard();
+    document.getElementById('gameMessage').innerText = currentPlayer === myPlayer ? 'Sıra sende.' : 'Rakip düşünüyor...';
+  }
+
+  function checkWin() {
+    var p0=0, p1=0;
+    for(var r=0; r<size; r++) for(var c=0; c<size; c++) if(board[r]&&board[r][c]) { if(board[r][c].player===0) p0++; else p1++; }
+    if(!p0) { gameOver=true; document.getElementById('gameMessage').innerText = myPlayer===1 ? '🎉 Sen kazandın!' : '😔 Kaybettin.'; }
+    if(!p1) { gameOver=true; document.getElementById('gameMessage').innerText = myPlayer===0 ? '🎉 Sen kazandın!' : '😔 Kaybettin.'; }
+  }
+
+  function makeMove(fr, fc, tr, tc) {
+    if(gameOver || currentPlayer !== myPlayer) return;
+    var canContinue = movePiece(fr, fc, tr, tc);
+    sendMessage({ type:'move', fr:fr, fc:fc, tr:tr, tc:tc, board:JSON.parse(JSON.stringify(board)), nextPlayer: canContinue ? currentPlayer : 1-currentPlayer });
+    checkWin();
+    if(!gameOver) {
+      if(!canContinue) switchTurn();
+      else document.getElementById('gameMessage').innerText = 'Zıplamaya devam et!';
+    }
+  }
+
+  canvas.addEventListener('click', function(e) {
+    if(gameOver || currentPlayer !== myPlayer) return;
+    var rect = canvas.getBoundingClientRect();
+    var scaleX = canvas.width / rect.width, scaleY = canvas.height / rect.height;
+    var cx = (e.clientX - rect.left) * scaleX, cy = (e.clientY - rect.top) * scaleY;
+    var c = Math.floor(cx / cellSize), r = Math.floor(cy / cellSize);
+
+    if(selectedPiece) {
+      if(isValidMove(selectedPiece.r, selectedPiece.c, r, c)) {
+        makeMove(selectedPiece.r, selectedPiece.c, r, c);
+        selectedPiece = null;
+      } else {
+        selectedPiece = (board[r] && board[r][c] && board[r][c].player === myPlayer) ? {r:r, c:c} : null;
+      }
+    } else {
+      if(board[r] && board[r][c] && board[r][c].player === myPlayer) selectedPiece = {r:r, c:c};
+    }
+    drawBoard();
+  });
+
+  function sendMessage(data) { if(bugout && peerId) bugout.send(peerId, JSON.stringify(data)); }
+
+  function handleMessage(rawMsg) {
+    var msg;
+    try { msg = JSON.parse(rawMsg); } catch(e) { return; }
+    if(msg.type === 'move') {
+      board = msg.board;
+      currentPlayer = msg.nextPlayer;
+      drawBoard();
+      checkWin();
+      if(!gameOver) document.getElementById('gameMessage').innerText = currentPlayer === myPlayer ? 'Sıra sende.' : 'Rakip düşünüyor...';
+    }
+  }
+
+  document.getElementById('connectBtn').addEventListener('click', function() {
+    var roomId = document.getElementById('roomIdInput').value.trim();
+    bugout = roomId ? new Bugout(roomId) : new Bugout();
+    bugout.address().then(function(address) {
+      myId = address;
+      document.getElementById('roomInfo').innerHTML = 'Senin adresin: <b>' + myId + '</b><br>Bu kodu arkadaşına gönder.';
+      if(!roomId) isHost = true;
+    });
+    bugout.on('message', function(address, message) {
+      if(!peerId) {
+        peerId = address;
+        document.getElementById('lobbyArea').classList.add('hidden');
+        document.getElementById('gameArea').classList.remove('hidden');
+        myPlayer = isHost ? 0 : 1;
+        document.getElementById('gameMessage').innerText = isHost ? 'Sen Mavi'sin, ilk hamleyi yap.' : 'Sen Kırmızı'sın, rakip Mavi.';
+        initBoard();
+        drawBoard();
+      }
+      handleMessage(message);
+    });
+  });
+</script>
+</body>
+</html>
