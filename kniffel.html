@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Kniffel | PACDI Games</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+        body { background:#04162E; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
+        .game-container { max-width:520px; width:100%; background:rgba(4,22,46,0.85); border-radius:56px; padding:20px 16px 24px; box-shadow:0 20px 35px rgba(0,0,0,0.5); border:1px solid rgba(246,180,95,0.3); text-align:center; }
+        .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+        .logo { font-size:1.3rem; font-weight:800; color:#F6B45F; }
+        .back-link { color:#F6B45F; text-decoration:none; font-weight:bold; font-size:0.78rem; background:#0a1018; padding:5px 12px; border-radius:40px; border:1px solid rgba(246,180,95,0.3); }
+        .lang-selector { display:flex; gap:6px; margin-bottom:10px; justify-content:flex-end; }
+        .lang-btn { background:#0a1018; border:1px solid #F6B45F; color:#F6B45F; font-size:0.7rem; padding:3px 10px; border-radius:30px; cursor:pointer; }
+        .lang-btn.active { background:#F6B45F; color:#04162E; }
+        .info-bar { display:flex; justify-content:space-between; align-items:center; background:#0a1018; border-radius:40px; padding:7px 16px; margin-bottom:10px; }
+        .player-turn { color:#F6B45F; font-weight:bold; font-size:0.85rem; }
+        .rolls-left { color:#9bb7d4; font-size:0.75rem; }
+        .dice-row { display:flex; justify-content:center; gap:10px; margin:14px 0; }
+        .die { width:54px; height:54px; border-radius:14px; background:#1e2a3a; border:2px solid rgba(246,180,95,0.3); display:flex; align-items:center; justify-content:center; font-size:1.8rem; cursor:pointer; transition:0.1s; }
+        .die.held { background:rgba(46,204,113,0.2); border-color:#2ECC71; }
+        .die:active { transform:scale(0.95); }
+        .btn-row { display:flex; gap:8px; justify-content:center; margin:8px 0; }
+        .btn { background:#F6B45F; border:none; font-weight:bold; padding:10px 20px; border-radius:40px; color:#04162E; cursor:pointer; font-size:0.85rem; }
+        .btn:disabled { opacity:0.3; pointer-events:none; }
+        .btn.secondary { background:#1e2a3a; border:2px solid #F6B45F; color:#F6B45F; }
+        .scorecard { background:#0a1018; border-radius:20px; padding:12px; margin-top:10px; text-align:left; }
+        .score-row { display:flex; justify-content:space-between; align-items:center; padding:4px 8px; border-bottom:1px solid rgba(255,255,255,0.05); }
+        .score-label { color:#9bb7d4; font-size:0.75rem; }
+        .score-value { color:#eaf2fb; font-weight:bold; font-size:0.8rem; cursor:pointer; padding:2px 8px; border-radius:8px; }
+        .score-value.empty { color:#F6B45F; background:rgba(246,180,95,0.1); }
+        .score-value.filled { pointer-events:none; }
+        .message { color:#F6B45F; font-size:0.85rem; font-weight:bold; min-height:22px; margin:4px 0; }
+        .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:8px; }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="top-bar">
+        <div class="logo" id="gameTitle">KNIFFEL</div>
+        <a href="index.html" class="back-link" id="backLink">← Geri</a>
+    </div>
+    <div class="lang-selector">
+        <button class="lang-btn active" data-lang="tr">TR</button>
+        <button class="lang-btn" data-lang="de">DE</button>
+        <button class="lang-btn" data-lang="en">EN</button>
+    </div>
+    <div class="info-bar">
+        <div class="player-turn" id="turnDisplay">Sıra: <span style="color:#3498DB">Oyuncu 1</span></div>
+        <div class="rolls-left" id="rollsLeft">3 atış hakkı kaldı</div>
+    </div>
+    <div class="dice-row" id="diceRow">
+        <div class="die" data-idx="0">🎲</div>
+        <div class="die" data-idx="1">🎲</div>
+        <div class="die" data-idx="2">🎲</div>
+        <div class="die" data-idx="3">🎲</div>
+        <div class="die" data-idx="4">🎲</div>
+    </div>
+    <div class="btn-row">
+        <button class="btn" id="rollBtn">🎲 Zar At</button>
+        <button class="btn secondary" id="newGameBtn">↺ Yeni Oyun</button>
+    </div>
+    <div class="scorecard" id="scorecard"></div>
+    <div class="message" id="message">Oyuncu 1 oynuyor, zar at</div>
+    <div class="footer" id="footerText">PACDI Games · 5 zar, 3 atış, en yüksek skor!</div>
+</div>
+<script>
+(function(){
+    var langData = {
+        tr: { title:"KNIFFEL", back:"← Geri", turn:"Sıra:", p1:"Oyuncu 1", p2:"Oyuncu 2", rolls:"{0} atış hakkı kaldı", rollBtn:"🎲 Zar At", newGame:"↺ Yeni Oyun", msgRoll:"zar at", msgPick:"bir kategori seç", msgFilled:"Bu kategori zaten dolu!", footer:"PACDI Games · 5 zar, 3 atış, en yüksek skor!" },
+        de: { title:"KNIFFEL", back:"← Zurück", turn:"Zug:", p1:"Spieler 1", p2:"Spieler 2", rolls:"{0} Würfe übrig", rollBtn:"🎲 Würfeln", newGame:"↺ Neues Spiel", msgRoll:"würfle", msgPick:"wähle eine Kategorie", msgFilled:"Kategorie bereits belegt!", footer:"PACDI Games · 5 Würfel, 3 Würfe, höchste Punktzahl!" },
+        en: { title:"KNIFFEL", back:"← Back", turn:"Turn:", p1:"Player 1", p2:"Player 2", rolls:"{0} rolls left", rollBtn:"🎲 Roll Dice", newGame:"↺ New Game", msgRoll:"roll dice", msgPick:"pick a category", msgFilled:"Category already filled!", footer:"PACDI Games · 5 dice, 3 rolls, highest score!" }
+    };
+    var currentLang = 'tr';
+    var diceValues = [1,1,1,1,1];
+    var held = [false,false,false,false,false];
+    var rollsLeft = 3;
+    var currentPlayer = 0;
+    var scores = [
+        { upper:[null,null,null,null,null,null], lower:[null,null,null,null,null,null,null], total:0 },
+        { upper:[null,null,null,null,null,null], lower:[null,null,null,null,null,null,null], total:0 }
+    ];
+    var gameOver = false;
+    var hasRolled = false;
+    var upperLabels = ['1\'ler','2\'ler','3\'ler','4\'ler','5\'ler','6\'lar'];
+    var lowerLabels = ['3 Aynı','4 Aynı','Full','Küçük Kent','Büyük Kent','Kniffel','Şans'];
+
+    function updateLanguage() {
+        var t=langData[currentLang];
+        document.getElementById('gameTitle').innerText=t.title;
+        document.getElementById('backLink').innerText=t.back;
+        document.getElementById('rollBtn').innerText=t.rollBtn;
+        document.getElementById('newGameBtn').innerText=t.newGame;
+        document.getElementById('footerText').innerText=t.footer;
+        updateTurn();
+        updateRolls();
+        renderScorecard();
+    }
+
+    function setLanguage(lang) {
+        currentLang=lang; updateLanguage();
+        var btns=document.querySelectorAll('.lang-btn');
+        for(var i=0;i<btns.length;i++) btns[i].classList.toggle('active', btns[i].getAttribute('data-lang')===lang);
+    }
+
+    function updateTurn() {
+        var t=langData[currentLang];
+        var name = currentPlayer===0 ? t.p1 : t.p2;
+        var color = currentPlayer===0 ? '#3498DB' : '#E74C3C';
+        document.getElementById('turnDisplay').innerHTML = t.turn + ' <span style="color:'+color+'">'+name+'</span>';
+    }
+
+    function updateRolls() {
+        var t=langData[currentLang];
+        document.getElementById('rollsLeft').innerText = t.rolls.replace('{0}', rollsLeft);
+        document.getElementById('rollBtn').disabled = rollsLeft <= 0 || gameOver;
+    }
+
+    function renderDice() {
+        var faces = ['⚀','⚁','⚂','⚃','⚄','⚅'];
+        var diceEls = document.querySelectorAll('.die');
+        for(var i=0;i<5;i++) {
+            diceEls[i].innerText = faces[diceValues[i]-1];
+            diceEls[i].classList.toggle('held', held[i]);
+        }
+    }
+
+    function rollDice() {
+        if(rollsLeft <= 0 || gameOver) return;
+        for(var i=0;i<5;i++) {
+            if(!held[i]) diceValues[i] = Math.floor(Math.random()*6)+1;
+        }
+        rollsLeft--;
+        hasRolled = true;
+        updateRolls();
+        renderDice();
+        if(rollsLeft === 0) {
+            document.getElementById('message').innerText = langData[currentLang].msgPick;
+        } else {
+            document.getElementById('message').innerText = langData[currentLang].msgRoll;
+        }
+    }
+
+    function toggleHold(idx) {
+        if(rollsLeft >= 3 || !hasRolled || gameOver) return;
+        held[idx] = !held[idx];
+        renderDice();
+    }
+
+    function calculateScore(category, isUpper) {
+        var counts = [0,0,0,0,0,0];
+        for(var i=0;i<5;i++) counts[diceValues[i]-1]++;
+        if(isUpper) {
+            return counts[category] * (category+1);
+        }
+        switch(category) {
+            case 0: return counts.some(function(c){return c>=3;}) ? diceValues.reduce(function(a,b){return a+b;},0) : 0;
+            case 1: return counts.some(function(c){return c>=4;}) ? diceValues.reduce(function(a,b){return a+b;},0) : 0;
+            case 2: return counts.some(function(c){return c===3;}) && counts.some(function(c){return c===2;}) ? 25 : 0;
+            case 3: var s1 = [1,2,3,4].every(function(v){return counts[v-1]>=1;}) || [2,3,4,5].every(function(v){return counts[v-1]>=1;}) || [3,4,5,6].every(function(v){return counts[v-1]>=1;}); return s1 ? 30 : 0;
+            case 4: return [1,2,3,4,5].every(function(v){return counts[v-1]>=1;}) || [2,3,4,5,6].every(function(v){return counts[v-1]>=1;}) ? 40 : 0;
+            case 5: return counts.some(function(c){return c>=5;}) ? 50 : 0;
+            case 6: return diceValues.reduce(function(a,b){return a+b;},0);
+        }
+        return 0;
+    }
+
+    function scoreCategory(isUpper, index) {
+        if(gameOver || !hasRolled) return;
+        var p = currentPlayer;
+        var arr = isUpper ? scores[p].upper : scores[p].lower;
+        if(arr[index] !== null) {
+            document.getElementById('message').innerText = langData[currentLang].msgFilled;
+            return;
+        }
+        var pts = calculateScore(index, isUpper);
+        arr[index] = pts;
+        scores[p].total += pts;
+        hasRolled = false;
+        rollsLeft = 3;
+        held = [false,false,false,false,false];
+        diceValues = [1,1,1,1,1];
+        renderDice();
+        updateRolls();
+        currentPlayer = 1 - currentPlayer;
+        updateTurn();
+        renderScorecard();
+        document.getElementById('message').innerText = (currentPlayer===0?langData[currentLang].p1:langData[currentLang].p2) + ' ' + langData[currentLang].msgRoll;
+        checkGameOver();
+    }
+
+    function checkGameOver() {
+        for(var p=0;p<2;p++) {
+            var allFilled = scores[p].upper.every(function(v){return v!==null;}) && scores[p].lower.every(function(v){return v!==null;});
+            if(allFilled) {
+                gameOver = true;
+                var winner = scores[0].total > scores[1].total ? langData[currentLang].p1 : (scores[1].total > scores[0].total ? langData[currentLang].p2 : 'Berabere');
+                document.getElementById('message').innerText = '🎉 ' + winner + ' kazandı!';
+            }
+        }
+    }
+
+    function renderScorecard() {
+        var card = document.getElementById('scorecard');
+        var p = currentPlayer;
+        var html = '<div style="display:flex; justify-content:space-around; font-weight:bold; color:#F6B45F; margin-bottom:4px;">';
+        html += '<span>'+langData[currentLang].p1+': '+scores[0].total+'</span>';
+        html += '<span>'+langData[currentLang].p2+': '+scores[1].total+'</span>';
+        html += '</div>';
+        for(var i=0;i<6;i++) {
+            html += '<div class="score-row">';
+            html += '<span class="score-label">'+upperLabels[i]+'</span>';
+            html += '<span class="score-value'+(scores[p].upper[i]===null?' empty':' filled')+'" onclick="window._scoreCat(true,'+i+')">'+(scores[p].upper[i]!==null?scores[p].upper[i]:'?')+'</span>';
+            html += '</div>';
+        }
+        for(var j=0;j<7;j++) {
+            html += '<div class="score-row">';
+            html += '<span class="score-label">'+lowerLabels[j]+'</span>';
+            html += '<span class="score-value'+(scores[p].lower[j]===null?' empty':' filled')+'" onclick="window._scoreCat(false,'+j+')">'+(scores[p].lower[j]!==null?scores[p].lower[j]:'?')+'</span>';
+            html += '</div>';
+        }
+        card.innerHTML = html;
+    }
+
+    window._scoreCat = function(isUpper, index) { scoreCategory(isUpper, index); };
+
+    document.getElementById('rollBtn').addEventListener('click', rollDice);
+    document.getElementById('newGameBtn').addEventListener('click', function(){
+        scores = [
+            { upper:[null,null,null,null,null,null], lower:[null,null,null,null,null,null,null], total:0 },
+            { upper:[null,null,null,null,null,null], lower:[null,null,null,null,null,null,null], total:0 }
+        ];
+        currentPlayer = 0; rollsLeft = 3; gameOver = false; hasRolled = false;
+        held = [false,false,false,false,false];
+        diceValues = [1,1,1,1,1];
+        updateRolls(); updateTurn(); renderDice(); renderScorecard();
+        document.getElementById('message').innerText = langData[currentLang].msgRoll;
+    });
+
+    var diceEls = document.querySelectorAll('.die');
+    for(var i=0;i<diceEls.length;i++) {
+        diceEls[i].addEventListener('click', (function(idx){ return function(){ toggleHold(idx); }; })(i));
+    }
+
+    var langBtns = document.querySelectorAll('.lang-btn');
+    for(var i=0;i<langBtns.length;i++) langBtns[i].addEventListener('click', function(){ var l=this.getAttribute('data-lang'); if(l!==currentLang) setLanguage(l); });
+
+    setLanguage('tr');
+    renderDice();
+    renderScorecard();
+})();
+</script>
+</body>
+</html>

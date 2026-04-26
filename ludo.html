@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Kızma Birader | PACDI Games</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+        body { background:#04162E; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
+        .game-container { max-width:580px; width:100%; background:rgba(4,22,46,0.85); border-radius:56px; padding:20px 16px 24px; box-shadow:0 20px 35px rgba(0,0,0,0.5); border:1px solid rgba(246,180,95,0.3); text-align:center; }
+        .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+        .logo { font-size:1.3rem; font-weight:800; color:#F6B45F; }
+        .back-link { color:#F6B45F; text-decoration:none; font-weight:bold; font-size:0.78rem; background:#0a1018; padding:5px 12px; border-radius:40px; border:1px solid rgba(246,180,95,0.3); }
+        .lang-selector { display:flex; gap:6px; margin-bottom:8px; justify-content:flex-end; }
+        .lang-btn { background:#0a1018; border:1px solid #F6B45F; color:#F6B45F; font-size:0.7rem; padding:3px 10px; border-radius:30px; cursor:pointer; }
+        .lang-btn.active { background:#F6B45F; color:#04162E; }
+        canvas { display:block; margin:10px auto; border-radius:20px; border:2px solid rgba(246,180,95,0.3); max-width:420px; width:100%; aspect-ratio:1; cursor:pointer; background:#0a1018; }
+        .info-bar { display:flex; justify-content:space-between; align-items:center; margin:8px 0; }
+        .dice-area { display:flex; align-items:center; gap:12px; justify-content:center; }
+        .dice-display { width:56px; height:56px; background:#1e2a3a; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:2rem; border:2px solid rgba(246,180,95,0.3); }
+        .roll-btn { background:#F6B45F; border:none; font-weight:bold; padding:10px 20px; border-radius:40px; color:#04162E; cursor:pointer; font-size:0.9rem; }
+        .roll-btn:disabled { opacity:0.3; pointer-events:none; }
+        .message { color:#F6B45F; font-size:0.85rem; font-weight:bold; min-height:24px; margin:4px 0; }
+        .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:8px; }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="top-bar">
+        <div class="logo" id="gameTitle">KIZMA BİRADER</div>
+        <a href="index.html" class="back-link" id="backLink">← Geri</a>
+    </div>
+    <div class="lang-selector">
+        <button class="lang-btn active" data-lang="tr">TR</button>
+        <button class="lang-btn" data-lang="de">DE</button>
+        <button class="lang-btn" data-lang="en">EN</button>
+    </div>
+    <canvas id="boardCanvas" width="420" height="420"></canvas>
+    <div class="info-bar">
+        <div class="player-turn" id="turnDisplay" style="color:#F6B45F; font-weight:bold; font-size:0.9rem;">Sıra: <span style="color:#3498DB">Mavi</span></div>
+        <div class="dice-area">
+            <div class="dice-display" id="diceDisplay">🎲</div>
+            <button class="roll-btn" id="rollBtn">Zar At</button>
+        </div>
+    </div>
+    <div class="message" id="message">Mavi oynuyor, zar at</div>
+    <div class="footer" id="footerText">PACDI Games · Kızma birader, zar at, taş kır!</div>
+</div>
+<script>
+(function(){
+    var langData = {
+        tr: { title:"KIZMA BİRADER", back:"← Geri", roll:"Zar At", turn:"Sıra:", blue:"Mavi", red:"Kırmızı", msgRoll:"zar at", msgPick:"taşını seç veya", msgAgain:"tekrar zar at", msgBlocked:"oynayacak hamle yok, sıra rakibe geçti", msgWin:"🎉 KAZANDI!", msgSix:"6 geldi! Tekrar zar at.", footer:"PACDI Games · Kızma birader, zar at, taş kır!" },
+        de: { title:"MENSCH ÄRGERE DICH NICHT", back:"← Zurück", roll:"Würfeln", turn:"Zug:", blue:"Blau", red:"Rot", msgRoll:"würfle", msgPick:"wähle eine Figur oder", msgAgain:"würfle erneut", msgBlocked:"kein Zug möglich, nächster Spieler", msgWin:"🎉 HAT GEWONNEN!", msgSix:"6 gewürfelt! Nochmal würfeln.", footer:"PACDI Games · Mensch ärgere dich nicht, würfle, schlage!" },
+        en: { title:"LUDO", back:"← Back", roll:"Roll Dice", turn:"Turn:", blue:"Blue", red:"Red", msgRoll:"roll the dice", msgPick:"pick a piece or", msgAgain:"roll again", msgBlocked:"no moves, turn passes", msgWin:"🎉 WINS!", msgSix:"Rolled 6! Roll again.", footer:"PACDI Games · Ludo, roll dice, knock out!" }
+    };
+    var currentLang = 'tr';
+    var canvas = document.getElementById('boardCanvas');
+    var ctx = canvas.getContext('2d');
+    var size = 11;
+    var cs = canvas.width / size;
+    var players = [
+        { color:'#3498DB', start:{r:9,c:1}, home:{r:9,c:9}, path:[], pieces:[0,0,0,0], piecesDone:0, name:'blue' },
+        { color:'#E74C3C', start:{r:1,c:9}, home:{r:1,c:1}, path:[], pieces:[0,0,0,0], piecesDone:0, name:'red' }
+    ];
+    var currentPlayer = 0;
+    var diceValue = 0;
+    var gameOver = false;
+    var canRoll = true;
+    var hasRolled = false;
+    var rolledSix = false;
+
+    function initPaths() {
+        var p0 = [];
+        for(var i=0;i<40;i++) {
+            var r,c;
+            if(i<5) { r=9; c=0-i; }
+            else if(i<10) { r=10; c=i-10; }
+            else if(i<15) { r=10-(i-10); c=0; }
+            else if(i<20) { r=5; c=i-15; }
+            else if(i<25) { r=5-(i-20); c=5; }
+            else if(i<30) { r=0; c=5-(i-25); }
+            else if(i<35) { r=i-30; c=5; }
+            else { r=5; c=5+(i-35); }
+            p0.push({r:r+1,c:c+1});
+        }
+        players[0].path = p0;
+        var p1 = [];
+        for(var i=0;i<40;i++) {
+            var idx = (i+20)%40;
+            p1.push({r:p0[idx].r, c:p0[idx].c});
+        }
+        players[1].path = p1;
+    }
+
+    function resetGame() {
+        players[0].pieces = [0,0,0,0]; players[0].piecesDone = 0;
+        players[1].pieces = [0,0,0,0]; players[1].piecesDone = 0;
+        currentPlayer = 0; diceValue = 0; gameOver = false; canRoll = true; hasRolled = false; rolledSix = false;
+        document.getElementById('diceDisplay').innerText = '🎲';
+        updateMessage();
+        drawBoard();
+    }
+
+    function drawBoard() {
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        var cs2 = cs;
+        ctx.strokeStyle = 'rgba(246,180,95,0.2)';
+        ctx.lineWidth = 1;
+        for(var r=0;r<size;r++) for(var c=0;c<size;c++) {
+            ctx.strokeRect(c*cs2, r*cs2, cs2, cs2);
+            if((r===1||r===9) && (c===1||c===9)) { ctx.fillStyle = 'rgba(255,255,255,0.05)'; ctx.fillRect(c*cs2, r*cs2, cs2, cs2); }
+        }
+        // Base positions
+        var bases = [{r:8,c:0,color:players[0].color},{r:0,c:8,color:players[1].color}];
+        for(var b=0;b<bases.length;b++) {
+            ctx.fillStyle = bases[b].color;
+            ctx.globalAlpha = 0.3;
+            ctx.fillRect(bases[b].c*cs2, bases[b].r*cs2, cs2*2, cs2*2);
+            ctx.globalAlpha = 1;
+        }
+        // Path highlight
+        var highlights = [{r:9,c:5},{r:1,c:5}];
+        for(var h=0;h<highlights.length;h++) {
+            ctx.fillStyle = 'rgba(46,204,113,0.5)';
+            ctx.fillRect(highlights[h].c*cs2, highlights[h].r*cs2, cs2, cs2);
+        }
+        // Pieces
+        for(var p=0;p<2;p++) {
+            for(var i=0;i<4;i++) {
+                var pos = players[p].pieces[i];
+                var x, y;
+                if(pos === 0) {
+                    var baseR = p===0 ? 8 : 0, baseC = p===0 ? 0 : 8;
+                    x = (baseC + i%2) * cs2;
+                    y = (baseR + Math.floor(i/2)) * cs2;
+                } else if(pos === 99) {
+                    var homeR = p===0 ? 9 : 1, homeC = p===0 ? 9 : 1;
+                    x = homeC * cs2; y = homeR * cs2;
+                } else {
+                    var pathPos = pos - 1;
+                    if(pathPos >= players[p].path.length) pathPos = players[p].path.length - 1;
+                    var pt = players[p].path[pathPos];
+                    x = pt.c * cs2; y = pt.r * cs2;
+                }
+                ctx.beginPath();
+                ctx.arc(x+cs2/2, y+cs2/2, cs2/3, 0, Math.PI*2);
+                ctx.fillStyle = players[p].color;
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+        }
+        updateTurnDisplay();
+    }
+
+    function rollDice() {
+        if(!canRoll || gameOver) return;
+        diceValue = Math.floor(Math.random()*6) + 1;
+        document.getElementById('diceDisplay').innerText = ['⚀','⚁','⚂','⚃','⚄','⚅'][diceValue-1];
+        hasRolled = true;
+        var hasMove = false;
+        for(var i=0;i<4;i++) {
+            if(canMovePiece(currentPlayer, i)) { hasMove = true; break; }
+        }
+        if(!hasMove) {
+            document.getElementById('message').innerText = langData[currentLang].msgBlocked;
+            currentPlayer = 1 - currentPlayer;
+            canRoll = true; hasRolled = false; rolledSix = false;
+            diceValue = 0;
+            updateMessage();
+            drawBoard();
+            return;
+        }
+        if(diceValue === 6) {
+            rolledSix = true;
+            document.getElementById('message').innerText = langData[currentLang].msgSix;
+        } else {
+            rolledSix = false;
+        }
+        canRoll = false;
+        updateMessage();
+    }
+
+    function canMovePiece(p, idx) {
+        var pos = players[p].pieces[idx];
+        if(pos === 0 && diceValue !== 6) return false;
+        if(pos === 99) return false;
+        if(pos === 0 && diceValue === 6) return true;
+        var newPos = pos + diceValue;
+        if(newPos > 44) {
+            var over = newPos - 44;
+            if(over <= 4 && over >= 1) {
+                for(var i=0;i<4;i++) if(players[p].pieces[i] === 99 && i !== idx && players[p].pieces[i] === over) return false;
+                return true;
+            }
+            return false;
+        }
+        var targetPathPos = newPos - 1;
+        if(targetPathPos < players[p].path.length) {
+            var tgt = players[p].path[targetPathPos];
+            for(var j=0;j<4;j++) if(players[p].pieces[j] === newPos) return false;
+            return true;
+        }
+        return false;
+    }
+
+    function movePiece(idx) {
+        if(canRoll || gameOver || !hasRolled) return;
+        var p = currentPlayer;
+        if(!canMovePiece(p, idx)) return;
+        var pos = players[p].pieces[idx];
+        if(pos === 0) {
+            players[p].pieces[idx] = 1;
+            if(diceValue === 6) { rolledSix = true; canRoll = true; hasRolled = false; }
+            else { currentPlayer = 1 - currentPlayer; canRoll = true; hasRolled = false; rolledSix = false; }
+            drawBoard();
+            updateMessage();
+            return;
+        }
+        var newPos = pos + diceValue;
+        if(newPos > 44) {
+            var over = newPos - 44;
+            if(over === 4) {
+                players[p].pieces[idx] = 99;
+                players[p].piecesDone++;
+                if(players[p].piecesDone === 4) { gameOver = true; document.getElementById('message').innerText = players[p].name==='blue'?langData[currentLang].blue:langData[currentLang].red + ' ' + langData[currentLang].msgWin; }
+            }
+        } else {
+            players[p].pieces[idx] = newPos;
+            var opp = 1-p;
+            for(var j=0;j<4;j++) {
+                if(players[opp].pieces[j] === newPos) {
+                    players[opp].pieces[j] = 0;
+                }
+            }
+        }
+        if(diceValue === 6) { rolledSix = true; canRoll = true; hasRolled = false; }
+        else { currentPlayer = 1 - currentPlayer; canRoll = true; hasRolled = false; rolledSix = false; }
+        drawBoard();
+        updateMessage();
+    }
+
+    function updateMessage() {
+        var t = langData[currentLang];
+        if(gameOver) return;
+        var name = currentPlayer===0 ? t.blue : t.red;
+        if(canRoll) document.getElementById('message').innerText = name + ' ' + t.msgRoll;
+        else if(rolledSix) document.getElementById('message').innerText = t.msgSix + ' ' + t.msgAgain;
+        else document.getElementById('message').innerText = name + ' ' + t.msgPick;
+    }
+
+    function updateTurnDisplay() {
+        var t = langData[currentLang];
+        var name = currentPlayer===0 ? t.blue : t.red;
+        var color = currentPlayer===0 ? '#3498DB' : '#E74C3C';
+        document.getElementById('turnDisplay').innerHTML = t.turn + ' <span style="color:'+color+'">'+name+'</span>';
+        document.getElementById('rollBtn').disabled = !canRoll || gameOver;
+    }
+
+    function handleCanvasClick(e) {
+        if(gameOver || !hasRolled || canRoll) return;
+        var rect = canvas.getBoundingClientRect();
+        var scaleX = canvas.width/rect.width, scaleY = canvas.height/rect.height;
+        var cx = (e.clientX-rect.left)*scaleX, cy = (e.clientY-rect.top)*scaleY;
+        var c = Math.floor(cx/cs), r = Math.floor(cy/cs);
+        var p = currentPlayer;
+        for(var i=0;i<4;i++) {
+            var pos = players[p].pieces[i];
+            var x, y;
+            if(pos === 0) {
+                var baseR = p===0 ? 8 : 0, baseC = p===0 ? 0 : 8;
+                x = (baseC + i%2) * cs; y = (baseR + Math.floor(i/2)) * cs;
+            } else if(pos === 99) {
+                var homeR = p===0 ? 9 : 1, homeC = p===0 ? 9 : 1;
+                x = homeC * cs; y = homeR * cs;
+            } else {
+                var pathPos = pos - 1;
+                if(pathPos >= players[p].path.length) pathPos = players[p].path.length - 1;
+                var pt = players[p].path[pathPos];
+                x = pt.c * cs; y = pt.r * cs;
+            }
+            var dx = c*cs - x, dy = r*cs - y;
+            if(dx*dx+dy*dy < (cs/2)*(cs/2)) {
+                movePiece(i);
+                return;
+            }
+        }
+    }
+
+    document.getElementById('rollBtn').addEventListener('click', rollDice);
+    canvas.addEventListener('click', handleCanvasClick);
+
+    function setLanguage(lang) {
+        currentLang = lang;
+        var t = langData[lang];
+        document.getElementById('gameTitle').innerText = t.title;
+        document.getElementById('backLink').innerText = t.back;
+        document.getElementById('rollBtn').innerText = t.roll;
+        document.getElementById('footerText').innerText = t.footer;
+        updateMessage();
+        updateTurnDisplay();
+        var btns = document.querySelectorAll('.lang-btn');
+        for(var i=0;i<btns.length;i++) btns[i].classList.toggle('active', btns[i].getAttribute('data-lang')===lang);
+    }
+
+    var langBtns = document.querySelectorAll('.lang-btn');
+    for(var i=0;i<langBtns.length;i++) langBtns[i].addEventListener('click', function(){ var l=this.getAttribute('data-lang'); if(l!==currentLang) setLanguage(l); });
+
+    initPaths();
+    setLanguage('tr');
+    resetGame();
+})();
+</script>
+</body>
+</html>

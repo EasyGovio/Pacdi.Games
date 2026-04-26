@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Bugout Rommé | PACDI Games</title>
+    <script src="https://cdn.jsdelivr.net/npm/bugout@0.0.13/dist/bugout.min.js"></script>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+        body { background:#04162E; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
+        .game-container { max-width:600px; width:100%; background:rgba(4,22,46,0.85); border-radius:56px; padding:20px 16px 24px; box-shadow:0 20px 35px rgba(0,0,0,0.5); border:1px solid rgba(246,180,95,0.3); text-align:center; }
+        .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+        .logo { font-size:1.3rem; font-weight:800; color:#F6B45F; }
+        .back-link { color:#F6B45F; text-decoration:none; font-weight:bold; font-size:0.78rem; background:#0a1018; padding:5px 12px; border-radius:40px; border:1px solid rgba(246,180,95,0.3); }
+        .lobby-area, .game-area { background:#0a1018; border-radius:28px; padding:20px 16px; margin-bottom:20px; }
+        h3 { color:#F6B45F; margin-bottom:10px; }
+        .room-input { width:100%; padding:12px 16px; border-radius:16px; border:2px solid rgba(246,180,95,0.3); background:#1e2a3a; color:#eaf2fb; font-size:1rem; text-align:center; outline:none; margin-bottom:10px; }
+        .btn { background:#F6B45F; border:none; font-weight:bold; padding:8px 16px; border-radius:40px; color:#04162E; cursor:pointer; font-size:0.78rem; margin:4px; }
+        .btn:disabled { opacity:0.3; pointer-events:none; }
+        .opponent-area { display:flex; justify-content:center; gap:2px; flex-wrap:wrap; margin-bottom:8px; min-height:36px; }
+        .opp-card { width:28px; height:40px; background:#1e2a3a; border-radius:5px; border:1px solid rgba(246,180,95,0.2); }
+        .center-area { display:flex; justify-content:center; gap:16px; margin:8px 0; }
+        .deck-pile, .discard-pile { width:56px; height:76px; border-radius:10px; cursor:pointer; border:2px solid rgba(246,180,95,0.3); background:#1e2a3a; display:flex; align-items:center; justify-content:center; font-size:1.8rem; }
+        .discard-pile { font-size:1.2rem; font-weight:bold; color:#eaf2fb; }
+        .melds-area { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin:6px 0; min-height:28px; }
+        .meld { display:flex; gap:2px; background:rgba(46,204,113,0.1); padding:3px; border-radius:8px; border:1px solid rgba(46,204,113,0.3); }
+        .meld-card { width:32px; height:44px; border-radius:5px; background:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:0.6rem; font-weight:bold; }
+        .meld-card.red { color:#E74C3C; }
+        .meld-card.black { color:#000; }
+        .player-hand { display:flex; justify-content:center; gap:4px; flex-wrap:wrap; margin-top:8px; }
+        .card { width:48px; height:66px; border-radius:8px; cursor:pointer; font-size:0.8rem; font-weight:bold; display:flex; flex-direction:column; align-items:center; justify-content:center; border:2px solid rgba(246,180,95,0.3); background:#fff; color:#000; transition:0.1s; }
+        .card.red { color:#E74C3C; }
+        .card.selected { border-color:#F6B45F; transform:translateY(-8px); }
+        .message { color:#F6B45F; font-size:0.8rem; font-weight:bold; min-height:20px; margin:4px 0; }
+        .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:8px; }
+        .hidden { display:none; }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="top-bar">
+        <div class="logo">BUGOUT ROMMÉ</div>
+        <a href="index.html" class="back-link">← Geri</a>
+    </div>
+    <div id="lobbyArea" class="lobby-area">
+        <h3>Oyun Odasına Katıl</h3>
+        <input type="text" id="roomIdInput" class="room-input" placeholder="Oda kodunu gir... (boş bırakırsan yeni oda)">
+        <button id="connectBtn" class="btn">Odaya Bağlan</button>
+        <p style="color:#9bb7d4; font-size:0.8rem; margin-top:8px;" id="roomInfo"></p>
+    </div>
+    <div id="gameArea" class="game-area hidden">
+        <h3>🃏 Bugout Rommé</h3>
+        <div class="opponent-area" id="oppArea"></div>
+        <div class="center-area">
+            <div class="deck-pile" id="deckPile">🂠</div>
+            <div class="discard-pile" id="discardPile">—</div>
+        </div>
+        <div class="melds-area" id="meldsArea"></div>
+        <div class="player-hand" id="playerHand"></div>
+        <div style="margin:8px 0;">
+            <button class="btn" id="drawDeckBtn">Desteden Çek</button>
+            <button class="btn" id="drawDiscardBtn">Atılanı Çek</button>
+            <button class="btn" id="meldBtn">Set Aç</button>
+        </div>
+        <div class="message" id="gameMessage">Rakip bekleniyor...</div>
+    </div>
+    <div class="footer">PACDI Games · Bugout ile uzaktan rommé.</div>
+</div>
+<script>
+var bugout, myId, peerId, isHost = false;
+var suits = ['♠','♥','♦','♣'];
+var ranks = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+var myHand = [], oppHandCount = 10, discardTop = null, deckCount = 12;
+var myMelds = [], oppMelds = [];
+var selectedCards = [];
+var hasDrawn = false, myTurn = false, gameOver = false;
+
+function initGame() {
+    if(isHost) {
+        var fullDeck = [];
+        for(var s=0;s<suits.length;s++) for(var r=0;r<ranks.length;r++) fullDeck.push({suit:suits[s],rank:ranks[r],value:r+1});
+        fullDeck = shuffle(fullDeck);
+        myHand = fullDeck.splice(0,10);
+        var oppHand = fullDeck.splice(0,10);
+        discardTop = fullDeck.splice(0,1)[0];
+        deckCount = fullDeck.length;
+        sendMessage({type:'init',myHand:myHand,oppHand:oppHand,discardTop:discardTop,deckCount:deckCount});
+    }
+}
+
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+
+function sendMessage(data){if(bugout&&peerId)bugout.send(peerId,JSON.stringify(data));}
+
+function handleMessage(raw){
+    var msg;try{msg=JSON.parse(raw);}catch(e){return;}
+    if(msg.type==='init'){myHand=msg.oppHand;oppHandCount=msg.myHand.length;discardTop=msg.discardTop;deckCount=msg.deckCount;updateDisplay();myTurn=!isHost;document.getElementById('gameMessage').innerText=myTurn?'Sıra sende!':'Rakip düşünüyor...';}
+    else if(msg.type==='draw'){deckCount=msg.deckCount;discardTop=msg.discardTop;myTurn=true;hasDrawn=false;document.getElementById('gameMessage').innerText='Rakip kart çekti. Sıra sende!';updateDisplay();}
+    else if(msg.type==='discard'){discardTop=msg.discardTop;oppHandCount=msg.handCount;myTurn=true;hasDrawn=false;document.getElementById('gameMessage').innerText='Sıra sende! Kart çek.';updateDisplay();}
+    else if(msg.type==='meld'){oppMelds=msg.melds;oppHandCount=msg.handCount;updateDisplay();if(msg.handCount===0){gameOver=true;document.getElementById('gameMessage').innerText='😔 Rakip tüm kartlarını açtı. Kaybettin.';}}
+}
+
+function drawFromDeck(){
+    if(!myTurn||hasDrawn||gameOver)return;
+    var newCard = {suit:suits[Math.floor(Math.random()*4)],rank:ranks[Math.floor(Math.random()*13)],value:Math.floor(Math.random()*13)+1};
+    myHand.push(newCard);
+    deckCount--;
+    hasDrawn=true;selectedCards=[];
+    sendMessage({type:'draw',deckCount:deckCount,discardTop:discardTop});
+    updateDisplay();
+}
+
+function drawFromDiscard(){
+    if(!myTurn||hasDrawn||gameOver||!discardTop)return;
+    myHand.push(discardTop);
+    discardTop=null;
+    hasDrawn=true;selectedCards=[];
+    sendMessage({type:'draw',deckCount:deckCount,discardTop:discardTop});
+    updateDisplay();
+}
+
+function discardCard(idx){
+    if(!hasDrawn||gameOver||!myTurn)return;
+    discardTop=myHand.splice(idx,1)[0];
+    hasDrawn=false;myTurn=false;
+    sendMessage({type:'discard',discardTop:discardTop,handCount:myHand.length});
+    updateDisplay();
+    document.getElementById('gameMessage').innerText='Rakip düşünüyor...';
+}
+
+function meldCards(){
+    if(!hasDrawn||gameOver||!myTurn||selectedCards.length<3)return;
+    var cards=selectedCards.map(function(i){return myHand[i];}).sort(function(a,b){return a.value-b.value;});
+    if(isValidMeld(cards)){
+        var indices=selectedCards.sort(function(a,b){return b-a;});
+        var meld=[];
+        for(var i=0;i<indices.length;i++)meld.unshift(myHand.splice(indices[i],1)[0]);
+        myMelds.push(meld);selectedCards=[];
+        sendMessage({type:'meld',melds:myMelds,handCount:myHand.length});
+        updateDisplay();
+        if(myHand.length===0){gameOver=true;document.getElementById('gameMessage').innerText='🎉 Sen kazandın!';}
+    }
+}
+
+function isValidMeld(cards){
+    if(cards.length<3)return false;
+    var ranks=cards.map(function(c){return c.value;});
+    var suits=cards.map(function(c){return c.suit;});
+    var allSameRank=ranks.every(function(r){return r===ranks[0];});
+    if(allSameRank){var u=[];for(var i=0;i<suits.length;i++)if(u.indexOf(suits[i])===-1)u.push(suits[i]);return u.length===cards.length;}
+    var allSameSuit=suits.every(function(s){return s===suits[0];});
+    if(allSameSuit){var s=ranks.slice().sort(function(a,b){return a-b;});for(var i=1;i<s.length;i++)if(s[i]!==s[i-1]+1)return false;return true;}
+    return false;
+}
+
+function toggleCard(idx){
+    if(!hasDrawn||gameOver||!myTurn)return;
+    var pos=selectedCards.indexOf(idx);
+    if(pos!==-1)selectedCards.splice(pos,1);
+    else selectedCards.push(idx);
+    renderHand();
+}
+
+function updateDisplay(){
+    document.getElementById('oppArea').innerHTML='';
+    for(var i=0;i<oppHandCount;i++){var c=document.createElement('div');c.className='opp-card';document.getElementById('oppArea').appendChild(c);}
+    document.getElementById('discardPile').innerHTML=discardTop?discardTop.rank+(discardTop.suit==='♥'||discardTop.suit==='♦'?'<span style="color:#E74C3C">'+discardTop.suit+'</span>':'<span style="color:#000">'+discardTop.suit+'</span>'):'—';
+    document.getElementById('deckPile').innerHTML=deckCount>0?'🂠':'—';
+    var ma=document.getElementById('meldsArea');ma.innerHTML='';
+    for(var i=0;i<oppMelds.length;i++){var md=document.createElement('div');md.className='meld';for(var j=0;j<oppMelds[i].length;j++){var mc=document.createElement('div');mc.className='meld-card'+(oppMelds[i][j].suit==='♥'||oppMelds[i][j].suit==='♦'?' red':' black');mc.innerHTML=oppMelds[i][j].rank+oppMelds[i][j].suit;md.appendChild(mc);}ma.appendChild(md);}
+    for(var i=0;i<myMelds.length;i++){var md=document.createElement('div');md.className='meld';for(var j=0;j<myMelds[i].length;j++){var mc=document.createElement('div');mc.className='meld-card'+(myMelds[i][j].suit==='♥'||myMelds[i][j].suit==='♦'?' red':' black');mc.innerHTML=myMelds[i][j].rank+myMelds[i][j].suit;md.appendChild(mc);}ma.appendChild(md);}
+    renderHand();
+    document.getElementById('drawDeckBtn').disabled=!myTurn||hasDrawn||gameOver||deckCount<=0;
+    document.getElementById('drawDiscardBtn').disabled=!myTurn||hasDrawn||gameOver||!discardTop;
+    document.getElementById('meldBtn').disabled=!hasDrawn||gameOver||selectedCards.length<3;
+}
+
+function renderHand(){
+    var hand=document.getElementById('playerHand');hand.innerHTML='';
+    for(var i=0;i<myHand.length;i++){
+        var c=myHand[i];var card=document.createElement('div');
+        card.className='card'+(c.suit==='♥'||c.suit==='♦'?' red':' black')+(selectedCards.indexOf(i)!==-1?' selected':'');
+        card.innerHTML=c.rank+'<br>'+c.suit;
+        if(hasDrawn&&myTurn)card.addEventListener('click',(function(idx){return function(){discardCard(idx);};})(i));
+        else if(hasDrawn&&myTurn)card.addEventListener('click',(function(idx){return function(){toggleCard(idx);};})(i));
+        else card.addEventListener('click',(function(idx){return function(){toggleCard(idx);};})(i));
+        hand.appendChild(card);
+    }
+}
+
+document.getElementById('drawDeckBtn').addEventListener('click',drawFromDeck);
+document.getElementById('drawDiscardBtn').addEventListener('click',drawFromDiscard);
+document.getElementById('meldBtn').addEventListener('click',meldCards);
+document.getElementById('connectBtn').addEventListener('click',function(){
+    var roomId=document.getElementById('roomIdInput').value.trim();
+    bugout=roomId?new Bugout(roomId):new Bugout();
+    bugout.address().then(function(address){
+        myId=address;
+        document.getElementById('roomInfo').innerHTML='Senin adresin: <b>'+myId+'</b><br>Bu kodu arkadaşına gönder.';
+        if(!roomId)isHost=true;
+    });
+    bugout.on('message',function(address,message){
+        if(!peerId){
+            peerId=address;
+            document.getElementById('lobbyArea').classList.add('hidden');
+            document.getElementById('gameArea').classList.remove('hidden');
+            if(isHost){initGame();myTurn=true;document.getElementById('gameMessage').innerText='Sıra sende! Kart çek.';}
+            else document.getElementById('gameMessage').innerText='Host bekleniyor...';
+        }
+        handleMessage(message);
+    });
+});
+</script>
+</body>
+</html>

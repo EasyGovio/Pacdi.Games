@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Bugout Kızma Birader | PACDI Games</title>
+    <script src="https://cdn.jsdelivr.net/npm/bugout@0.0.13/dist/bugout.min.js"></script>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+        body { background:#04162E; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
+        .game-container { max-width:580px; width:100%; background:rgba(4,22,46,0.85); border-radius:56px; padding:20px 16px 24px; box-shadow:0 20px 35px rgba(0,0,0,0.5); border:1px solid rgba(246,180,95,0.3); text-align:center; }
+        .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+        .logo { font-size:1.3rem; font-weight:800; color:#F6B45F; }
+        .back-link { color:#F6B45F; text-decoration:none; font-weight:bold; font-size:0.78rem; background:#0a1018; padding:5px 12px; border-radius:40px; border:1px solid rgba(246,180,95,0.3); }
+        .lobby-area, .game-area { background:#0a1018; border-radius:28px; padding:20px 16px; margin-bottom:20px; }
+        h3 { color:#F6B45F; margin-bottom:10px; }
+        .room-input { width:100%; padding:12px 16px; border-radius:16px; border:2px solid rgba(246,180,95,0.3); background:#1e2a3a; color:#eaf2fb; font-size:1rem; text-align:center; outline:none; margin-bottom:10px; }
+        .btn { background:#F6B45F; border:none; font-weight:bold; padding:10px 20px; border-radius:40px; color:#04162E; cursor:pointer; font-size:0.85rem; margin:4px; }
+        .btn:disabled { opacity:0.3; pointer-events:none; }
+        canvas { display:block; margin:10px auto; border-radius:20px; border:2px solid rgba(246,180,95,0.3); max-width:420px; width:100%; aspect-ratio:1; cursor:pointer; background:#0a1018; }
+        .dice-area { display:flex; align-items:center; gap:8px; justify-content:center; margin:8px 0; }
+        .dice-display { width:48px; height:48px; background:#1e2a3a; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.8rem; }
+        .message { color:#F6B45F; font-size:0.85rem; font-weight:bold; min-height:22px; margin:4px 0; }
+        .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:8px; }
+        .hidden { display:none; }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="top-bar">
+        <div class="logo">BUGOUT KIZMA BİRADER</div>
+        <a href="index.html" class="back-link">← Geri</a>
+    </div>
+    <div id="lobbyArea" class="lobby-area">
+        <h3>Oyun Odasına Katıl</h3>
+        <input type="text" id="roomIdInput" class="room-input" placeholder="Oda kodunu gir... (boş bırakırsan yeni oda)">
+        <button id="connectBtn" class="btn">Odaya Bağlan</button>
+        <p style="color:#9bb7d4; font-size:0.8rem; margin-top:8px;" id="roomInfo"></p>
+    </div>
+    <div id="gameArea" class="game-area hidden">
+        <h3>🔵🔴 Bugout Kızma Birader</h3>
+        <canvas id="boardCanvas" width="420" height="420"></canvas>
+        <div class="dice-area">
+            <div class="dice-display" id="diceDisplay">🎲</div>
+            <button class="btn" id="rollBtn">Zar At</button>
+        </div>
+        <div class="message" id="gameMessage">Rakip bekleniyor...</div>
+    </div>
+    <div class="footer">PACDI Games · Bugout ile uzaktan kızma birader.</div>
+</div>
+<script>
+var bugout, myId, peerId, isHost = false;
+var canvas = document.getElementById('boardCanvas');
+var ctx = canvas.getContext('2d');
+var size = 11, cs = canvas.width / size;
+var players = [
+    { color:'#3498DB', start:{r:9,c:1}, pieces:[0,0,0,0], piecesDone:0 },
+    { color:'#E74C3C', start:{r:1,c:9}, pieces:[0,0,0,0], piecesDone:0 }
+];
+var currentPlayer = 0, myPlayer = -1;
+var diceValue = 0, gameOver = false, canRoll = true, hasRolled = false;
+
+function initPaths() {
+    var p0 = [];
+    for(var i=0;i<40;i++) {
+        var r,c;
+        if(i<5) { r=9; c=0-i; }
+        else if(i<10) { r=10; c=i-10; }
+        else if(i<15) { r=10-(i-10); c=0; }
+        else if(i<20) { r=5; c=i-15; }
+        else if(i<25) { r=5-(i-20); c=5; }
+        else if(i<30) { r=0; c=5-(i-25); }
+        else if(i<35) { r=i-30; c=5; }
+        else { r=5; c=5+(i-35); }
+        p0.push({r:r+1,c:c+1});
+    }
+    players[0].path = p0;
+    var p1 = [];
+    for(var i=0;i<40;i++) { var idx = (i+20)%40; p1.push({r:p0[idx].r, c:p0[idx].c}); }
+    players[1].path = p1;
+}
+
+function drawBoard() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    for(var r=0;r<size;r++) for(var c=0;c<size;c++) {
+        ctx.strokeStyle = 'rgba(246,180,95,0.15)'; ctx.lineWidth=1;
+        ctx.strokeRect(c*cs, r*cs, cs, cs);
+    }
+    for(var p=0;p<2;p++) {
+        for(var i=0;i<4;i++) {
+            var pos = players[p].pieces[i];
+            var x, y;
+            if(pos === 0) { x = (p===0?0:9)*cs + (i%2)*cs; y = (p===0?8:1)*cs + Math.floor(i/2)*cs; }
+            else if(pos === 99) { x = (p===0?9:1)*cs; y = (p===0?9:1)*cs; }
+            else { var pt = players[p].path[Math.min(pos-1,39)]; x = pt.c*cs; y = pt.r*cs; }
+            ctx.beginPath(); ctx.arc(x+cs/2, y+cs/2, cs/3, 0, Math.PI*2);
+            ctx.fillStyle = players[p].color; ctx.fill();
+            ctx.strokeStyle = '#fff'; ctx.lineWidth=1; ctx.stroke();
+        }
+    }
+}
+
+function sendMessage(data) { if(bugout && peerId) bugout.send(peerId, JSON.stringify(data)); }
+
+function handleMessage(raw) {
+    var msg; try { msg = JSON.parse(raw); } catch(e) { return; }
+    if(msg.type === 'roll') { diceValue = msg.value; document.getElementById('diceDisplay').innerText = ['⚀','⚁','⚂','⚃','⚄','⚅'][diceValue-1]; hasRolled = true; canRoll = false; }
+    else if(msg.type === 'move') { players = msg.players; currentPlayer = msg.nextPlayer; diceValue = 0; hasRolled = false; canRoll = currentPlayer === myPlayer; document.getElementById('diceDisplay').innerText = '🎲'; drawBoard(); document.getElementById('gameMessage').innerText = currentPlayer===myPlayer?'Sıra sende!':'Rakip düşünüyor...'; }
+    else if(msg.type === 'gameOver') { gameOver = true; document.getElementById('gameMessage').innerText = msg.winner===myPlayer?'🎉 Sen kazandın!':'😔 Kaybettin.'; }
+}
+
+function rollDice() {
+    if(!canRoll || gameOver || currentPlayer !== myPlayer) return;
+    diceValue = Math.floor(Math.random()*6)+1;
+    document.getElementById('diceDisplay').innerText = ['⚀','⚁','⚂','⚃','⚄','⚅'][diceValue-1];
+    canRoll = false; hasRolled = true;
+    sendMessage({ type:'roll', value:diceValue });
+}
+
+function movePiece(idx) {
+    if(canRoll || gameOver || !hasRolled || currentPlayer !== myPlayer) return;
+    var p = currentPlayer, pos = players[p].pieces[idx];
+    if(pos === 0 && diceValue !== 6) return;
+    if(pos === 99) return;
+    if(pos === 0) { players[p].pieces[idx] = 1; }
+    else {
+        var newPos = pos + diceValue;
+        if(newPos > 44) { var over = newPos - 44; if(over === 4) { players[p].pieces[idx] = 99; players[p].piecesDone++; } else return; }
+        else {
+            players[p].pieces[idx] = newPos;
+            var opp = 1-p;
+            for(var j=0;j<4;j++) if(players[opp].pieces[j] === newPos) players[opp].pieces[j] = 0;
+        }
+    }
+    if(players[p].piecesDone === 4) { sendMessage({ type:'gameOver', winner:p }); gameOver=true; drawBoard(); return; }
+    var nextPlayer = diceValue === 6 ? currentPlayer : 1-currentPlayer;
+    sendMessage({ type:'move', players:players, nextPlayer:nextPlayer });
+    currentPlayer = nextPlayer;
+    diceValue = 0; hasRolled = false; canRoll = currentPlayer === myPlayer;
+    document.getElementById('diceDisplay').innerText = '🎲';
+    drawBoard();
+}
+
+canvas.addEventListener('click', function(e) {
+    if(gameOver || !hasRolled || canRoll || currentPlayer !== myPlayer) return;
+    var rect = canvas.getBoundingClientRect();
+    var scaleX = canvas.width/rect.width, scaleY = canvas.height/rect.height;
+    var cx = (e.clientX-rect.left)*scaleX, cy = (e.clientY-rect.top)*scaleY;
+    var c = Math.floor(cx/cs), r = Math.floor(cy/cs);
+    for(var i=0;i<4;i++) {
+        var pos = players[currentPlayer].pieces[i];
+        var x, y;
+        if(pos === 0) { x = (currentPlayer===0?0:9)*cs + (i%2)*cs; y = (currentPlayer===0?8:1)*cs + Math.floor(i/2)*cs; }
+        else if(pos === 99) { x = (currentPlayer===0?9:1)*cs; y = (currentPlayer===0?9:1)*cs; }
+        else { var pt = players[currentPlayer].path[Math.min(pos-1,39)]; x = pt.c*cs; y = pt.r*cs; }
+        if(Math.abs(c*cs-x)+Math.abs(r*cs-y) < cs) { movePiece(i); return; }
+    }
+});
+
+document.getElementById('rollBtn').addEventListener('click', rollDice);
+document.getElementById('connectBtn').addEventListener('click', function() {
+    var roomId = document.getElementById('roomIdInput').value.trim();
+    bugout = roomId ? new Bugout(roomId) : new Bugout();
+    bugout.address().then(function(address) {
+        myId = address;
+        document.getElementById('roomInfo').innerHTML = 'Senin adresin: <b>'+myId+'</b><br>Bu kodu arkadaşına gönder.';
+        if(!roomId) isHost = true;
+    });
+    bugout.on('message', function(address, message) {
+        if(!peerId) {
+            peerId = address;
+            document.getElementById('lobbyArea').classList.add('hidden');
+            document.getElementById('gameArea').classList.remove('hidden');
+            myPlayer = isHost ? 0 : 1;
+            currentPlayer = 0;
+            canRoll = myPlayer === 0;
+            initPaths();
+            drawBoard();
+            document.getElementById('gameMessage').innerText = myPlayer===0 ? 'Sen Mavi, zar at.' : 'Sen Kırmızı, rakip başlayacak.';
+        }
+        handleMessage(message);
+    });
+});
+</script>
+</body>
+</html>

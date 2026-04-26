@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Skat | PACDI Games</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+        body { background:#04162E; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
+        .game-container { max-width:600px; width:100%; background:rgba(4,22,46,0.85); border-radius:56px; padding:20px 16px 24px; box-shadow:0 20px 35px rgba(0,0,0,0.5); border:1px solid rgba(246,180,95,0.3); text-align:center; }
+        .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+        .logo { font-size:1.3rem; font-weight:800; color:#F6B45F; }
+        .back-link { color:#F6B45F; text-decoration:none; font-weight:bold; font-size:0.78rem; background:#0a1018; padding:5px 12px; border-radius:40px; border:1px solid rgba(246,180,95,0.3); }
+        .lang-selector { display:flex; gap:6px; margin-bottom:10px; justify-content:flex-end; }
+        .lang-btn { background:#0a1018; border:1px solid #F6B45F; color:#F6B45F; font-size:0.7rem; padding:3px 10px; border-radius:30px; cursor:pointer; }
+        .lang-btn.active { background:#F6B45F; color:#04162E; }
+        .trump-select { display:flex; justify-content:center; gap:6px; margin:10px 0; flex-wrap:wrap; }
+        .trump-btn { background:#1e2a3a; border:2px solid rgba(246,180,95,0.3); color:#eaf2fb; padding:8px 14px; border-radius:30px; cursor:pointer; font-weight:bold; font-size:0.8rem; }
+        .trump-btn.active { background:#F6B45F; border-color:#F6B45F; color:#04162E; }
+        .trump-btn:disabled { opacity:0.3; pointer-events:none; }
+        .table-area { background:#0a1018; border-radius:24px; padding:16px; margin:10px 0; }
+        .played-cards { display:flex; justify-content:center; gap:20px; min-height:80px; align-items:center; margin:10px 0; }
+        .played-card { width:60px; height:84px; border-radius:10px; background:#fff; border:2px solid #F6B45F; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:0.8rem; font-weight:bold; }
+        .played-card.red { color:#E74C3C; }
+        .played-card.black { color:#000; }
+        .player-hand { display:flex; justify-content:center; gap:4px; flex-wrap:wrap; margin-top:8px; }
+        .card { width:52px; height:72px; border-radius:8px; cursor:pointer; font-size:0.85rem; font-weight:bold; display:flex; flex-direction:column; align-items:center; justify-content:center; border:2px solid rgba(246,180,95,0.3); background:#fff; color:#000; transition:0.1s; }
+        .card.red { color:#E74C3C; }
+        .card.black { color:#000; }
+        .card:active { transform:scale(0.95); }
+        .score-bar { display:flex; justify-content:space-around; margin:8px 0; }
+        .score-box { background:#0a1018; border-radius:20px; padding:8px 16px; font-weight:bold; font-size:0.8rem; }
+        .message { color:#F6B45F; font-size:0.8rem; font-weight:bold; min-height:20px; margin:4px 0; }
+        .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:8px; }
+        .hidden { display:none; }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="top-bar">
+        <div class="logo" id="gameTitle">SKAT</div>
+        <a href="index.html" class="back-link" id="backLink">← Geri</a>
+    </div>
+    <div class="lang-selector">
+        <button class="lang-btn active" data-lang="tr">TR</button>
+        <button class="lang-btn" data-lang="de">DE</button>
+        <button class="lang-btn" data-lang="en">EN</button>
+    </div>
+    <div class="trump-select" id="trumpSelect">
+        <button class="trump-btn active" data-trump="kreuz">♣ Kreuz</button>
+        <button class="trump-btn" data-trump="pik">♠ Pik</button>
+        <button class="trump-btn" data-trump="herz">♥ Herz</button>
+        <button class="trump-btn" data-trump="karo">♦ Karo</button>
+        <button class="trump-btn" data-trump="grand">👑 Grand</button>
+        <button class="trump-btn" data-trump="null">🚫 Null</button>
+        <button class="btn" id="newRoundBtn">Yeni Tur</button>
+    </div>
+    <div class="table-area">
+        <div class="played-cards">
+            <div class="played-card" id="oppCard">—</div>
+            <div class="played-card" id="myCard">—</div>
+        </div>
+        <div class="player-hand" id="playerHand"></div>
+    </div>
+    <div class="score-bar">
+        <div class="score-box" style="color:#3498DB">Sen: <span id="scoreMe">0</span></div>
+        <div class="score-box" style="color:#E74C3C">Rakip: <span id="scoreOpp">0</span></div>
+    </div>
+    <div class="message" id="message">Koz seç ve kart oyna</div>
+    <div class="footer" id="footerText">PACDI Games · Skat, kozu seç, eli al!</div>
+</div>
+<script>
+(function(){
+    var langData = {
+        tr: { title:"SKAT", back:"← Geri", scoreMe:"Sen", scoreOpp:"Rakip", newRound:"Yeni Tur", msgTrump:"Koz seçin", msgPlay:"Bir kart oyna", msgWinRound:"Eli aldın!", msgLoseRound:"Rakip aldı!", msgWinGame:"🎉 Oyunu kazandın!", msgLoseGame:"😔 Rakip kazandı.", footer:"PACDI Games · Skat, kozu seç, eli al!" },
+        de: { title:"SKAT", back:"← Zurück", scoreMe:"Du", scoreOpp:"Gegner", newRound:"Neue Runde", msgTrump:"Trumpf wählen", msgPlay:"Eine Karte spielen", msgWinRound:"Du stichst!", msgLoseRound:"Gegner sticht!", msgWinGame:"🎉 Du hast gewonnen!", msgLoseGame:"😔 Gegner hat gewonnen.", footer:"PACDI Games · Skat, Trumpf wählen, stechen!" },
+        en: { title:"SKAT", back:"← Back", scoreMe:"You", scoreOpp:"Opponent", newRound:"New Round", msgTrump:"Choose trump", msgPlay:"Play a card", msgWinRound:"You win the trick!", msgLoseRound:"Opponent wins!", msgWinGame:"🎉 You won the game!", msgLoseGame:"😔 Opponent won.", footer:"PACDI Games · Skat, choose trump, take tricks!" }
+    };
+    var currentLang = 'tr';
+    var suits = ['kreuz','pik','herz','karo'];
+    var suitSymbols = { kreuz:'♣', pik:'♠', herz:'♥', karo:'♦' };
+    var ranks = ['7','8','9','10','Bube','Dame','König','As'];
+    var rankValues = { '7':0, '8':0, '9':0, '10':10, Bube:2, Dame:3, König:4, As:11 };
+    var deck = [], playerHand = [], opponentHand = [];
+    var currentTrump = 'kreuz';
+    var myCard = null, oppCard = null;
+    var scoreMe = 0, scoreOpp = 0;
+    var roundCount = 0, maxRounds = 10;
+    var gameOver = false;
+    var trumpSelected = false;
+
+    function createDeck() {
+        var d = [];
+        for(var s=0; s<suits.length; s++) {
+            for(var r=0; r<ranks.length; r++) {
+                d.push({ suit:suits[s], rank:ranks[r], value:rankValues[ranks[r]], id:d.length });
+            }
+        }
+        return shuffle(d);
+    }
+
+    function shuffle(a) { for(var i=a.length-1; i>0; i--) { var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+
+    function dealCards() {
+        deck = createDeck();
+        playerHand = deck.splice(0, 10);
+        opponentHand = deck.splice(0, 10);
+    }
+
+    function resetGame() {
+        scoreMe = 0; scoreOpp = 0; roundCount = 0; gameOver = false; trumpSelected = false;
+        dealCards();
+        updateDisplay();
+        document.getElementById('message').innerText = langData[currentLang].msgTrump;
+        enableTrumpButtons(true);
+        document.getElementById('scoreMe').innerText = '0';
+        document.getElementById('scoreOpp').innerText = '0';
+    }
+
+    function updateLanguage() {
+        var t=langData[currentLang];
+        document.getElementById('gameTitle').innerText=t.title;
+        document.getElementById('backLink').innerText=t.back;
+        document.getElementById('newRoundBtn').innerText=t.newRound;
+        document.getElementById('footerText').innerText=t.footer;
+        document.getElementById('scoreMe').innerText = t.scoreMe + ': ' + scoreMe;
+        document.getElementById('scoreOpp').innerText = t.scoreOpp + ': ' + scoreOpp;
+    }
+
+    function setLanguage(lang) {
+        currentLang=lang; updateLanguage();
+        var btns=document.querySelectorAll('.lang-btn');
+        for(var i=0;i<btns.length;i++) btns[i].classList.toggle('active', btns[i].getAttribute('data-lang')===lang);
+    }
+
+    function enableTrumpButtons(enable) {
+        var btns = document.querySelectorAll('.trump-btn');
+        for(var i=0;i<btns.length-1;i++) {
+            btns[i].disabled = !enable;
+            if(btns[i].getAttribute('data-trump') === currentTrump) btns[i].classList.toggle('active', true);
+        }
+        if(enable) {
+            for(var j=0;j<btns.length-1;j++) {
+                btns[j].classList.remove('active');
+                if(btns[j].getAttribute('data-trump') === currentTrump) btns[j].classList.add('active');
+            }
+        }
+    }
+
+    function setTrump(trump) {
+        currentTrump = trump;
+        trumpSelected = true;
+        enableTrumpButtons(false);
+        document.querySelectorAll('.trump-btn').forEach(function(b){
+            if(b.getAttribute('data-trump') !== undefined) b.classList.remove('active');
+        });
+        document.querySelector('.trump-btn[data-trump="'+trump+'"]').classList.add('active');
+        document.getElementById('message').innerText = langData[currentLang].msgPlay;
+    }
+
+    function updateDisplay() {
+        var hand = document.getElementById('playerHand');
+        hand.innerHTML = '';
+        for(var i=0; i<playerHand.length; i++) {
+            var c = playerHand[i];
+            var card = document.createElement('div');
+            card.className = 'card' + (c.suit==='herz'||c.suit==='karo'?' red':' black');
+            card.innerHTML = '<span style="font-size:1.1em;">'+c.rank+'</span>'+suitSymbols[c.suit];
+            card.addEventListener('click', (function(idx){ return function(){ playCard(idx); }; })(i));
+            hand.appendChild(card);
+        }
+    }
+
+    function playCard(idx) {
+        if(gameOver || !trumpSelected) return;
+        myCard = playerHand.splice(idx, 1)[0];
+        document.getElementById('myCard').innerHTML = myCard.rank + suitSymbols[myCard.suit];
+        document.getElementById('myCard').className = 'played-card' + (myCard.suit==='herz'||myCard.suit==='karo'?' red':' black');
+        opponentPlay();
+        updateDisplay();
+        if(playerHand.length === 0 && opponentHand.length === 0) {
+            endRound();
+        }
+    }
+
+    function opponentPlay() {
+        if(opponentHand.length === 0) return;
+        var idx = Math.floor(Math.random() * opponentHand.length);
+        oppCard = opponentHand.splice(idx, 1)[0];
+        document.getElementById('oppCard').innerHTML = oppCard.rank + suitSymbols[oppCard.suit];
+        document.getElementById('oppCard').className = 'played-card' + (oppCard.suit==='herz'||oppCard.suit==='karo'?' red':' black');
+    }
+
+    function getCardPower(card) {
+        if(currentTrump === 'null') return rankValues[card.rank];
+        if(currentTrump === 'grand') {
+            if(card.rank === 'Bube') return 100 + rankValues[card.rank];
+            return rankValues[card.rank];
+        }
+        if(card.suit === currentTrump || card.rank === 'Bube') return 100 + rankValues[card.rank];
+        return rankValues[card.rank];
+    }
+
+    function compareCards(my, opp) {
+        var myPow = getCardPower(my), oppPow = getCardPower(opp);
+        if(myPow > 100 && oppPow > 100) {
+            if(my.rank === 'Bube' && opp.rank !== 'Bube') return true;
+            if(opp.rank === 'Bube' && my.rank !== 'Bube') return false;
+            if(my.rank === 'Bube' && opp.rank === 'Bube') return rankValues[my.rank] > rankValues[opp.rank];
+            if(my.suit === currentTrump && opp.suit !== currentTrump) return true;
+            if(opp.suit === currentTrump && my.suit !== currentTrump) return false;
+        }
+        return myPow > oppPow;
+    }
+
+    function endRound() {
+        var myWon = compareCards(myCard, oppCard);
+        if(myWon) {
+            scoreMe += myCard.value + oppCard.value;
+            document.getElementById('message').innerText = langData[currentLang].msgWinRound;
+        } else {
+            scoreOpp += myCard.value + oppCard.value;
+            document.getElementById('message').innerText = langData[currentLang].msgLoseRound;
+        }
+        document.getElementById('scoreMe').innerText = langData[currentLang].scoreMe + ': ' + scoreMe;
+        document.getElementById('scoreOpp').innerText = langData[currentLang].scoreOpp + ': ' + scoreOpp;
+        myCard = null; oppCard = null;
+        document.getElementById('myCard').innerHTML = '—';
+        document.getElementById('oppCard').innerHTML = '—';
+        roundCount++;
+        if(roundCount >= maxRounds || (playerHand.length === 0 && opponentHand.length === 0)) {
+            endGame();
+        } else {
+            trumpSelected = false;
+            enableTrumpButtons(true);
+            document.getElementById('message').innerText = langData[currentLang].msgTrump;
+        }
+    }
+
+    function endGame() {
+        gameOver = true;
+        if(scoreMe > scoreOpp) document.getElementById('message').innerText = langData[currentLang].msgWinGame;
+        else if(scoreOpp > scoreMe) document.getElementById('message').innerText = langData[currentLang].msgLoseGame;
+        else document.getElementById('message').innerText = '🤝 Berabere!';
+        enableTrumpButtons(false);
+    }
+
+    document.getElementById('newRoundBtn').addEventListener('click', function() {
+        dealCards();
+        roundCount = 0; gameOver = false; trumpSelected = false;
+        scoreMe = 0; scoreOpp = 0;
+        myCard = null; oppCard = null;
+        document.getElementById('myCard').innerHTML = '—';
+        document.getElementById('oppCard').innerHTML = '—';
+        document.getElementById('scoreMe').innerText = '0';
+        document.getElementById('scoreOpp').innerText = '0';
+        enableTrumpButtons(true);
+        document.getElementById('message').innerText = langData[currentLang].msgTrump;
+        updateDisplay();
+    });
+
+    var trumpBtns = document.querySelectorAll('.trump-btn');
+    for(var i=0; i<trumpBtns.length-1; i++) {
+        trumpBtns[i].addEventListener('click', function(){
+            var trump = this.getAttribute('data-trump');
+            if(trump) setTrump(trump);
+        });
+    }
+
+    var langBtns=document.querySelectorAll('.lang-btn');
+    for(var i=0;i<langBtns.length;i++) langBtns[i].addEventListener('click', function(){ var l=this.getAttribute('data-lang'); if(l!==currentLang) setLanguage(l); });
+
+    setLanguage('tr');
+    resetGame();
+})();
+</script>
+</body>
+</html>
