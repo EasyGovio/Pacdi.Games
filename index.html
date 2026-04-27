@@ -48,6 +48,68 @@
     .reward-banner { background: #0a1018; border-radius: 48px; padding: 1rem; text-align: center; margin-top: 1rem; border: 1px solid #F6B45F20; }
     .reward-btn { margin-top: 8px; background: #F6B45F; border: none; padding: 6px 20px; border-radius: 60px; font-weight: bold; color: #04162E; cursor: pointer; }
     @media (max-width: 680px) { .header { flex-direction: column; align-items: stretch; text-align: center; } .compass-points { justify-content: center; } .games-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); } .promo-spotlight { flex-direction: column; text-align: center; } }
+ /* Quick View Panel - NaturaSAF benzeri */
+.quick-view-panel {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(4,22,46,0.98), rgba(4,22,46,0.9));
+    backdrop-filter: blur(12px);
+    border-top: 2px solid #F6B45F;
+    border-radius: 0 0 32px 32px;
+    padding: 16px;
+    z-index: 10;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+}
+
+.quick-view-panel.active {
+    max-height: 200px;
+    padding: 16px;
+}
+
+.quick-view-panel h4 {
+    color: #F6B45F;
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+
+.quick-view-panel p {
+    color: #eaf2fb;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    margin-bottom: 10px;
+}
+
+.quick-view-panel .quick-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.quick-view-panel .quick-play-btn {
+    background: #F6B45F;
+    color: #04162E;
+    padding: 6px 16px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 0.75rem;
+    display: inline-block;
+}
+
+.quick-view-panel .quick-close-btn {
+    background: transparent;
+    border: 1px solid rgba(246,180,95,0.3);
+    color: #F6B45F;
+    padding: 6px 12px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 0.7rem;
+}
   </style>
 </head>
 <body>
@@ -239,20 +301,79 @@
         overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove(); });
     }
 
-    function createGameCard(game) {
-        var card = document.createElement('div');
-        card.className = 'game-card';
-        card.innerHTML = '<div class="game-icon">' + game.icon + '</div>' +
-            '<div class="game-name">' + game.name + '</div>' +
-            '<div class="game-desc">' + (gameInfos[game.file] || '') + '</div>' +
-            '<a href="' + game.file + '" class="play-btn">Oyna / Aç →</a>';
-        var infoBtn = document.createElement('div');
-        infoBtn.className = 'info-btn';
-        infoBtn.innerText = 'ℹ️';
-        infoBtn.addEventListener('click', function(e) {
-            e.stopPropagation(); e.preventDefault();
-            showInfoPopup(game.file, game.name);
+    function createGameCard(game, index) {
+    var card = document.createElement('div');
+    card.className = 'game-card';
+    card.setAttribute('data-game-index', index);
+    card.setAttribute('data-game-file', game.file);
+    
+    card.innerHTML = 
+        '<div class="game-icon">' + game.icon + '</div>' +
+        '<div class="game-name">' + game.name + '</div>' +
+        '<div class="game-desc">' + (gameInfos[game.file] || game.desc || '') + '</div>' +
+        '<a href="' + game.file + '" class="play-btn">Oyna / Aç →</a>' +
+        '<div class="quick-view-panel" id="qv-' + index + '">' +
+            '<h4>📋 ' + game.name + '</h4>' +
+            '<p>' + (gameInfos[game.file] || 'Detaylı açıklama yakında eklenecek.') + '</p>' +
+            '<div class="quick-actions">' +
+                '<a href="' + game.file + '" class="quick-play-btn">▶ Hemen Oyna</a>' +
+                '<button class="quick-close-btn" onclick="event.stopPropagation(); closeQuickView(' + index + ')">✕ Kapat</button>' +
+            '</div>' +
+        '</div>';
+    
+    // ℹ️ Bilgi butonu
+    var infoBtn = document.createElement('div');
+    infoBtn.className = 'info-btn';
+    infoBtn.innerText = 'ℹ️';
+    infoBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        showInfoPopup(game.file, game.name);
+    });
+    card.appendChild(infoBtn);
+    
+    // Kartın kendisine tıklayınca Quick View panelini aç
+    card.addEventListener('click', function(e) {
+        // Eğer play butonuna veya linke tıklandıysa quick view açma
+        if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON') return;
+        
+        e.stopPropagation();
+        
+        // Daha önce açık olan tüm panelleri kapat
+        var allPanels = document.querySelectorAll('.quick-view-panel.active');
+        allPanels.forEach(function(p) {
+            if (p.id !== 'qv-' + index) {
+                p.classList.remove('active');
+            }
         });
+        
+        // Bu kartın panelini aç/kapat
+        var panel = document.getElementById('qv-' + index);
+        if (panel) {
+            panel.classList.toggle('active');
+        }
+    });
+    
+    return card;
+}
+
+// Quick View kapatma fonksiyonu
+function closeQuickView(index) {
+    var panel = document.getElementById('qv-' + index);
+    if (panel) {
+        panel.classList.remove('active');
+    }
+}
+
+// Sayfa dışına tıklayınca tüm quick view panellerini kapat
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.game-card')) {
+        var allPanels = document.querySelectorAll('.quick-view-panel.active');
+        allPanels.forEach(function(p) {
+            p.classList.remove('active');
+        });
+    }
+});
         card.appendChild(infoBtn);
         return card;
     }
