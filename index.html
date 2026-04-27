@@ -4,12 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>PACDI Games · Zihnini Oynat, Ekosistemi Büyüt</title>
-  <link rel="manifest" href="manifest.json">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="PACDI Games">
-  <link rel="apple-touch-icon" href="og-image.jpg">
-  <meta name="theme-color" content="#04162E">
   <style>
     * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
     body { background: #04162E; font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif; color: #eaf2fb; line-height: 1.5; }
@@ -31,15 +25,11 @@
     .promo-stats { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1.2rem; }
     .promo-stat { background: #0a1018; padding: 5px 14px; border-radius: 30px; font-size: 0.75rem; color: #F6B45F; border: 1px solid rgba(246,180,95,0.3); }
     .promo-btn { display: inline-block; background: #F6B45F; color: #04162E; font-weight: bold; padding: 10px 28px; border-radius: 60px; font-size: 0.9rem; text-decoration: none; transition: 0.15s; }
-    .info-badge-row { display: flex; gap: 12px; margin: 0 0 1.5rem; flex-wrap: wrap; justify-content: center; }
-    .info-badge-item { background: rgba(46,204,113,0.15); border: 1px solid rgba(46,204,113,0.4); padding: 8px 18px; border-radius: 40px; font-size: 0.85rem; color: #2ECC71; display: flex; align-items: center; gap: 6px; }
-    .info-badge-item.install-prompt { background: rgba(246,180,95,0.15); border-color: rgba(246,180,95,0.4); color: #F6B45F; cursor: pointer; }
     .category { margin-bottom: 2rem; }
     .category-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 1rem; border-left: 5px solid #F6B45F; padding-left: 1rem; display: flex; align-items: center; gap: 0.5rem; }
     .games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.5rem; }
-    .game-card { background: rgba(255,255,255,0.05); backdrop-filter: blur(4px); border-radius: 32px; padding: 1rem 1rem 1.2rem; transition: all 0.2s ease; border: 1px solid rgba(246,180,95,0.2); box-shadow: 0 8px 20px rgba(0,0,0,0.2); cursor: pointer; position: relative; }
+    .game-card { background: rgba(255,255,255,0.05); backdrop-filter: blur(4px); border-radius: 32px; padding: 1rem 1rem 1.2rem; transition: all 0.2s ease; border: 1px solid rgba(246,180,95,0.2); box-shadow: 0 8px 20px rgba(0,0,0,0.2); cursor: pointer; }
     .game-card:hover { transform: translateY(-5px); border-color: #F6B45F; background: rgba(255,255,255,0.08); }
-    .info-btn { position: absolute; top: 8px; right: 8px; width: 24px; height: 24px; border-radius: 50%; background: rgba(246,180,95,0.2); border: 1px solid rgba(246,180,95,0.3); color: #F6B45F; font-weight: bold; font-size: 0.7rem; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 1; }
     .game-icon { font-size: 2.3rem; margin-bottom: 0.6rem; }
     .game-name { font-size: 1.1rem; font-weight: 700; color: #F6B45F; margin-bottom: 0.3rem; }
     .game-desc { font-size: 0.75rem; color: #b8d0e8; margin-bottom: 0.8rem; line-height: 1.4; }
@@ -48,68 +38,6 @@
     .reward-banner { background: #0a1018; border-radius: 48px; padding: 1rem; text-align: center; margin-top: 1rem; border: 1px solid #F6B45F20; }
     .reward-btn { margin-top: 8px; background: #F6B45F; border: none; padding: 6px 20px; border-radius: 60px; font-weight: bold; color: #04162E; cursor: pointer; }
     @media (max-width: 680px) { .header { flex-direction: column; align-items: stretch; text-align: center; } .compass-points { justify-content: center; } .games-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); } .promo-spotlight { flex-direction: column; text-align: center; } }
- /* Quick View Panel - NaturaSAF benzeri */
-.quick-view-panel {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(to top, rgba(4,22,46,0.98), rgba(4,22,46,0.9));
-    backdrop-filter: blur(12px);
-    border-top: 2px solid #F6B45F;
-    border-radius: 0 0 32px 32px;
-    padding: 16px;
-    z-index: 10;
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.3s ease, padding 0.3s ease;
-}
-
-.quick-view-panel.active {
-    max-height: 200px;
-    padding: 16px;
-}
-
-.quick-view-panel h4 {
-    color: #F6B45F;
-    font-size: 0.9rem;
-    margin-bottom: 8px;
-    font-weight: 700;
-}
-
-.quick-view-panel p {
-    color: #eaf2fb;
-    font-size: 0.78rem;
-    line-height: 1.5;
-    margin-bottom: 10px;
-}
-
-.quick-view-panel .quick-actions {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-}
-
-.quick-view-panel .quick-play-btn {
-    background: #F6B45F;
-    color: #04162E;
-    padding: 6px 16px;
-    border-radius: 30px;
-    text-decoration: none;
-    font-weight: bold;
-    font-size: 0.75rem;
-    display: inline-block;
-}
-
-.quick-view-panel .quick-close-btn {
-    background: transparent;
-    border: 1px solid rgba(246,180,95,0.3);
-    color: #F6B45F;
-    padding: 6px 12px;
-    border-radius: 30px;
-    cursor: pointer;
-    font-size: 0.7rem;
-}
   </style>
 </head>
 <body>
@@ -125,7 +53,9 @@
       <div class="points-label">PUSULA PUANI</div>
     </div>
   </div>
+
   <img src="og-image.jpg" alt="PACDI Games" class="hero-image" />
+
   <div class="promo-spotlight">
     <div class="promo-icon">🧓💰</div>
     <div class="promo-content">
@@ -140,10 +70,7 @@
       <a href="emekli-pusulasi.html" class="promo-btn">🔍 Hemen Hesapla</a>
     </div>
   </div>
-  <div class="info-badge-row">
-    <div class="info-badge-item">📶 Bu oyunlar internetsiz de çalışır</div>
-    <div class="info-badge-item install-prompt" id="installPrompt" style="display:none;">📲 Ana Ekrana Ekle</div>
-  </div>
+
   <div class="category"><div class="category-title"><span>⚡</span> Refleks & Dikkat</div><div class="games-grid" id="reflexGrid"></div></div>
   <div class="category"><div class="category-title"><span>🧠</span> Hafıza & Mantık</div><div class="games-grid" id="logicGrid"></div></div>
   <div class="category"><div class="category-title"><span>🎨</span> Görsel Algı & Strateji</div><div class="games-grid" id="visualGrid"></div></div>
@@ -151,321 +78,137 @@
   <div class="category"><div class="category-title"><span>🛠️</span> Araçlar & Günlük Hayat</div><div class="games-grid" id="toolsGrid"></div></div>
   <div class="category"><div class="category-title"><span>👥</span> 2 Kişilik Oyunlar</div><div class="games-grid" id="duoGrid"></div></div>
   <div class="category"><div class="category-title"><span>🌐</span> Bugout Uzaktan Oyun</div><div class="games-grid" id="bugoutGrid"></div></div>
+
   <div class="reward-banner">
     <div style="font-size: 0.8rem; color: #F6B45F;">🎉 Her oyunun sonunda ekstra puan kazan!</div>
     <button id="mockRewardBtn" class="reward-btn">🎥 Reklam İzle (+10 Puan)</button>
   </div>
+
   <div class="footer">
     PACDI Games · <span id="totalGamesSpan">0</span> oyun & araç · Her oyun onurla hazırlanmıştır
   </div>
 </div>
+
 <script>
-(function() {
+  (function() {
     var POINTS_KEY = 'pacdi_games_points';
     var points = parseInt(localStorage.getItem(POINTS_KEY) || '0', 10);
     var pointsSpan = document.getElementById('pusulaPoints');
     function updatePointsUI() { pointsSpan.innerText = points; }
-    function addPoints(amount) { points += amount; localStorage.setItem(POINTS_KEY, points); updatePointsUI(); }
+    function addPoints(amount) { points += amount; localStorage.setItem(POINTS_KEY, points); updatePointsUI(); pointsSpan.style.transform = 'scale(1.2)'; setTimeout(function() { pointsSpan.style.transform = ''; }, 200); }
     updatePointsUI();
-    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/sw.js'); }
-    var deferredPrompt;
-    window.addEventListener('beforeinstallprompt', function(e) {
-        e.preventDefault(); deferredPrompt = e;
-        var el = document.getElementById('installPrompt');
-        if (el) { el.style.display = 'flex'; el.innerText = '📲 Ana Ekrana Ekle'; el.onclick = function() { if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.then(function(r) { if (r.outcome === 'accepted') { el.innerText = '✅ Eklendi!'; } deferredPrompt = null; }); } }; }
-    });
-    setTimeout(function() {
-        var el = document.getElementById('installPrompt');
-        if (el && el.style.display === 'none') { el.style.display = 'flex'; el.innerText = '📲 Ana Ekrana Ekle'; el.onclick = function() { alert(/iPhone|iPad|iPod/.test(navigator.userAgent) ? 'iOS: Safari Paylaş → Ana Ekrana Ekle' : 'Chrome menüsünden Ana Ekrana Ekle'); }; }
-    }, 3000);
-
-    var gameInfos = {
-    'reaction-tap.html': 'Ekranda beliren hedeflere olabildiğince hızlı dokun. Reaksiyon süreni ölç, reflekslerini geliştir.',
-    'stroop.html': 'Yazının rengini söyle, kelimenin kendisini değil! Beyninin iki lobu arasındaki çatışmayı test et.',
-    'number-hunt.html': 'Kutulardaki sayıları küçükten büyüğe sırayla bul. Dikkatin ve hızın ölçülsün.',
-    'odd-one-out.html': 'Diğerlerinden farklı olan nesneyi bul. Görsel dikkatini test et.',
-    'visual.html': 'Izgaradaki farklı nesneyi bul. Gözlerin ne kadar keskin?',
-    'helix-jump.html': 'Dönen platformda topu boşluklardan geçir. Zamanlama ve refleks ister.',
-    'bio-synch-rhthym.html': 'Müziğin ritmine göre ekrana dokun. Ritim duygunu ve reflekslerini senkronize et.',
-    'color.html': 'Renk tonlarını ayırt etme becerini test et. Kaç farklı ton görebiliyorsun?',
-    'flappy-compass.html': 'Pusula kuşunu engellerden geçir. Tek dokunuşla zıplamasını sağla. Bağımlılık yapar!',
-    'color-catcher.html': 'Ekranda beliren hedef rengi yakala. Yanlış renge dokunursan can kaybedersin.',
-    'sound-mimic.html': 'Hedef sesi dinle, aynı tonda ses çıkarmaya çalış. Mikrofonla perde algılama.',
-    'logic-compass.html': 'Gizli renk kodunu mantık yürüterek bul. Her tahminde ipucu alırsın.',
-    'sudoku.html': 'Klasik 9x9 Sudoku. Her satır, sütun ve kutuda 1-9 rakamları tam olarak bir kez bulunsun.',
-    'merge.html': 'Aynı sayıları birleştirerek daha büyük sayılar oluştur. 2048\'e ulaşmaya çalış.',
-    'nova2048.html': '2048\'in kozmik versiyonu. Skor arttıkça grid büyür.',
-    '2048.html': 'Klasik 2048. Kaydır, aynı sayıları birleştir, 2048\'e ulaş.',
-    'memory.html': 'Kapalı kartları eşleştir. Hafızanı ve konsantrasyonunu test et.',
-    'sequence.html': 'Işık ve ses dizisini ezberle, aynı sırayla tekrarla.',
-    'word.html': 'Verilen harflerden anlamlı kelimeler türet. Kelime dağarcığını geliştir.',
-    'math.html': 'Hızlı matematik egzersizi. Toplama, çıkarma, çarpma işlemlerini süreye karşı yap.',
-    'numbers.html': 'Sayısal mantık bulmacaları. Rakamlarla aran nasıl?',
-    'word-garden.html': 'Kelimeleri topla, bahçeni büyüt. Kelime dağarcığını geliştir.',
-    'mahjong.html': 'Eşleşen taşları kaldır. Klasik Çin bulmacası.',
-    'hangman.html': 'Gizli kelimeyi harf tahmin ederek bul. 6 yanlışta adam asılır!',
-    'rock-paper-scissors.html': 'AI\'ya karşı taş kağıt makas. Bakalım kaç el kazanacaksın?',
-    'daily-quiz.html': 'Her gün yeni sorular. Genel kültürünü test et.',
-    'speed-typing.html': '30 saniyede en hızlı sen yaz. Klavye hızını ölç.',
-    'flag-quiz.html': 'Ülke bayraklarını tahmin et. Dünyayı ne kadar tanıyorsun?',
-    'rotate.html': 'Şekli döndürerek hedefe hizala. Uzamsal algı egzersizi.',
-    'shadow-match.html': 'Nesneyi gölgesiyle eşleştir. Görsel algı testi.',
-    'color-lines.html': 'Aynı renkleri birleştirerek çizgiler oluştur, patlat.',
-    'counterfeit.html': 'Sahte banknotları gerçeklerinden ayırt et. Dikkat testi.',
-    'pattern-match.html': 'Deseni ezberle, doğru hücreleri seç. Hafıza ve görsel algı.',
-    'hidden-object.html': 'Gizlenmiş nesneleri bul. Dedektiflik becerilerini test et.',
-    'water-sort-pro.html': 'Renkli sıvıları tüplere ayır. Strateji ve planlama.',
-    'watersortx.html': '6 renkli Water Sort. Progresif zorlukla daha da zorlu.',
-    'fark-avcisi.html': 'İki resim arasındaki farkları bul. Kaç fark görebilirsin?',
-    'match-three.html': 'Aynı renk 3 taşı yan yana getir, patlat.',
-    'pacdi-run.html': 'Engellerden kaçan karakteri yönet. Ne kadar dayanabilirsin?',
-    'maze-runner.html': 'Labirentten çıkış yolunu bul. Seviye atladıkça labirent büyür.',
-    'breathing.html': 'Nefes egzersizleriyle stresini azalt.',
-    'daily-compass.html': 'Namaz vakitleri, hicri takvim, günün ayeti ve kıble pusulası.',
-    'echo-of-the-past.html': 'Anıları canlandıran bulmacalar. Geçmişe yolculuk.',
-    'ancestors-album.html': 'Soy ağacı ve aile bilgilerini düzenle.',
-    'eti-grammar.html': 'Farklı dillerdeki barış kelimelerini eşleştir.',
-    'forgotten-graces.html': 'Unutulmuş nezaket kurallarını hatırla.',
-    'wisdom-circle.html': 'Farklı kültürlerdeki etik değerleri eşleştir.',
-    'legacy-puzzle.html': 'Fotoğraf yükle, sorularla parçaları aç.',
-    'sesli-hafiza.html': 'Aile bireylerinin seslerini tanı.',
-    'peg.html': 'Tek çivi kalana kadar zıpla. Klasik peg solitaire.',
-    'plaka-kodu.html': 'Türkiye\'deki 81 ilin plaka kodlarını eşleştir.',
-    'word-hunt.html': '5 harfli gizli kelimeyi 6 denemede bul. Wordle tarzı.',
-    'world-cities.html': 'Meşhur şehirleri simgeleriyle eşleştir.',
-    'daily-quote.html': 'Her gün yeni bir ilham verici alıntı.',
-    'currency-converter.html': 'Canlı döviz kurlarıyla anında çeviri yap.',
-    'qr-generator.html': 'Metin veya linkleri QR koda dönüştür.',
-    'water-reminder.html': 'Günlük su hedefini takip et. Bildirimlerle hatırlatsın.',
-    'todo-list.html': 'Görevlerini ekle, tamamla, sil.',
-    'dice-roller.html': 'Birden fazla zar at, toplamları gör.',
-    'emekli-pusulasi.html': '12 bankanın emekli promosyonlarını karşılaştır. Maaş aralığına göre en avantajlı teklifi bul.',
-    'domino.html': 'İki kişilik domino. Aynı cihazda sırayla oynayın. Taşları uç uca dizin.',
-    'checkers.html': 'İki kişilik dama. Aynı cihazda sırayla oynayın. Rakibin taşlarını zıplayarak al.',
-    'chess.html': 'İki kişilik satranç. Aynı cihazda sırayla oynayın. Şah mat yapmaya çalış.',
-    'nine-morris.html': 'İki kişilik dokuz taş. Aynı cihazda sırayla oynayın. Üç taşını yan yana diz.',
-    'mangala.html': 'İki kişilik Türk mangalası. Aynı cihazda sırayla oynayın. Taşları stratejik dağıt.',
-    'ludo.html': 'İki kişilik kızma birader. Aynı cihazda sırayla oynayın. Zar at, taşlarını yarıştır.',
-    'kniffel.html': 'İki kişilik zar oyunu. Aynı cihazda sırayla oynayın. 5 zar, 3 atış.',
-    'romme.html': 'İki kişilik rommé. Aynı cihazda sırayla oynayın. Kartları setler halinde diz.',
-    'skat.html': 'İki kişilik Alman kart oyunu. Aynı cihazda sırayla oynayın. Koz seç, el al.',
-    'peg-duello.html': 'İki kişilik peg düellosu. Aynı cihazda sırayla oynayın. En çok çiviyi topla.',
-    'xox-duello.html': 'İki kişilik XOX. Aynı cihazda sırayla oynayın. Üç X veya O\'yu yan yana diz.',
-    'battleship-duello.html': 'İki kişilik deniz savaşı. Aynı cihazda sırayla oynayın. Rakibin gemilerini batır.',
-    'word-duello.html': 'İki kişilik kelime kapmaca. Aynı cihazda sırayla oynayın. Harflerden kelime türet.',
-    'tower-duello.html': 'İki kişilik kuleden kule. Aynı cihazda sırayla oynayın. Diskleri stratejik taşı.',
-    'bugout-domino.html': 'Uzaktan domino. Arkadaşına kod gönder, internet üzerinden birlikte oynayın.',
-    'bugout-xox.html': 'Uzaktan XOX. Arkadaşına kod gönder, internet üzerinden sırayla oynayın.',
-    'bugout-checkers.html': 'Uzaktan dama. Arkadaşına kod gönder, internet üzerinden kapışın.',
-    'bugout-chess.html': 'Uzaktan satranç. Arkadaşına kod gönder, internet üzerinden oynayın.',
-    'bugout-nine-morris.html': 'Uzaktan dokuz taş. Arkadaşına kod gönder, geleneksel oyunu uzaktan oyna.',
-    'bugout-mangala.html': 'Uzaktan mangala. Arkadaşına kod gönder, Türk mangalasını uzaktan oyna.',
-    'bugout-ludo.html': 'Uzaktan kızma birader. Arkadaşına kod gönder, zar at, yarış.',
-    'bugout-kniffel.html': 'Uzaktan kniffel. Arkadaşına kod gönder, 5 zarla en yüksek skoru yap.',
-    'bugout-romme.html': 'Uzaktan rommé. Arkadaşına kod gönder, kartları diz, setleri aç.',
-    'bugout-skat.html': 'Uzaktan skat. Arkadaşına kod gönder, Alman klasiğini uzaktan oyna.',
-    'bugout-peg-duello.html': 'Uzaktan peg düellosu. Arkadaşına kod gönder, çivileri topla.',
-    'bugout-battleship.html': 'Uzaktan deniz savaşı. Arkadaşına kod gönder, gemileri batır.',
-    'bugout-word-duello.html': 'Uzaktan kelime kapmaca. Arkadaşına kod gönder, harflerden kelime türet.',
-    'bugout-tower-duello.html': 'Uzaktan kuleden kule. Arkadaşına kod gönder, diskleri taşı.'
-};
 
     var games = {
-    reflex: [
-        { name: "Reaction Tap", icon: "⚡", file: "reaction-tap.html" },
-        { name: "Stroop Testi", icon: "🎨", file: "stroop.html" },
-        { name: "Number Hunt", icon: "🔢", file: "number-hunt.html" },
-        { name: "Odd One Out", icon: "🔍", file: "odd-one-out.html" },
-        { name: "Visual Hunt", icon: "👀", file: "visual.html" },
-        { name: "Helix Jump", icon: "🌀", file: "helix-jump.html" },
-        { name: "Bio Sync Rhythm", icon: "🎵", file: "bio-synch-rhthym.html" },
-        { name: "Renk Algısı", icon: "🎯", file: "color.html" },
-        { name: "Flappy Compass", icon: "🧭", file: "flappy-compass.html" },
-        { name: "Renk Yakalama", icon: "🎨", file: "color-catcher.html" },
-        { name: "Ses Taklidi", icon: "🎤", file: "sound-mimic.html" }
-    ],
-    logic: [
-        { name: "Logic Compass", icon: "🧩", file: "logic-compass.html" },
-        { name: "Sudoku", icon: "🔢", file: "sudoku.html" },
-        { name: "Merge", icon: "🔀", file: "merge.html" },
-        { name: "Nova 2048", icon: "🌌", file: "nova2048.html" },
-        { name: "2048", icon: "🧱", file: "2048.html" },
-        { name: "Memory Pair", icon: "🃟", file: "memory.html" },
-        { name: "Sıra Hatırlama", icon: "🔁", file: "sequence.html" },
-        { name: "Kelime Türetme", icon: "📖", file: "word.html" },
-        { name: "Math Sprint", icon: "🧮", file: "math.html" },
-        { name: "Sayılar", icon: "#️⃣", file: "numbers.html" },
-        { name: "Kelime Bahçesi", icon: "🌻", file: "word-garden.html" },
-        { name: "Mahjong", icon: "🀄", file: "mahjong.html" },
-        { name: "Adam Asmaca", icon: "💀", file: "hangman.html" },
-        { name: "Taş Kağıt Makas", icon: "✂️", file: "rock-paper-scissors.html" },
-        { name: "Günlük Quiz", icon: "❓", file: "daily-quiz.html" },
-        { name: "Hızlı Yazma", icon: "⌨️", file: "speed-typing.html" },
-        { name: "Bayrak Bulmaca", icon: "🌍", file: "flag-quiz.html" }
-    ],
-    visual: [
-        { name: "Rotate", icon: "🔄", file: "rotate.html" },
-        { name: "Shadow Match", icon: "🌑", file: "shadow-match.html" },
-        { name: "Color Lines", icon: "🌈", file: "color-lines.html" },
-        { name: "Counterfeit", icon: "💰", file: "counterfeit.html" },
-        { name: "Pattern Match", icon: "🔲", file: "pattern-match.html" },
-        { name: "Hidden Object", icon: "🔎", file: "hidden-object.html" },
-        { name: "Water Sort Pro", icon: "💧", file: "water-sort-pro.html" },
-        { name: "Water Sort X", icon: "🧪", file: "watersortx.html" },
-        { name: "Fark Avcısı", icon: "🔍", file: "fark-avcisi.html" },
-        { name: "Match Three", icon: "💎", file: "match-three.html" },
-        { name: "PACDI Run", icon: "🏃", file: "pacdi-run.html" },
-        { name: "Labirent", icon: "🌀", file: "maze-runner.html" }
-    ],
-    culture: [
-        { name: "Emekli Pusulası", icon: "🧓", file: "emekli-pusulasi.html" },
-        { name: "Nefes Pusulası", icon: "🌬️", file: "breathing.html" },
-        { name: "Günlük Pusula", icon: "📅", file: "daily-compass.html" },
-        { name: "Geçmişin Yankısı", icon: "📻", file: "echo-of-the-past.html" },
-        { name: "Ata Albümü", icon: "📸", file: "ancestors-album.html" },
-        { name: "İyiliğin Grameri", icon: "🕊️", file: "eti-grammar.html" },
-        { name: "Unutulmuş Zariflikler", icon: "🎩", file: "forgotten-graces.html" },
-        { name: "Bilgelik Halkası", icon: "🏵️", file: "wisdom-circle.html" },
-        { name: "Dijital Miras", icon: "🖼️", file: "legacy-puzzle.html" },
-        { name: "Sesli Hafıza", icon: "🎤", file: "sesli-hafiza.html" },
-        { name: "Peg Solitaire", icon: "⚪", file: "peg.html" },
-        { name: "Plaka Kodları", icon: "🚗", file: "plaka-kodu.html" },
-        { name: "Kelime Avı", icon: "🔤", file: "word-hunt.html" },
-        { name: "Dünya Şehirleri", icon: "🌍", file: "world-cities.html" },
-        { name: "Günün Sözü", icon: "💬", file: "daily-quote.html" }
-    ],
-    tools: [
-        { name: "Döviz Çevirici", icon: "💱", file: "currency-converter.html" },
-        { name: "QR Kod Oluşturucu", icon: "📱", file: "qr-generator.html" },
-        { name: "Su İçme Hatırlatıcı", icon: "💧", file: "water-reminder.html" },
-        { name: "Yapılacaklar Listesi", icon: "✅", file: "todo-list.html" },
-        { name: "Zar Atma", icon: "🎲", file: "dice-roller.html" }
-    ],
-    duo: [
-        { name: "Domino", icon: "🀄", file: "domino.html" },
-        { name: "Dama", icon: "⏺️", file: "checkers.html" },
-        { name: "Satranç", icon: "♟️", file: "chess.html" },
-        { name: "Dokuz Taş", icon: "⚫", file: "nine-morris.html" },
-        { name: "Mangala", icon: "🕳️", file: "mangala.html" },
-        { name: "Kızma Birader", icon: "🎲", file: "ludo.html" },
-        { name: "Kniffel", icon: "🎯", file: "kniffel.html" },
-        { name: "Rommé", icon: "🃏", file: "romme.html" },
-        { name: "Skat", icon: "♠️", file: "skat.html" },
-        { name: "Peg Düello", icon: "⚪", file: "peg-duello.html" },
-        { name: "XOX Düello", icon: "❌", file: "xox-duello.html" },
-        { name: "Deniz Savaşı", icon: "🚢", file: "battleship-duello.html" },
-        { name: "Kelime Kapmaca", icon: "📝", file: "word-duello.html" },
-        { name: "Kuleden Kule", icon: "🗼", file: "tower-duello.html" }
-    ],
-    bugout: [
-        { name: "Bugout Domino", icon: "🌐🀄", file: "bugout-domino.html" },
-        { name: "Bugout XOX", icon: "🌐❌", file: "bugout-xox.html" },
-        { name: "Bugout Dama", icon: "🌐⏺️", file: "bugout-checkers.html" },
-        { name: "Bugout Satranç", icon: "🌐♟️", file: "bugout-chess.html" },
-        { name: "Bugout Dokuz Taş", icon: "🌐⚫", file: "bugout-nine-morris.html" },
-        { name: "Bugout Mangala", icon: "🌐🕳️", file: "bugout-mangala.html" },
-        { name: "Bugout Kızma Birader", icon: "🌐🎲", file: "bugout-ludo.html" },
-        { name: "Bugout Kniffel", icon: "🌐🎯", file: "bugout-kniffel.html" },
-        { name: "Bugout Rommé", icon: "🌐🃏", file: "bugout-romme.html" },
-        { name: "Bugout Skat", icon: "🌐♠️", file: "bugout-skat.html" },
-        { name: "Bugout Peg Düello", icon: "🌐⚪", file: "bugout-peg-duello.html" },
-        { name: "Bugout Deniz Savaşı", icon: "🌐🚢", file: "bugout-battleship.html" },
-        { name: "Bugout Kelime", icon: "🌐📝", file: "bugout-word-duello.html" },
-        { name: "Bugout Kule", icon: "🌐🗼", file: "bugout-tower-duello.html" }
-    ]
- };
+      reflex: [
+        { name: "Reaction Tap", desc: "Hedefe dokun, reaksiyon süreni ölç.", icon: "⚡", file: "reaction-tap.html" },
+        { name: "Stroop Testi", desc: "Renk ve kelime çatışması.", icon: "🎨", file: "stroop.html" },
+        { name: "Number Hunt", desc: "Sayıları küçükten büyüğe bul.", icon: "🔢", file: "number-hunt.html" },
+        { name: "Helix Jump", desc: "Topu döndür, boşluklardan geçir.", icon: "🌀", file: "helix-jump.html" },
+        { name: "Odd One Out", desc: "Farklı olan nesneyi bul.", icon: "🔍", file: "odd-one-out.html" },
+        { name: "Visual Hunt", desc: "İzgarada farklı olanı bul.", icon: "👀", file: "visual.html" },
+        { name: "Bio Sync Rhythm", desc: "Ritimle refleksini senkronize et.", icon: "🎵", file: "bio-synch-rhthym.html" },
+        { name: "Renk Algısı", desc: "Renk tonlarını ayırt et.", icon: "🎯", file: "color.html" },
+        { name: "Flappy Compass", desc: "Pusula kuşunu engellerden geçir.", icon: "🧭", file: "flappy-compass.html" },
+        { name: "Renk Yakalama", desc: "Hedef rengi ekranda hızla yakala.", icon: "🎨", file: "color-catcher.html" },
+        { name: "Ses Taklidi", desc: "Hedef sesi mikrofonla taklit et.", icon: "🎤", file: "sound-mimic.html" }
+      ],
+      logic: [
+        { name: "Logic Compass", desc: "Gizli renk kodunu mantıkla bul.", icon: "🧩", file: "logic-compass.html" },
+        { name: "Sudoku", desc: "9x9 sayı yerleştirme.", icon: "🔢", file: "sudoku.html" },
+        { name: "Merge", desc: "Sayıları birleştir, 2048'e ulaş.", icon: "🔀", file: "merge.html" },
+        { name: "Nova 2048", desc: "Grid büyür, puan artar.", icon: "🌌", file: "nova2048.html" },
+        { name: "2048", desc: "Klasik sayı birleştirme.", icon: "🧱", file: "2048.html" },
+        { name: "Memory Pair", desc: "Kartları eşleştir, hafızanı test et.", icon: "🃟", file: "memory.html" },
+        { name: "Sıra Hatırlama", desc: "Işık ve ses dizisini tekrarla.", icon: "🔁", file: "sequence.html" },
+        { name: "Kelime Türetme", desc: "Harflerden kelime üret.", icon: "📖", file: "word.html" },
+        { name: "Math Sprint", desc: "Hızlı matematik egzersizi.", icon: "🧮", file: "math.html" },
+        { name: "Sayılar", desc: "Sayısal mantık bulmacaları.", icon: "#️⃣", file: "numbers.html" },
+        { name: "Kelime Bahçesi", desc: "Kelimeleri topla, bahçeni büyüt.", icon: "🌻", file: "word-garden.html" },
+        { name: "Mahjong", desc: "Eşleştirme tabanlı klasik oyun.", icon: "🀄", file: "mahjong.html" },
+        { name: "Adam Asmaca", desc: "Harf tahmin et, adamı kurtar.", icon: "💀", file: "hangman.html" },
+        { name: "Taş Kağıt Makas", desc: "Klasik el oyunu, AI'ya karşı.", icon: "✂️", file: "rock-paper-scissors.html" },
+        { name: "Günlük Quiz", desc: "Her gün yeni sorularla bilgi testi.", icon: "❓", file: "daily-quiz.html" },
+        { name: "Hızlı Yazma", desc: "30 saniyede en hızlı sen yaz.", icon: "⌨️", file: "speed-typing.html" },
+        { name: "Bayrak Bulmaca", desc: "Ülke bayraklarını tahmin et.", icon: "🌍", file: "flag-quiz.html" }
+      ],
+      visual: [
+        { name: "Rotate", desc: "Şekli döndür, hedefe hizala.", icon: "🔄", file: "rotate.html" },
+        { name: "Shadow Match", desc: "Nesneyi gölgesiyle eşleştir.", icon: "🌑", file: "shadow-match.html" },
+        { name: "Color Lines", desc: "Aynı renkleri birleştir, patlat.", icon: "🌈", file: "color-lines.html" },
+        { name: "Counterfeit", desc: "Sahte banknotu gerçeğinden ayır.", icon: "💰", file: "counterfeit.html" },
+        { name: "Pattern Match", desc: "Deseni ezberle, doğru hücreleri seç.", icon: "🔲", file: "pattern-match.html" },
+        { name: "Hidden Object", desc: "Gizli nesneleri bul.", icon: "🔎", file: "hidden-object.html" },
+        { name: "Water Sort Pro", desc: "Renkleri tüplerde sırala.", icon: "💧", file: "water-sort-pro.html" },
+        { name: "Water Sort X", desc: "Progresif zorlukta 6 renk sırala.", icon: "🧪", file: "watersortx.html" },
+        { name: "Fark Avcısı", desc: "İki resim arasındaki farkları bul.", icon: "🔍", file: "fark-avcisi.html" },
+        { name: "Match Three", desc: "Aynı renk 3 taşı eşleştir, patlat.", icon: "💎", file: "match-three.html" },
+        { name: "PACDI Run", desc: "Engellerden kaç, koşmaya devam et.", icon: "🏃", file: "pacdi-run.html" },
+        { name: "Labirent", desc: "Labirentten çık, zihnini keskinleştir.", icon: "🌀", file: "maze-runner.html" }
+      ],
+      culture: [
+        { name: "Nefes Pusulası", desc: "Kriz anında nefes egzersizi.", icon: "🌬️", file: "breathing.html" },
+        { name: "Günlük Pusula", desc: "Namaz vakitleri, hicri takvim, ayetler.", icon: "📅", file: "daily-compass.html" },
+        { name: "Geçmişin Yankısı", desc: "Anıları canlandıran bulmaca.", icon: "📻", file: "echo-of-the-past.html" },
+        { name: "Ata Albümü", desc: "Soy ağacı ve aile bilgileri.", icon: "📸", file: "ancestors-album.html" },
+        { name: "İyiliğin Grameri", desc: "Barış kelimelerini dillerde eşleştir.", icon: "🕊️", file: "eti-grammar.html" },
+        { name: "Unutulmuş Zariflikler", desc: "Eski nezaket kurallarını hatırla.", icon: "🎩", file: "forgotten-graces.html" },
+        { name: "Bilgelik Halkası", desc: "Etik değerleri farklı kültürlerde eşleştir.", icon: "🏵️", file: "wisdom-circle.html" },
+        { name: "Dijital Miras", desc: "Fotoğraf yükle, sorularla parçaları aç.", icon: "🖼️", file: "legacy-puzzle.html" },
+        { name: "Sesli Hafıza", desc: "Aile seslerini tanı.", icon: "🎤", file: "sesli-hafiza.html" },
+        { name: "Peg Solitaire", desc: "Tek çivi kalana kadar zıpla.", icon: "⚪", file: "peg.html" },
+        { name: "Plaka Kodları", desc: "Türkiye illerini plaka kodlarıyla eşleştir.", icon: "🚗", file: "plaka-kodu.html" },
+        { name: "Kelime Avı", desc: "Gizli kelimeyi 6 denemede bul.", icon: "🔤", file: "word-hunt.html" },
+        { name: "Dünya Şehirleri", desc: "Meşhur şehirleri özellikleriyle eşleştir.", icon: "🌍", file: "world-cities.html" },
+        { name: "Günün Sözü", desc: "Her gün yeni bir ilham verici alıntı.", icon: "💬", file: "daily-quote.html" }
+      ],
+      tools: [
+        { name: "Döviz Çevirici", desc: "Canlı döviz kurlarıyla anında çeviri.", icon: "💱", file: "currency-converter.html" },
+        { name: "QR Kod Oluşturucu", desc: "Metin veya linklerden QR kod üret.", icon: "📱", file: "qr-generator.html" },
+        { name: "Su İçme Hatırlatıcı", desc: "Günlük su hedefini takip et, bildirim al.", icon: "💧", file: "water-reminder.html" },
+        { name: "Yapılacaklar Listesi", desc: "Görevlerini ekle, tamamla, sil.", icon: "✅", file: "todo-list.html" },
+        { name: "Zar Atma", desc: "Birden fazla zar at, toplamı gör.", icon: "🎲", file: "dice-roller.html" }
+      ],
+      duo: [
+        { name: "Domino", desc: "İki kişilik klasik domino oyunu.", icon: "🀄", file: "domino.html" },
+        { name: "Dama", desc: "Klasik 8x8 dama, sırayla oynayın.", icon: "⏺️", file: "checkers.html" },
+        { name: "Satranç", desc: "Klasik satranç, iki kişilik.", icon: "♟️", file: "chess.html" },
+        { name: "Dokuz Taş", desc: "Geleneksel dokuz taş oyunu.", icon: "⚫", file: "nine-morris.html" },
+        { name: "Mangala", desc: "Klasik Türk mangala oyunu.", icon: "🕳️", file: "mangala.html" },
+        { name: "Peg Düello", desc: "Rekabetçi çivi atlama düellosu.", icon: "⚪", file: "peg-duello.html" },
+        { name: "XOX Düello", desc: "Klasik 3x3 XOX oyunu.", icon: "❌", file: "xox-duello.html" },
+        { name: "Deniz Savaşı", desc: "Gemileri batır, rakibini yen.", icon: "🚢", file: "battleship-duello.html" },
+        { name: "Kelime Kapmaca", desc: "Aynı harflerden sırayla kelime türet.", icon: "📝", file: "word-duello.html" },
+        { name: "Kuleden Kule", desc: "Hanoi tarzı disk taşıma düellosu.", icon: "🗼", file: "tower-duello.html" }
+      ],
+      bugout: [
+        { name: "Bugout Domino", desc: "İnternet üzerinden uzaktan domino.", icon: "🌐🀄", file: "bugout-domino.html" },
+        { name: "Bugout XOX", desc: "İnternet üzerinden uzaktan XOX.", icon: "🌐❌", file: "bugout-xox.html" },
+        { name: "Bugout Dama", desc: "İnternet üzerinden uzaktan dama.", icon: "🌐⏺️", file: "bugout-checkers.html" },
+        { name: "Bugout Satranç", desc: "İnternet üzerinden uzaktan satranç.", icon: "🌐♟️", file: "bugout-chess.html" },
+        { name: "Bugout Dokuz Taş", desc: "İnternet üzerinden uzaktan dokuz taş.", icon: "🌐⚫", file: "bugout-nine-morris.html" },
+        { name: "Bugout Mangala", desc: "İnternet üzerinden uzaktan mangala.", icon: "🌐🕳️", file: "bugout-mangala.html" },
+        { name: "Bugout Peg Düello", desc: "İnternet üzerinden uzaktan peg.", icon: "🌐⚪", file: "bugout-peg-duello.html" },
+        { name: "Bugout Deniz Savaşı", desc: "İnternet üzerinden uzaktan deniz savaşı.", icon: "🌐🚢", file: "bugout-battleship.html" },
+        { name: "Bugout Kelime Kapmaca", desc: "İnternet üzerinden uzaktan kelime.", icon: "🌐📝", file: "bugout-word-duello.html" },
+        { name: "Bugout Kuleden Kule", desc: "İnternet üzerinden uzaktan kule.", icon: "🌐🗼", file: "bugout-tower-duello.html" }
+      ]
+    };
 
-    function showInfoPopup(file, name) {
-        var desc = gameInfos[file] || 'Bu oyunun açıklaması yakında eklenecek.';
-        var overlay = document.createElement('div');
-        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:1000;display:flex;align-items:center;justify-content:center;';
-        overlay.innerHTML = '<div style="background:#0a1018;border-radius:28px;padding:24px;max-width:400px;width:90%;border:2px solid #F6B45F;text-align:center;"><h3 style="color:#F6B45F;margin-bottom:12px;">ℹ️ ' + name + '</h3><p style="color:#eaf2fb;font-size:0.85rem;line-height:1.5;margin-bottom:16px;">' + desc + '</p><button style="background:#F6B45F;border:none;padding:8px 24px;border-radius:40px;font-weight:bold;color:#04162E;cursor:pointer;" onclick="this.parentElement.parentElement.remove()">Kapat</button></div>';
-        document.body.appendChild(overlay);
-        overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove(); });
+    function createGameCard(game) {
+      var card = document.createElement('div'); card.className = 'game-card';
+      var iconDiv = document.createElement('div'); iconDiv.className = 'game-icon'; iconDiv.innerText = game.icon;
+      var nameDiv = document.createElement('div'); nameDiv.className = 'game-name'; nameDiv.innerText = game.name;
+      var descDiv = document.createElement('div'); descDiv.className = 'game-desc'; descDiv.innerText = game.desc;
+      var playBtn = document.createElement('a'); playBtn.className = 'play-btn'; playBtn.innerText = 'Oyna / Aç →'; playBtn.href = game.file;
+      card.appendChild(iconDiv); card.appendChild(nameDiv); card.appendChild(descDiv); card.appendChild(playBtn);
+      return card;
     }
 
-    function createGameCard(game, index) {
-    var card = document.createElement('div');
-    card.className = 'game-card';
-    card.setAttribute('data-game-index', index);
-    card.setAttribute('data-game-file', game.file);
-    
-    card.innerHTML = 
-        '<div class="game-icon">' + game.icon + '</div>' +
-        '<div class="game-name">' + game.name + '</div>' +
-        '<div class="game-desc">' + (gameInfos[game.file] || game.desc || '') + '</div>' +
-        '<a href="' + game.file + '" class="play-btn">Oyna / Aç →</a>' +
-        '<div class="quick-view-panel" id="qv-' + index + '">' +
-            '<h4>📋 ' + game.name + '</h4>' +
-            '<p>' + (gameInfos[game.file] || 'Detaylı açıklama yakında eklenecek.') + '</p>' +
-            '<div class="quick-actions">' +
-                '<a href="' + game.file + '" class="quick-play-btn">▶ Hemen Oyna</a>' +
-                '<button class="quick-close-btn" onclick="event.stopPropagation(); closeQuickView(' + index + ')">✕ Kapat</button>' +
-            '</div>' +
-        '</div>';
-    
-    // ℹ️ Bilgi butonu
-    var infoBtn = document.createElement('div');
-    infoBtn.className = 'info-btn';
-    infoBtn.innerText = 'ℹ️';
-    infoBtn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        e.preventDefault();
-        showInfoPopup(game.file, game.name);
-    });
-    card.appendChild(infoBtn);
-    
-    // Kartın kendisine tıklayınca Quick View panelini aç
-    card.addEventListener('click', function(e) {
-        // Eğer play butonuna veya linke tıklandıysa quick view açma
-        if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON') return;
-        
-        e.stopPropagation();
-        
-        // Daha önce açık olan tüm panelleri kapat
-        var allPanels = document.querySelectorAll('.quick-view-panel.active');
-        allPanels.forEach(function(p) {
-            if (p.id !== 'qv-' + index) {
-                p.classList.remove('active');
-            }
-        });
-        
-        // Bu kartın panelini aç/kapat
-        var panel = document.getElementById('qv-' + index);
-        if (panel) {
-            panel.classList.toggle('active');
-        }
-    });
-    
-    return card;
-}
-
-// Quick View kapatma fonksiyonu
-function closeQuickView(index) {
-    var panel = document.getElementById('qv-' + index);
-    if (panel) {
-        panel.classList.remove('active');
-    }
-}
-
-// Sayfa dışına tıklayınca tüm quick view panellerini kapat
-document.addEventListener('click', function(e) {
-    if (!e.target.closest('.game-card')) {
-        var allPanels = document.querySelectorAll('.quick-view-panel.active');
-        allPanels.forEach(function(p) {
-            p.classList.remove('active');
-        });
-    }
-});
-        card.appendChild(infoBtn);
-        return card;
-    }
-
-    function renderCategory(id, arr) {
-        var container = document.getElementById(id);
-        if (!container) return;
-        container.innerHTML = '';
-        for (var i = 0; i < arr.length; i++) container.appendChild(createGameCard(arr[i]));
+    function renderCategory(containerId, gamesArray) {
+      var container = document.getElementById(containerId);
+      if (!container) return;
+      container.innerHTML = '';
+      for (var i = 0; i < gamesArray.length; i++) container.appendChild(createGameCard(gamesArray[i]));
     }
 
     renderCategory('reflexGrid', games.reflex);
@@ -476,15 +219,15 @@ document.addEventListener('click', function(e) {
     renderCategory('duoGrid', games.duo);
     renderCategory('bugoutGrid', games.bugout);
 
-    var total = 0;
-    for (var cat in games) total += games[cat].length;
+    var total = games.reflex.length + games.logic.length + games.visual.length + games.culture.length + games.tools.length + games.duo.length + games.bugout.length;
     document.getElementById('totalGamesSpan').innerText = total;
 
-    document.getElementById('mockRewardBtn').addEventListener('click', function() {
-        alert('🎬 Reklam izleme simülasyonu\n+10 Pusula Puanı');
-        addPoints(10);
-    });
-})();
+    var rewardBtn = document.getElementById('mockRewardBtn');
+    if (rewardBtn) rewardBtn.addEventListener('click', function() { alert('🎬 Reklam izleme simülasyonu\n+10 Pusula Puanı'); addPoints(10); });
+
+    window.pacdiGames = window.pacdiGames || {};
+    window.pacdiGames.addPoints = addPoints;
+  })();
 </script>
 </body>
 </html>
