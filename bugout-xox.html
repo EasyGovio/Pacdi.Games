@@ -1,140 +1,182 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>WebRTC XOX Test | PACDI Games</title>
-    <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { background:#04162E; font-family:sans-serif; color:#eaf2fb; padding:20px; text-align:center; }
-        .btn { background:#F6B45F; border:none; padding:14px 28px; border-radius:40px; color:#04162E; font-weight:bold; font-size:1rem; cursor:pointer; margin:10px; }
-        .info { color:#F6B45F; margin:10px 0; font-size:0.9rem; }
-        textarea { width:90%; height:60px; padding:10px; border-radius:10px; margin:10px 0; background:#1e2a3a; color:#eaf2fb; border:1px solid #F6B45F; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Bugout XOX | PACDI Games</title>
+  <script src="https://cdn.jsdelivr.net/npm/bugout@0.0.13/dist/bugout.min.js"></script>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+    body { background:#04162E; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
+    .game-container { max-width:500px; width:100%; background:rgba(4,22,46,0.85); border-radius:56px; padding:20px 16px 24px; box-shadow:0 20px 35px rgba(0,0,0,0.5); border:1px solid rgba(246,180,95,0.3); text-align:center; }
+    .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+    .logo { font-size:1.3rem; font-weight:800; color:#F6B45F; }
+    .back-link { color:#F6B45F; text-decoration:none; font-weight:bold; font-size:0.78rem; background:#0a1018; padding:5px 12px; border-radius:40px; border:1px solid rgba(246,180,95,0.3); }
+    .lobby-area, .game-area { background:#0a1018; border-radius:28px; padding:20px 16px; margin-bottom:20px; }
+    h3 { color:#F6B45F; margin-bottom:12px; }
+    .room-input { width:100%; padding:12px 16px; border-radius:16px; border:2px solid rgba(246,180,95,0.3); background:#1e2a3a; color:#eaf2fb; font-size:1rem; text-align:center; outline:none; margin-bottom:10px; }
+    .btn { background:#F6B45F; border:none; font-weight:bold; padding:12px 24px; border-radius:40px; color:#04162E; cursor:pointer; font-size:0.9rem; margin:6px; }
+    .btn:active { transform:scale(0.96); }
+    .btn.secondary { background:#1e2a3a; border:2px solid #F6B45F; color:#F6B45F; }
+    .board-xox { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; max-width:280px; margin:20px auto; }
+    .cell-xox { aspect-ratio:1; background:#1e2a3a; border:2px solid rgba(246,180,95,0.3); border-radius:16px; display:flex; align-items:center; justify-content:center; font-size:3rem; font-weight:bold; cursor:pointer; color:#eaf2fb; transition:0.1s; }
+    .cell-xox:active { background:#F6B45F; transform:scale(0.95); }
+    .cell-xox.x-mark { color:#3498DB; }
+    .cell-xox.o-mark { color:#E74C3C; }
+    .message { color:#F6B45F; font-size:0.9rem; font-weight:bold; min-height:30px; margin:8px 0; }
+    .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:12px; }
+    .hidden { display:none; }
+  </style>
 </head>
 <body>
-    <h2 style="color:#F6B45F;">WebRTC Bağlantı Testi</h2>
-    <p style="color:#9bb7d4; font-size:0.8rem; margin-bottom:12px;">
-        📋 <strong>Nasıl kullanılır?</strong><br>
-        ❶ <strong>"Yeni Oda Oluştur"</strong>a bas.<br>
-        ❷ Çıkan <strong>ODA KODUNU</strong> kopyala, arkadaşına gönder.<br>
-        ❸ Arkadaşın kodu yapıştırıp <strong>"Odaya Katıl"</strong>a bassın.<br>
-        ❹ Bağlantı kurulunca mesajlaşmaya başlayabilirsiniz!
-    </p>
+<div class="game-container">
+  <div class="top-bar">
+    <div class="logo">BUG XOX</div>
+    <a href="index.html" class="back-link">← Geri</a>
+  </div>
 
-    <button class="btn" id="createBtn">🎯 Yeni Oda Oluştur</button>
-    <br>
-    <textarea id="codeArea" placeholder="Oda kodu burada görünecek..."></textarea>
-    <br>
-    <button class="btn" id="joinBtn">🚪 Odaya Katıl</button>
+  <div id="lobbyArea" class="lobby-area">
+    <h3>Oyun Odasına Katıl</h3>
+    <input type="text" id="roomIdInput" class="room-input" placeholder="Oda kodunu gir... (boş bırakırsan yeni oda)">
+    <button id="connectBtn" class="btn">Odaya Bağlan</button>
+    <p style="color:#9bb7d4; font-size:0.8rem; margin-top:8px;" id="roomInfo"></p>
+  </div>
 
-    <div class="info" id="status"></div>
-    <div style="margin-top:20px;">
-        <input type="text" id="msgInput" placeholder="Mesaj yaz..." style="padding:10px; width:70%; border-radius:10px;">
-        <button class="btn" id="sendBtn" style="padding:10px 20px;">Gönder</button>
-    </div>
-    <div id="messages" style="margin-top:10px; text-align:left; max-height:200px; overflow-y:auto;"></div>
+  <div id="gameArea" class="game-area hidden">
+    <h3>❌⭕ Bugout XOX</h3>
+    <div class="board-xox" id="boardXox"></div>
+    <div class="message" id="gameMessage">Rakip bekleniyor...</div>
+    <button id="restartBtn" class="btn secondary hidden">Yeni Oyun</button>
+  </div>
 
-    <script>
-        var pc = null;
-        var dc = null;
-        var myCode = '';
+  <div class="footer">PACDI Games · Bugout ile uzaktan XOX.</div>
+</div>
 
-        function log(msg) {
-            document.getElementById('status').innerHTML = msg;
-        }
+<script>
+  var bugout;
+  var myId, peerId, isHost = false;
+  var board = [['','',''],['','',''],['','','']];
+  var mySymbol, currentSymbol = 'X'; // X başlar
+  var gameOver = false;
 
-        function addMessage(msg) {
-            var div = document.getElementById('messages');
-            div.innerHTML += '<div style="padding:4px;color:#eaf2fb;">' + msg + '</div>';
-        }
+  // --- Bağlantı ---
+  document.getElementById('connectBtn').addEventListener('click', function() {
+    var roomId = document.getElementById('roomIdInput').value.trim();
+    bugout = roomId ? new Bugout(roomId) : new Bugout();
 
-        // Basit bir oda kodu üret
-        function generateCode() {
-            return 'PACDI-' + Math.random().toString(36).substring(2, 10).toUpperCase();
-        }
+    bugout.address().then(function(address) {
+      myId = address;
+      document.getElementById('roomInfo').innerHTML = 'Senin adresin: <b>' + myId + '</b><br>Bu kodu arkadaşına gönder.';
+      if (!roomId) isHost = true;
+    });
 
-        // WebRTC bağlantısı kur
-        function createPeerConnection() {
-            pc = new RTCPeerConnection({
-                iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
-            });
+    bugout.on('message', function(address, message) {
+      if (!peerId) {
+        peerId = address;
+        document.getElementById('lobbyArea').classList.add('hidden');
+        document.getElementById('gameArea').classList.remove('hidden');
+        // Rolleri belirle
+        if (isHost) { mySymbol = 'X'; }
+        else { mySymbol = 'O'; }
+        currentSymbol = 'X'; // oyunu X başlatır
+        updateBoard();
+        document.getElementById('gameMessage').innerText = isHost ? 'Sen X'sin, ilk hamleyi yap.' : 'Rakip X, sıra onda.';
+      }
+      handleMessage(message);
+    });
+  });
 
-            dc = pc.createDataChannel('game');
-            setupDataChannel(dc);
+  function sendMessage(data) {
+    if (bugout && peerId) bugout.send(peerId, JSON.stringify(data));
+  }
 
-            pc.onicecandidate = function(e) {
-                if (e.candidate) {
-                    // Adayları topla (basit demo için ilk adayı kullan)
-                }
-            };
+  // --- Oyun ---
+  function handleMessage(rawMsg) {
+    var msg;
+    try { msg = JSON.parse(rawMsg); } catch(e) { return; }
+    if (msg.type === 'move') {
+      board[msg.row][msg.col] = msg.symbol;
+      currentSymbol = msg.symbol === 'X' ? 'O' : 'X';
+      updateBoard();
+      if (checkWin(msg.symbol)) {
+        gameOver = true;
+        document.getElementById('gameMessage').innerText = (msg.symbol === mySymbol ? '🎉 Sen kazandın!' : '😔 Kaybettin.');
+        document.getElementById('restartBtn').classList.remove('hidden');
+      } else if (isBoardFull()) {
+        gameOver = true;
+        document.getElementById('gameMessage').innerText = '🤝 Berabere!';
+        document.getElementById('restartBtn').classList.remove('hidden');
+      } else {
+        document.getElementById('gameMessage').innerText = (currentSymbol === mySymbol ? 'Sıra sende.' : 'Rakip düşünüyor...');
+      }
+    } else if (msg.type === 'restart') {
+      resetGame();
+    }
+  }
 
-            pc.createOffer().then(function(offer) {
-                return pc.setLocalDescription(offer);
-            }).then(function() {
-                // SDP'yi kod olarak kullan
-                myCode = btoa(JSON.stringify(pc.localDescription));
-                document.getElementById('codeArea').value = myCode;
-                log('✅ Oda oluşturuldu! Kodu arkadaşına gönder.');
-            });
-        }
+  function makeMove(row, col) {
+    if (gameOver || board[row][col] !== '' || currentSymbol !== mySymbol) return;
+    board[row][col] = mySymbol;
+    sendMessage({ type: 'move', row: row, col: col, symbol: mySymbol });
+    currentSymbol = mySymbol === 'X' ? 'O' : 'X';
+    updateBoard();
+    if (checkWin(mySymbol)) {
+      gameOver = true;
+      document.getElementById('gameMessage').innerText = '🎉 Sen kazandın!';
+      document.getElementById('restartBtn').classList.remove('hidden');
+    } else if (isBoardFull()) {
+      gameOver = true;
+      document.getElementById('gameMessage').innerText = '🤝 Berabere!';
+      document.getElementById('restartBtn').classList.remove('hidden');
+    } else {
+      document.getElementById('gameMessage').innerText = 'Rakip düşünüyor...';
+    }
+  }
 
-        function joinRoom(code) {
-            try {
-                var desc = JSON.parse(atob(code));
-                pc = new RTCPeerConnection({
-                    iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
-                });
+  function updateBoard() {
+    var container = document.getElementById('boardXox');
+    container.innerHTML = '';
+    for (var r=0; r<3; r++) {
+      for (var c=0; c<3; c++) {
+        var cell = document.createElement('div');
+        cell.className = 'cell-xox';
+        cell.innerText = board[r][c];
+        if (board[r][c] === 'X') cell.classList.add('x-mark');
+        else if (board[r][c] === 'O') cell.classList.add('o-mark');
+        cell.addEventListener('click', (function(row, col) { return function() { makeMove(row, col); }; })(r, c));
+        container.appendChild(cell);
+      }
+    }
+  }
 
-                pc.ondatachannel = function(e) {
-                    dc = e.channel;
-                    setupDataChannel(dc);
-                };
+  function checkWin(symbol) {
+    for (var i=0; i<3; i++) {
+      if (board[i][0]===symbol && board[i][1]===symbol && board[i][2]===symbol) return true;
+      if (board[0][i]===symbol && board[1][i]===symbol && board[2][i]===symbol) return true;
+    }
+    if (board[0][0]===symbol && board[1][1]===symbol && board[2][2]===symbol) return true;
+    if (board[0][2]===symbol && board[1][1]===symbol && board[2][0]===symbol) return true;
+    return false;
+  }
 
-                pc.setRemoteDescription(new RTCSessionDescription(desc)).then(function() {
-                    return pc.createAnswer();
-                }).then(function(answer) {
-                    return pc.setLocalDescription(answer);
-                }).then(function() {
-                    log('✅ Odaya katıldın! Bağlantı kuruldu.');
-                });
-            } catch(e) {
-                log('❌ Geçersiz kod: ' + e.message);
-            }
-        }
+  function isBoardFull() {
+    for (var r=0; r<3; r++) for (var c=0; c<3; c++) if (board[r][c] === '') return false;
+    return true;
+  }
 
-        function setupDataChannel(channel) {
-            channel.onopen = function() {
-                log('🔗 Bağlantı hazır! Mesajlaşabilirsiniz.');
-            };
-            channel.onmessage = function(e) {
-                addMessage('📩 Gelen: ' + e.data);
-            };
-            channel.onclose = function() {
-                log('🔌 Bağlantı koptu.');
-            };
-        }
+  function resetGame() {
+    board = [['','',''],['','',''],['','','']];
+    currentSymbol = 'X';
+    gameOver = false;
+    updateBoard();
+    document.getElementById('restartBtn').classList.add('hidden');
+    document.getElementById('gameMessage').innerText = isHost ? 'Sen X'sin, ilk hamleyi yap.' : 'Rakip X, sıra onda.';
+  }
 
-        document.getElementById('createBtn').addEventListener('click', function() {
-            createPeerConnection();
-        });
-
-        document.getElementById('joinBtn').addEventListener('click', function() {
-            var code = document.getElementById('codeArea').value.trim();
-            if (code) joinRoom(code);
-            else log('⚠️ Lütfen bir oda kodu girin.');
-        });
-
-        document.getElementById('sendBtn').addEventListener('click', function() {
-            var msg = document.getElementById('msgInput').value.trim();
-            if (msg && dc && dc.readyState === 'open') {
-                dc.send(msg);
-                addMessage('📤 Sen: ' + msg);
-                document.getElementById('msgInput').value = '';
-            } else {
-                log('⚠️ Bağlantı henüz hazır değil.');
-            }
-        });
-    </script>
+  document.getElementById('restartBtn').addEventListener('click', function() {
+    sendMessage({ type: 'restart' });
+    resetGame();
+  });
+</script>
 </body>
 </html>
