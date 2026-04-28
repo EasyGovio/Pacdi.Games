@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>PACDI Sunucu Bağlantı Testi</title>
+    <title>PACDI Firestore Bağlantı Testi</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
         body { background:#04162E; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
@@ -13,8 +16,6 @@
         .back-link { color:#F6B45F; text-decoration:none; font-weight:bold; font-size:0.78rem; background:#0a1018; padding:5px 12px; border-radius:40px; border:1px solid rgba(246,180,95,0.3); }
         .lobby-area, .game-area { background:#0a1018; border-radius:28px; padding:20px 16px; margin-bottom:20px; }
         h3 { color:#F6B45F; margin-bottom:10px; }
-        .help-box { color:#9bb7d4; font-size:0.72rem; margin-bottom:12px; line-height:1.5; text-align:left; background:rgba(246,180,95,0.05); padding:10px; border-radius:12px; border:1px solid rgba(246,180,95,0.15); }
-        .help-box strong { color:#F6B45F; }
         .room-input { width:100%; padding:12px 16px; border-radius:16px; border:2px solid rgba(246,180,95,0.3); background:#1e2a3a; color:#eaf2fb; font-size:1rem; text-align:center; outline:none; margin-bottom:10px; }
         .btn { background:#F6B45F; border:none; font-weight:bold; padding:12px 24px; border-radius:40px; color:#04162E; cursor:pointer; font-size:0.9rem; margin:6px; }
         .btn.small { padding:8px 16px; font-size:0.8rem; }
@@ -33,14 +34,14 @@
 <body>
 <div class="game-container">
     <div class="top-bar">
-        <div class="logo">SUNUCU BAĞLANTI TESTİ</div>
+        <div class="logo">FIREBASE BAĞLANTI TESTİ</div>
         <a href="index.html" class="back-link">← Geri</a>
     </div>
 
     <div id="lobbyArea" class="lobby-area">
         <h3>Odaya Katıl</h3>
-        <div class="help-box">
-            <strong>📋 Nasıl kullanılır?</strong><br>
+        <div class="help-box" style="color:#9bb7d4; font-size:0.72rem; margin-bottom:12px; line-height:1.5; text-align:left; background:rgba(246,180,95,0.05); padding:10px; border-radius:12px; border:1px solid rgba(246,180,95,0.15);">
+            <strong style="color:#F6B45F;">📋 Nasıl kullanılır?</strong><br>
             ❶ <strong>"Yeni Oda"</strong>ya bas, oda kodu gelsin.<br>
             ❷ Kodu <strong>arkadaşına gönder</strong>.<br>
             ❸ Arkadaşın kodu girip <strong>"Katıl"</strong>a bassın.<br>
@@ -64,16 +65,28 @@
         <div class="message" id="gameMessage"></div>
     </div>
 
-    <div class="footer">PACDI Games · Sunucu tabanlı bağlantı testi.</div>
+    <div class="footer">PACDI Games · Firebase bağlantı testi.</div>
 </div>
 
 <script>
-    var ws = null;
-    var roomId = '';
-    var isHost = false;
+    // Firebase yapılandırması
+    var firebaseConfig = {
+        apiKey: "AIzaSyAlXIMq1T935vSjJZAkdWZubrGsXRCXV_4",
+        authDomain: "pacdi-p2p.firebaseapp.com",
+        databaseURL: "https://pacdi-p2p-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "pacdi-p2p",
+        storageBucket: "pacdi-p2p.firebasestorage.app",
+        messagingSenderId: "872436444979",
+        appId: "1:872436444979:web:11a2cae953d4fc55651846"
+    };
 
-    // Ücretsiz WebSocket test sunucusu
-    var WS_SERVER = 'wss://echo.websocket.org';
+    // Firebase'i başlat
+    firebase.initializeApp(firebaseConfig);
+    var database = firebase.database();
+
+    var roomId = '';
+    var playerId = '';
+    var isHost = false;
 
     function generateRoomId() {
         return 'PACDI-' + Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -85,53 +98,6 @@
         el.className = 'info ' + (type || '');
     }
 
-    function connectWebSocket() {
-        ws = new WebSocket(WS_SERVER);
-
-        ws.onopen = function() {
-            setStatus('✅ Sunucuya bağlanıldı!', 'success');
-            if (isHost) {
-                ws.send(JSON.stringify({ type: 'create', room: roomId }));
-                setStatus('✅ Oda oluşturuldu: ' + roomId, 'success');
-            } else {
-                ws.send(JSON.stringify({ type: 'join', room: roomId }));
-                setStatus('⏳ Odaya katılıyor: ' + roomId);
-            }
-        };
-
-        ws.onmessage = function(event) {
-            var msg = JSON.parse(event.data);
-            
-            if (msg.type === 'created') {
-                setStatus('✅ Oda hazır! Kod: ' + roomId, 'success');
-            }
-            else if (msg.type === 'joined') {
-                document.getElementById('lobbyArea').classList.add('hidden');
-                document.getElementById('gameArea').classList.remove('hidden');
-                document.getElementById('gameMessage').innerText = '✅ Bağlantı kuruldu! Mesajlaşabilirsiniz.';
-            }
-            else if (msg.type === 'peer-joined') {
-                document.getElementById('lobbyArea').classList.add('hidden');
-                document.getElementById('gameArea').classList.remove('hidden');
-                document.getElementById('gameMessage').innerText = '✅ Arkadaşın katıldı! Mesajlaşabilirsiniz.';
-            }
-            else if (msg.type === 'message') {
-                addChatMessage(msg.text, 'peer');
-            }
-            else if (msg.type === 'error') {
-                setStatus('❌ ' + msg.message, 'error');
-            }
-        };
-
-        ws.onerror = function() {
-            setStatus('❌ Sunucu bağlantısı başarısız. Tekrar dene.', 'error');
-        };
-
-        ws.onclose = function() {
-            document.getElementById('gameMessage').innerText = '🔌 Bağlantı koptu.';
-        };
-    }
-
     function addChatMessage(text, sender) {
         var chat = document.getElementById('chatArea');
         var msgDiv = document.createElement('div');
@@ -141,33 +107,91 @@
         chat.scrollTop = chat.scrollHeight;
     }
 
-    function sendMessage() {
-        var input = document.getElementById('msgInput');
-        var text = input.value.trim();
-        if (!text || !ws || ws.readyState !== WebSocket.OPEN) return;
+    function createRoom() {
+        roomId = generateRoomId();
+        playerId = 'host-' + Math.random().toString(36).substring(2, 6);
+        isHost = true;
         
-        ws.send(JSON.stringify({ type: 'message', room: roomId, text: text }));
-        addChatMessage(text, 'me');
-        input.value = '';
+        // Odayı oluştur
+        database.ref('rooms/' + roomId).set({
+            host: playerId,
+            guest: '',
+            messages: {}
+        }).then(function() {
+            setStatus('✅ Oda oluşturuldu: ' + roomId, 'success');
+            document.getElementById('roomIdInput').value = roomId;
+            
+            // Misafir katılmasını dinle
+            database.ref('rooms/' + roomId + '/guest').on('value', function(snapshot) {
+                var guest = snapshot.val();
+                if (guest && guest !== '') {
+                    document.getElementById('lobbyArea').classList.add('hidden');
+                    document.getElementById('gameArea').classList.remove('hidden');
+                    document.getElementById('gameMessage').innerText = '✅ Arkadaşın katıldı!';
+                    
+                    // Mesajları dinle
+                    database.ref('rooms/' + roomId + '/messages').on('child_added', function(msgSnapshot) {
+                        var msg = msgSnapshot.val();
+                        if (msg.sender !== playerId) {
+                            addChatMessage(msg.text, 'peer');
+                        }
+                    });
+                }
+            });
+        });
     }
 
-    document.getElementById('createBtn').addEventListener('click', function() {
-        roomId = generateRoomId();
-        document.getElementById('roomIdInput').value = roomId;
-        isHost = true;
-        connectWebSocket();
-    });
-
-    document.getElementById('joinBtn').addEventListener('click', function() {
+    function joinRoom() {
         roomId = document.getElementById('roomIdInput').value.trim();
         if (!roomId) {
             setStatus('⚠️ Lütfen bir oda kodu girin.', 'error');
             return;
         }
+        playerId = 'guest-' + Math.random().toString(36).substring(2, 6);
         isHost = false;
-        connectWebSocket();
-    });
 
+        // Odaya katıl
+        database.ref('rooms/' + roomId).once('value').then(function(snapshot) {
+            var room = snapshot.val();
+            if (!room) {
+                setStatus('❌ Oda bulunamadı!', 'error');
+                return;
+            }
+            
+            // Misafir olarak işaretle
+            database.ref('rooms/' + roomId + '/guest').set(playerId).then(function() {
+                document.getElementById('lobbyArea').classList.add('hidden');
+                document.getElementById('gameArea').classList.remove('hidden');
+                document.getElementById('gameMessage').innerText = '✅ Odaya katıldın!';
+                
+                // Mesajları dinle
+                database.ref('rooms/' + roomId + '/messages').on('child_added', function(msgSnapshot) {
+                    var msg = msgSnapshot.val();
+                    if (msg.sender !== playerId) {
+                        addChatMessage(msg.text, 'peer');
+                    }
+                });
+            });
+        });
+    }
+
+    function sendMessage() {
+        var input = document.getElementById('msgInput');
+        var text = input.value.trim();
+        if (!text) return;
+        
+        database.ref('rooms/' + roomId + '/messages').push({
+            text: text,
+            sender: playerId,
+            time: Date.now()
+        });
+        
+        addChatMessage(text, 'me');
+        input.value = '';
+    }
+
+    document.getElementById('createBtn').addEventListener('click', createRoom);
+    document.getElementById('joinBtn').addEventListener('click', joinRoom);
     document.getElementById('sendBtn').addEventListener('click', sendMessage);
     document.getElementById('msgInput').addEventListener('keydown', function(e) {
         if (e.key === 'Enter') sendMessage();
