@@ -52,13 +52,6 @@
     .game-desc { font-size: 0.75rem; color: #b8d0e8; margin-bottom: 0.8rem; line-height: 1.4; }
     .play-btn { display: inline-block; margin-top: 0.8rem; background: #F6B45F; color: #04162E; font-weight: bold; padding: 6px 16px; border-radius: 60px; font-size: 0.75rem; text-decoration: none; transition: 0.1s; }
 
-    /* Pop-up Stili */
-    .popup-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; display:flex; align-items:center; justify-content:center; }
-    .popup-box { background:#0a1018; border-radius:28px; padding:24px; max-width:400px; width:90%; border:2px solid #F6B45F; text-align:center; }
-    .popup-box h3 { color:#F6B45F; margin-bottom:12px; }
-    .popup-box p { color:#eaf2fb; font-size:0.85rem; line-height:1.5; margin-bottom:16px; }
-    .popup-close { background:#F6B45F; border:none; padding:8px 24px; border-radius:40px; font-weight:bold; color:#04162E; cursor:pointer; }
-
     .footer { text-align: center; margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid rgba(246,180,95,0.2); font-size: 0.7rem; color: #6c8fb0; }
     .reward-banner { background: #0a1018; border-radius: 48px; padding: 1rem; text-align: center; margin-top: 1rem; border: 1px solid #F6B45F20; }
     .reward-btn { margin-top: 8px; background: #F6B45F; border: none; padding: 6px 20px; border-radius: 60px; font-weight: bold; color: #04162E; cursor: pointer; }
@@ -107,7 +100,6 @@
   <div class="category"><div class="category-title"><span>🌾</span> Hasat, Kültür & Onur</div><div class="games-grid" id="cultureGrid"></div></div>
   <div class="category"><div class="category-title"><span>🛠️</span> Araçlar & Günlük Hayat</div><div class="games-grid" id="toolsGrid"></div></div>
   <div class="category"><div class="category-title"><span>👥</span> 2 Kişilik Oyunlar</div><div class="games-grid" id="duoGrid"></div></div>
-  <div class="category"><div class="category-title"><span>🌐</span> Bugout Uzaktan Oyun</div><div class="games-grid" id="bugoutGrid"></div></div>
 
   <div class="reward-banner">
     <div style="font-size: 0.8rem; color: #F6B45F;">🎉 Her oyunun sonunda ekstra puan kazan!</div>
@@ -128,16 +120,11 @@
     function addPoints(amount) { points += amount; localStorage.setItem(POINTS_KEY, points); updatePointsUI(); pointsSpan.style.transform = 'scale(1.2)'; setTimeout(function() { pointsSpan.style.transform = ''; }, 200); }
     updatePointsUI();
 
-    // Service Worker
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js');
-    }
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/sw.js'); }
 
-    // PWA Install
     var deferredPrompt;
     window.addEventListener('beforeinstallprompt', function(e) {
-      e.preventDefault();
-      deferredPrompt = e;
+      e.preventDefault(); deferredPrompt = e;
       document.getElementById('installPrompt').style.display = 'flex';
       document.getElementById('installPrompt').innerText = '📲 Ana Ekrana Ekle';
     });
@@ -156,8 +143,6 @@
         }
       }
     };
-
-    // iOS ve desteklenmeyen tarayıcılar için butonu göster
     setTimeout(function() {
       var promptEl = document.getElementById('installPrompt');
       if (promptEl && promptEl.style.display === 'none') {
@@ -166,16 +151,13 @@
       }
     }, 3000);
 
-    // Haftanın Oyunu
     function getWeekNumber() {
       var now = new Date();
       var start = new Date(now.getFullYear(), 0, 1);
       return Math.ceil(((now - start) / 86400000 + start.getDay() + 1) / 7);
     }
 
-    // Oyun açıklamaları
     var gameInfos = {
-      'p2p-test.html': 'İki cihaz arasında WebRTC bağlantısı kurmak için test sayfası. Oda oluştur, kodu arkadaşına gönder, bağlanın.',
       'reaction-tap.html': 'Ekranda beliren hedeflere olabildiğince hızlı dokun. Reaksiyon süreni ölç, reflekslerini geliştir.',
       'stroop.html': 'Yazının rengini söyle, kelimenin kendisini değil! Beyninin iki lobu arasındaki çatışmayı test et.',
       'number-hunt.html': 'Kutulardaki sayıları küçükten büyüğe sırayla bul. Dikkatin ve hızın ölçülsün.',
@@ -235,35 +217,21 @@
       'water-reminder.html': 'Günlük su hedefini takip et. Bildirimlerle hatırlatsın.',
       'todo-list.html': 'Görevlerini ekle, tamamla, sil. Basit yapılacaklar listesi.',
       'dice-roller.html': 'Birden fazla zar at, toplamları gör. Şans oyunları için ideal.',
-      'domino.html': 'İki kişilik domino. Taşları uç uca diz, elini bitir.',
-      'checkers.html': 'Klasik 8x8 dama. Rakibin taşlarını zıplayarak al.',
-      'chess.html': 'Klasik satranç. Şah mat yapmaya çalış.',
-      'nine-morris.html': 'Geleneksel dokuz taş oyunu. 3 taşını yan yana diz.',
-      'mangala.html': 'Klasik Türk mangalası. Taşları stratejik dağıt.',
-      'ludo.html': 'Kızma birader. Zar at, taşlarını yarıştır.',
-      'kniffel.html': '5 zar, 3 atış. En yüksek skoru yap.',
-      'romme.html': 'Kartları diz, setleri ve sıraları aç.',
-      'skat.html': 'Alman milli kart oyunu. Koz seç, elleri al.',
-      'peg-duello.html': 'İki kişilik peg düellosu. En çok çiviyi topla.',
-      'xox-duello.html': 'Klasik XOX. Üç taşını yan yana diz.',
-      'battleship-duello.html': 'Deniz savaşı. Rakibin gemilerini bul ve batır.',
-      'word-duello.html': 'Aynı harflerden kelime türetme yarışı.',
-      'tower-duello.html': 'Hanoi tarzı disk taşıma düellosu.',
-      'emekli-pusulasi.html': '12 bankanın emekli promosyonlarını karşılaştır. Maaş aralığına göre en avantajlı teklifi bul.',
-      'bugout-domino.html': 'Uzaktan domino. Arkadaşına kod gönder, birlikte oynayın.',
-      'bugout-xox.html': 'Uzaktan XOX. Kod paylaş, sırayla oyna.',
-      'bugout-checkers.html': 'Uzaktan dama. Kodla bağlan, rakibinle kapış.',
-      'bugout-chess.html': 'Uzaktan satranç. Arkadaşınla kodla bağlan.',
-      'bugout-nine-morris.html': 'Uzaktan dokuz taş. Geleneksel oyunu uzaktan oyna.',
-      'bugout-mangala.html': 'Uzaktan mangala. Kodla bağlan, taşları dağıt.',
-      'bugout-ludo.html': 'Uzaktan kızma birader. Arkadaşınla zar at.',
-      'bugout-kniffel.html': 'Uzaktan kniffel. 5 zar, uzaktan rakiple.',
-      'bugout-romme.html': 'Uzaktan rommé. Kartlarını diz, rakibini yen.',
-      'bugout-skat.html': 'Uzaktan skat. Alman klasiğini uzaktan oyna.',
-      'bugout-peg-duello.html': 'Uzaktan peg düellosu. Çivileri topla.',
-      'bugout-battleship.html': 'Uzaktan deniz savaşı. Gemileri batır.',
-      'bugout-word-duello.html': 'Uzaktan kelime kapmaca. Harflerden kelime türet.',
-      'bugout-tower-duello.html': 'Uzaktan kuleden kule. Diskleri taşı.'
+      'domino.html': 'İki kişilik domino. Aynı cihazda sırayla oynayın. Taşları uç uca dizin.',
+      'checkers.html': 'İki kişilik dama. Aynı cihazda sırayla oynayın. Rakibin taşlarını zıplayarak al.',
+      'chess.html': 'İki kişilik satranç. Aynı cihazda sırayla oynayın. Şah mat yapmaya çalış.',
+      'nine-morris.html': 'İki kişilik dokuz taş. Aynı cihazda sırayla oynayın. Üç taşını yan yana diz.',
+      'mangala.html': 'İki kişilik Türk mangalası. Aynı cihazda sırayla oynayın. Taşları stratejik dağıt.',
+      'ludo.html': 'İki kişilik kızma birader. Aynı cihazda sırayla oynayın. Zar at, taşlarını yarıştır.',
+      'kniffel.html': 'İki kişilik zar oyunu. Aynı cihazda sırayla oynayın. 5 zar, 3 atış.',
+      'romme.html': 'İki kişilik rommé. Aynı cihazda sırayla oynayın. Kartları setler halinde diz.',
+      'skat.html': 'İki kişilik Alman kart oyunu. Aynı cihazda sırayla oynayın. Koz seç, el al.',
+      'peg-duello.html': 'İki kişilik peg düellosu. Aynı cihazda sırayla oynayın. En çok çiviyi topla.',
+      'xox-duello.html': 'İki kişilik XOX. Aynı cihazda sırayla oynayın. Üç X veya O\'yu yan yana diz.',
+      'battleship-duello.html': 'İki kişilik deniz savaşı. Aynı cihazda sırayla oynayın. Rakibin gemilerini batır.',
+      'word-duello.html': 'İki kişilik kelime kapmaca. Aynı cihazda sırayla oynayın. Harflerden kelime türet.',
+      'tower-duello.html': 'İki kişilik kuleden kule. Aynı cihazda sırayla oynayın. Diskleri stratejik taşı.',
+      'emekli-pusulasi.html': '12 bankanın emekli promosyonlarını karşılaştır. Maaş aralığına göre en avantajlı teklifi bul.'
     };
 
     var games = {
@@ -351,27 +319,9 @@
         { name: "Deniz Savaşı", desc: "Gemileri batır, rakibini yen.", icon: "🚢", file: "battleship-duello.html" },
         { name: "Kelime Kapmaca", desc: "Aynı harflerden sırayla kelime türet.", icon: "📝", file: "word-duello.html" },
         { name: "Kuleden Kule", desc: "Hanoi tarzı disk taşıma düellosu.", icon: "🗼", file: "tower-duello.html" }
-      ],
-      bugout: [
-        { name: "P2P Bağlantı Testi", desc: "Yeni WebRTC bağlantı sistemini test et.", icon: "🔗", file: "p2p-test.html" },
-        { name: "Bugout Domino", desc: "İnternet üzerinden uzaktan domino.", icon: "🌐🀄", file: "bugout-domino.html" },
-        { name: "Bugout XOX", desc: "İnternet üzerinden uzaktan XOX.", icon: "🌐❌", file: "bugout-xox.html" },
-        { name: "Bugout Dama", desc: "İnternet üzerinden uzaktan dama.", icon: "🌐⏺️", file: "bugout-checkers.html" },
-        { name: "Bugout Satranç", desc: "İnternet üzerinden uzaktan satranç.", icon: "🌐♟️", file: "bugout-chess.html" },
-        { name: "Bugout Dokuz Taş", desc: "İnternet üzerinden uzaktan dokuz taş.", icon: "🌐⚫", file: "bugout-nine-morris.html" },
-        { name: "Bugout Mangala", desc: "İnternet üzerinden uzaktan mangala.", icon: "🌐🕳️", file: "bugout-mangala.html" },
-        { name: "Bugout Kızma Birader", desc: "İnternet üzerinden uzaktan kızma birader.", icon: "🌐🎲", file: "bugout-ludo.html" },
-        { name: "Bugout Kniffel", desc: "İnternet üzerinden uzaktan kniffel.", icon: "🌐🎯", file: "bugout-kniffel.html" },
-        { name: "Bugout Rommé", desc: "İnternet üzerinden uzaktan rommé.", icon: "🌐🃏", file: "bugout-romme.html" },
-        { name: "Bugout Skat", desc: "İnternet üzerinden uzaktan skat.", icon: "🌐♠️", file: "bugout-skat.html" },
-        { name: "Bugout Peg Düello", desc: "İnternet üzerinden uzaktan peg.", icon: "🌐⚪", file: "bugout-peg-duello.html" },
-        { name: "Bugout Deniz Savaşı", desc: "İnternet üzerinden uzaktan deniz savaşı.", icon: "🌐🚢", file: "bugout-battleship.html" },
-        { name: "Bugout Kelime Kapmaca", desc: "İnternet üzerinden uzaktan kelime.", icon: "🌐📝", file: "bugout-word-duello.html" },
-        { name: "Bugout Kuleden Kule", desc: "İnternet üzerinden uzaktan kule.", icon: "🌐🗼", file: "bugout-tower-duello.html" }
       ]
     };
 
-    // Tüm oyunları düz diziye al
     var allGamesFlat = [];
     for (var cat in games) {
       for (var i = 0; i < games[cat].length; i++) {
@@ -385,8 +335,8 @@
     function showInfoPopup(file, name) {
       var desc = gameInfos[file] || 'Bu oyunun açıklaması yakında eklenecek.';
       var overlay = document.createElement('div');
-      overlay.className = 'popup-overlay';
-      overlay.innerHTML = '<div class="popup-box"><h3>ℹ️ ' + name + '</h3><p>' + desc + '</p><button class="popup-close" onclick="this.parentElement.parentElement.remove()">Kapat</button></div>';
+      overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:1000;display:flex;align-items:center;justify-content:center;';
+      overlay.innerHTML = '<div style="background:#0a1018;border-radius:28px;padding:24px;max-width:400px;width:90%;border:2px solid #F6B45F;text-align:center;"><h3 style="color:#F6B45F;margin-bottom:12px;">ℹ️ ' + name + '</h3><p style="color:#eaf2fb;font-size:0.85rem;line-height:1.5;margin-bottom:16px;">' + desc + '</p><button style="background:#F6B45F;border:none;padding:8px 24px;border-radius:40px;font-weight:bold;color:#04162E;cursor:pointer;" onclick="this.parentElement.parentElement.remove()">Kapat</button></div>';
       document.body.appendChild(overlay);
       overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove(); });
     }
@@ -431,7 +381,6 @@
     renderCategory('cultureGrid', games.culture);
     renderCategory('toolsGrid', games.tools);
     renderCategory('duoGrid', games.duo);
-    renderCategory('bugoutGrid', games.bugout);
 
     var total = 0;
     for (var cat in games) total += games[cat].length;
