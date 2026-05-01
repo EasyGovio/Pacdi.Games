@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
@@ -6,6 +7,7 @@
   <title>PACDI Games · Zihnini Oynat, Ekosistemi Büyüt</title>
 
   <!-- PWA Meta Etiketleri -->
+
   <link rel="manifest" href="manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -57,6 +59,7 @@
     .reward-btn { margin-top: 8px; background: #F6B45F; border: none; padding: 6px 20px; border-radius: 60px; font-weight: bold; color: #04162E; cursor: pointer; }
     @media (max-width: 680px) { .header { flex-direction: column; align-items: stretch; text-align: center; } .compass-points { justify-content: center; } .games-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); } .promo-spotlight { flex-direction: column; text-align: center; } }
   </style>
+
 </head>
 <body>
 <div class="container">
@@ -217,20 +220,27 @@
       'water-reminder.html': 'Günlük su hedefini takip et. Bildirimlerle hatırlatsın.',
       'todo-list.html': 'Görevlerini ekle, tamamla, sil. Basit yapılacaklar listesi.',
       'dice-roller.html': 'Birden fazla zar at, toplamları gör. Şans oyunları için ideal.',
-      'domino.html': 'İki kişilik domino. Aynı cihazda sırayla oynayın. Taşları uç uca dizin.',
-      'checkers.html': 'İki kişilik dama. Aynı cihazda sırayla oynayın. Rakibin taşlarını zıplayarak al.',
-      'chess.html': 'İki kişilik satranç. Aynı cihazda sırayla oynayın. Şah mat yapmaya çalış.',
-      'nine-morris.html': 'İki kişilik dokuz taş. Aynı cihazda sırayla oynayın. Üç taşını yan yana diz.',
-      'mangala.html': 'İki kişilik Türk mangalası. Aynı cihazda sırayla oynayın. Taşları stratejik dağıt.',
-      'ludo.html': 'İki kişilik kızma birader. Aynı cihazda sırayla oynayın. Zar at, taşlarını yarıştır.',
-      'kniffel.html': 'İki kişilik zar oyunu. Aynı cihazda sırayla oynayın. 5 zar, 3 atış.',
-      'romme.html': 'İki kişilik rommé. Aynı cihazda sırayla oynayın. Kartları setler halinde diz.',
-      'skat.html': 'İki kişilik Alman kart oyunu. Aynı cihazda sırayla oynayın. Koz seç, el al.',
-      'peg-duello.html': 'İki kişilik peg düellosu. Aynı cihazda sırayla oynayın. En çok çiviyi topla.',
-      'xox-duello.html': 'İki kişilik XOX. Aynı cihazda sırayla oynayın. Üç X veya O\'yu yan yana diz.',
-      'battleship-duello.html': 'İki kişilik deniz savaşı. Aynı cihazda sırayla oynayın. Rakibin gemilerini batır.',
-      'word-duello.html': 'İki kişilik kelime kapmaca. Aynı cihazda sırayla oynayın. Harflerden kelime türet.',
-      'tower-duello.html': 'İki kişilik kuleden kule. Aynı cihazda sırayla oynayın. Diskleri stratejik taşı.',
+      'rent-calculator.html': 'Kaltmiete + Nebenkosten + Heizung = Warmmiete. m² başına kira hesabı.',
+      'salary-calculator.html': 'Brütten nete maaş hesabı. TR ve DE vergi oranlarıyla.',
+      'withholding-tax.html': 'Kira, temettü, serbest meslek ve mevduat stopajı hesapla.',
+      'pill-reminder.html': 'Günlük ilaç takibi yap, bildirimlerle hatırlat. 30 dk sonra tekrar uyarı.',
+      'health-tracker.html': 'Tansiyon ve şeker ölçümlerini kaydet, mini grafikle takip et.',
+      'shopping-list.html': 'Kategorili alışveriş listesi yap, toplam fiyatı gör, paylaş.',
+      'appointment-tracker.html': 'Randevularını kaydet, tarihe göre sırala, geçmiş/bugün/yaklaşan takibi.',
+      'domino.html': 'İki kişilik domino. Taşları uç uca diz, elini bitir.',
+      'checkers.html': 'Klasik 8x8 dama. Rakibin taşlarını zıplayarak al.',
+      'chess.html': 'Klasik satranç. Şah mat yapmaya çalış.',
+      'nine-morris.html': 'Geleneksel dokuz taş oyunu. 3 taşını yan yana diz.',
+      'mangala.html': 'Klasik Türk mangalası. Taşları stratejik dağıt.',
+      'ludo.html': 'Kızma birader. Zar at, taşlarını yarıştır.',
+      'kniffel.html': '5 zar, 3 atış. En yüksek skoru yap.',
+      'romme.html': 'Kartları diz, setleri ve sıraları aç.',
+      'skat.html': 'Alman milli kart oyunu. Koz seç, elleri al.',
+      'peg-duello.html': 'İki kişilik peg düellosu. En çok çiviyi topla.',
+      'xox-duello.html': 'Klasik XOX. Üç taşını yan yana diz.',
+      'battleship-duello.html': 'Deniz savaşı. Rakibin gemilerini bul ve batır.',
+      'word-duello.html': 'Aynı harflerden kelime türetme yarışı.',
+      'tower-duello.html': 'Hanoi tarzı disk taşıma düellosu.',
       'emekli-pusulasi.html': '12 bankanın emekli promosyonlarını karşılaştır. Maaş aralığına göre en avantajlı teklifi bul.'
     };
 
@@ -302,7 +312,14 @@
         { name: "QR Kod Oluşturucu", desc: "Metin veya linklerden QR kod üret.", icon: "📱", file: "qr-generator.html" },
         { name: "Su İçme Hatırlatıcı", desc: "Günlük su hedefini takip et, bildirim al.", icon: "💧", file: "water-reminder.html" },
         { name: "Yapılacaklar Listesi", desc: "Görevlerini ekle, tamamla, sil.", icon: "✅", file: "todo-list.html" },
-        { name: "Zar Atma", desc: "Birden fazla zar at, toplamı gör.", icon: "🎲", file: "dice-roller.html" }
+        { name: "Zar Atma", desc: "Birden fazla zar at, toplamı gör.", icon: "🎲", file: "dice-roller.html" },
+        { name: "Kira Hesaplayıcı", desc: "Soğuk kiradan sıcak kirayı hesapla.", icon: "🏠", file: "rent-calculator.html" },
+        { name: "Maaş Hesaplayıcı", desc: "Brütten nete maaş hesabı (TR & DE).", icon: "💰", file: "salary-calculator.html" },
+        { name: "Stopaj Hesaplayıcı", desc: "Kira, temettü, serbest meslek stopajı.", icon: "🧾", file: "withholding-tax.html" },
+        { name: "İlaç Hatırlatıcı", desc: "Günlük ilaç takibi, bildirimlerle hatırlatma.", icon: "💊", file: "pill-reminder.html" },
+        { name: "Sağlık Takibi", desc: "Tansiyon ve şeker ölçümlerini kaydet.", icon: "🩺", file: "health-tracker.html" },
+        { name: "Alışveriş Listesi", desc: "Kategorili alışveriş listesi, toplam fiyat ve paylaşma.", icon: "🛒", file: "shopping-list.html" },
+        { name: "Randevu Takibi", desc: "Randevularını kaydet, takip et.", icon: "📅", file: "appointment-tracker.html" }
       ],
       duo: [
         { name: "Domino", desc: "İki kişilik klasik domino oyunu.", icon: "🀄", file: "domino.html" },
@@ -394,5 +411,6 @@
     window.pacdiGames.showInfoPopup = showInfoPopup;
   })();
 </script>
+
 </body>
 </html>
