@@ -97,7 +97,7 @@
         </div>
         <div class="result-box" id="resultBox">
             <div class="result-row"><span id="labelGrossResult">Brüt Maaş:</span> <span id="grossResult">0</span></div>
-            <div class="result-row"><span id="labelTax">Vergi (+Dayanışma Vergisi):</span> <span id="taxResult">0</span></div>
+            <div class="result-row"><span id="labelTax">Vergi (+Soli +Kilise):</span> <span id="taxResult">0</span></div>
             <div class="result-row"><span id="labelSGK">SGK / Sozialabgaben:</span> <span id="sgkResult">0</span></div>
             <div class="result-row total"><span id="labelNet">Net Maaş:</span> <span id="netResult">0</span></div>
             <div class="result-breakdown" id="breakdownText"></div>
@@ -110,9 +110,9 @@
 <script>
 (function() {
     var L = {
-        tr: { title:"MAAŞ HESAPLAYICI", back:"← Geri", country:"Ülke", gross:"Brüt Maaş", taxClass:"Vergi Dilimi", taxClassDE:"Steuerklasse (Vergi Sınıfı)", church:"Kirchensteuer (Kilise Vergisi)", children:"Çocuk Sayısı (Pflegevers. için)", healthIns:"Krankenkasse Zusatzbeitrag", grossResult:"Brüt Maaş:", tax:"Vergi (+Dayanışma Vergisi):", sgk:"SGK / Sozialabgaben:", net:"Net Maaş:", breakdownTR:"SGK (%14) + İşsizlik (%1) + Damga V. (%0,759)", breakdownDE:"RV %9,3 + GKV %7,3+½ ZZ + PV %2,4 + AV %1,3 + Solidaritätszuschlag %5,5", warningTR:"⚠️ Bu hesaplama bilgilendirme amaçlıdır. Kesin sonuç için mali müşavirinize danışın.", warningDE:"⚠️ Diese Berechnung dient nur zur Information. Für ein genaues Ergebnis konsultieren Sie Ihren Steuerberater.", footer:"PACDI Games · Maaş hesaplayıcı", nextLang:"de" },
-        de: { title:"GEHALTSRECHNER", back:"← Zurück", country:"Land", gross:"Bruttogehalt", taxClass:"Steuerklasse", taxClassDE:"Steuerklasse", church:"Kirchensteuer", children:"Anzahl Kinder (Pflegevers.)", healthIns:"Krankenkasse Zusatzbeitrag", grossResult:"Bruttogehalt:", tax:"Steuer (+Solidaritätszuschlag):", sgk:"Sozialabgaben:", net:"Nettogehalt:", breakdownTR:"SGK (14%) + İşsizlik (1%)", breakdownDE:"RV 9,3% + GKV 7,3%+½ ZZ + PV 2,4% + AV 1,3% + Solidaritätszuschlag 5,5%", warningTR:"⚠️ Bu hesaplama bilgilendirme amaçlıdır. Kesin sonuç için bir Steuerberater'a danışın.", warningDE:"⚠️ Diese Berechnung dient nur zur Information. Für ein genaues Ergebnis konsultieren Sie Ihren Steuerberater.", footer:"PACDI Games · Gehaltsrechner", nextLang:"en" },
-        en: { title:"SALARY CALCULATOR", back:"← Back", country:"Country", gross:"Gross Salary", taxClass:"Tax Bracket", taxClassDE:"Tax Class", church:"Church Tax", children:"Number of Children (Care Ins.)", healthIns:"Health Insurance Add. Contribution", grossResult:"Gross Salary:", tax:"Tax (+Solidarity Surcharge):", sgk:"Social Insurance:", net:"Net Salary:", breakdownTR:"SGK (14%) + Unemployment (1%)", breakdownDE:"Pension 9.3% + Health 7.3%+½ add. + Care 2.4% + Unemp. 1.3% + Solidarity Surcharge 5.5%", warningTR:"⚠️ This calculation is for informational purposes only. Consult a tax advisor for exact results.", warningDE:"⚠️ This calculation is for informational purposes only. Consult a tax advisor for exact results.", footer:"PACDI Games · Salary Calculator", nextLang:"tr" }
+        tr: { title:"MAAŞ HESAPLAYICI", back:"← Geri", country:"Ülke", gross:"Brüt Maaş", taxClass:"Vergi Dilimi", taxClassDE:"Steuerklasse (Vergi Sınıfı)", church:"Kirchensteuer (Kilise Vergisi)", children:"Çocuk Sayısı (Pflegevers. için)", healthIns:"Krankenkasse Zusatzbeitrag", grossResult:"Brüt Maaş:", tax:"Vergi (+Soli +Kilise):", sgk:"SGK / Sozialabgaben:", net:"Net Maaş:", breakdownTR:"SGK (%14) + İşsizlik (%1) + Damga V. (%0,759)", breakdownDE:"RV %9,3 + GKV %7,3+½ ZZ + PV %2,4 + AV %1,3", warningTR:"⚠️ Bu hesaplama bilgilendirme amaçlıdır. Kesin sonuç için mali müşavirinize danışın.", warningDE:"⚠️ Diese Berechnung dient nur zur Information. Für ein genaues Ergebnis konsultieren Sie Ihren Steuerberater.", footer:"PACDI Games · Maaş hesaplayıcı", nextLang:"de" },
+        de: { title:"GEHALTSRECHNER", back:"← Zurück", country:"Land", gross:"Bruttogehalt", taxClass:"Steuerklasse", taxClassDE:"Steuerklasse", church:"Kirchensteuer", children:"Anzahl Kinder (Pflegevers.)", healthIns:"Krankenkasse Zusatzbeitrag", grossResult:"Bruttogehalt:", tax:"Steuer (+Soli +Kirche):", sgk:"Sozialabgaben:", net:"Nettogehalt:", breakdownTR:"SGK (14%) + İşsizlik (1%)", breakdownDE:"RV 9,3% + GKV 7,3%+½ ZZ + PV 2,4% + AV 1,3%", warningTR:"⚠️ Bu hesaplama bilgilendirme amaçlıdır. Kesin sonuç için bir Steuerberater'a danışın.", warningDE:"⚠️ Diese Berechnung dient nur zur Information. Für ein genaues Ergebnis konsultieren Sie Ihren Steuerberater.", footer:"PACDI Games · Gehaltsrechner", nextLang:"en" },
+        en: { title:"SALARY CALCULATOR", back:"← Back", country:"Country", gross:"Gross Salary", taxClass:"Tax Bracket", taxClassDE:"Tax Class", church:"Church Tax", children:"Number of Children (Care Ins.)", healthIns:"Health Insurance Add. Contribution", grossResult:"Gross Salary:", tax:"Tax (+Soli +Church):", sgk:"Social Insurance:", net:"Net Salary:", breakdownTR:"SGK (14%) + Unemployment (1%)", breakdownDE:"Pension 9.3% + Health 7.3%+½ add. + Care 2.4% + Unemp. 1.3%", warningTR:"⚠️ This calculation is for informational purposes only. Consult a tax advisor for exact results.", warningDE:"⚠️ This calculation is for informational purposes only. Consult a tax advisor for exact results.", footer:"PACDI Games · Salary Calculator", nextLang:"tr" }
     };
     var currentLang = (navigator.language||'en').toLowerCase().indexOf('de')===0 ? 'de' : (navigator.language||'en').toLowerCase().indexOf('tr')===0 ? 'tr' : 'en';
     
@@ -138,7 +138,7 @@
         calculate();
     }
 
-    // --- ALMANYA HESAPLAMA (STEUERKLASSE V DÜZELTİLDİ) ---
+    // --- ALMANYA HESAPLAMA (STEUERKLASSE V TAMAMEN DÜZELTİLDİ) ---
     function calculateDE(gross) {
         // Sozialabgaben (işçi payı) - 2026 oranları
         var renten = gross * 0.093;
@@ -152,23 +152,20 @@
         var arbeitslosen = gross * 0.013;
 
         var sozialTotal = renten + kranken + krankenZusatz + pflege + arbeitslosen;
-        var zvE = gross - sozialTotal; // zu versteuerndes Einkommen (vergiye tabi gelir)
+        var zvE = gross - sozialTotal; // zu versteuerndes Einkommen
 
         var lohnsteuer = 0;
         var jahresZvE = zvE * 12;
         var steuerklasse = document.getElementById('taxClassDE').value;
 
-        // Steuerklasse V ve VI: Grundfreibetrag uygulanmaz, daha yüksek vergi
+        // Steuerklasse V ve VI: Grundfreibetrag yok, ilk euro'dan itibaren vergi
         if (steuerklasse === '5' || steuerklasse === '6') {
-            // Bu sınıflarda temel muafiyet yok, doğrudan progresif tarife uygulanır
-            if (jahresZvE <= 12348) {
-                lohnsteuer = jahresZvE * 0.14; // Temel muafiyet yok, ilk euro'dan itibaren vergi
-            } else if (jahresZvE <= 17543) {
-                var Y = (jahresZvE - 12348) / 10000.0;
-                lohnsteuer = (932.30 * Y + 1400) * Y;
+            if (jahresZvE <= 17543) {
+                var Y5 = jahresZvE / 10000.0;
+                lohnsteuer = (932.30 * Y5 + 1400) * Y5;
             } else if (jahresZvE <= 68480) {
-                var Z = (jahresZvE - 17543) / 10000.0;
-                lohnsteuer = (176.64 * Z + 2397) * Z + 1015.13;
+                var Z5 = (jahresZvE - 17543) / 10000.0;
+                lohnsteuer = (176.64 * Z5 + 2397) * Z5 + 1015.13;
             } else if (jahresZvE <= 277825) {
                 lohnsteuer = 0.42 * jahresZvE - 10911.92;
             } else {
@@ -176,7 +173,7 @@
             }
             lohnsteuer = lohnsteuer / 12;
         } else {
-            // Diğer Steuerklasse'lar için standart progresif (Grundtabelle)
+            // Diğer Steuerklasse'lar: Grundfreibetrag 12.348€
             if (jahresZvE <= 12348) {
                 lohnsteuer = 0;
             } else if (jahresZvE <= 17543) {
