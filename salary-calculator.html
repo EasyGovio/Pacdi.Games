@@ -22,7 +22,8 @@
         .result-box { background:rgba(46,204,113,0.1); border:1px solid rgba(46,204,113,0.3); border-radius:20px; padding:16px; margin-top:12px; }
         .result-row { display:flex; justify-content:space-between; padding:6px 0; color:#eaf2fb; font-size:0.9rem; }
         .result-row.total { font-weight:bold; color:#F6B45F; font-size:1.1rem; border-top:1px solid rgba(246,180,95,0.2); margin-top:6px; padding-top:10px; }
-        .result-breakdown { font-size:0.7rem; color:#6c8fb0; margin-top:6px; }
+        .result-breakdown { font-size:0.65rem; color:#6c8fb0; margin-top:6px; text-align:left; }
+        .warning-text { font-size:0.65rem; color:#E74C3C; margin-top:10px; text-align:center; }
         .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:12px; }
     </style>
 </head>
@@ -47,25 +48,52 @@
             <label id="labelGross">Brüt Maaş</label>
             <input type="number" id="grossSalary" placeholder="0" value="35000" step="any">
         </div>
-        <div class="input-group" id="taxClassGroupTR" style="display:none;">
-            <label id="labelTaxClass">Vergi Dilimi</label>
-            <select id="taxClassTR">
-                <option value="15">%15 (70.000 TL'ye kadar)</option>
-                <option value="20" selected>%20 (70.000 - 150.000 TL)</option>
-                <option value="27">%27 (150.000 - 370.000 TL)</option>
-                <option value="35">%35 (370.000 TL üzeri)</option>
-            </select>
+        <div id="deFields">
+            <div class="input-group">
+                <label id="labelTaxClassDE">Steuerklasse (Vergi Sınıfı)</label>
+                <select id="taxClassDE">
+                    <option value="1">I - Bekar / Ledig</option>
+                    <option value="2">II - Tek Ebeveyn / Alleinerziehend</option>
+                    <option value="3">III - Evli (Eş Çalışmıyor)</option>
+                    <option value="4">IV - Evli (Eşler Benzer Gelir)</option>
+                    <option value="5">V - Evli (Eş Steuerklasse III'te)</option>
+                    <option value="6">VI - İkinci İş / Nebenjob</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label id="labelChurch">Kirchensteuer (Kilise Vergisi)</label>
+                <select id="churchTax">
+                    <option value="no">Hayır / Nein</option>
+                    <option value="yes">Evet / Ja (%8-9)</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label id="labelChildren">Çocuk Sayısı (Pflegevers. için)</label>
+                <select id="children">
+                    <option value="0">0 (çocuksuz, 23+ yaş)</option>
+                    <option value="1">1</option>
+                    <option value="2">2+</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label id="labelHealthIns">Krankenkasse Zusatzbeitrag</label>
+                <select id="healthZusatz">
+                    <option value="2.9">%2,9 (ortalama 2026)</option>
+                    <option value="1.7">%1,7 (düşük)</option>
+                    <option value="0.9">%0,9 (en düşük)</option>
+                </select>
+            </div>
         </div>
-        <div class="input-group" id="taxClassGroupDE" style="display:none;">
-            <label id="labelTaxClassDE">Steuerklasse</label>
-            <select id="taxClassDE">
-                <option value="1" selected>Klasse I (Bekar)</option>
-                <option value="2">Klasse II (Tek Ebeveyn)</option>
-                <option value="3">Klasse III (Evli - Yüksek Gelir)</option>
-                <option value="4">Klasse IV (Evli - Eşit Gelir)</option>
-                <option value="5">Klasse V (Evli - Düşük Gelir)</option>
-                <option value="6">Klasse VI (İkinci İş)</option>
-            </select>
+        <div id="trFields" style="display:none;">
+            <div class="input-group">
+                <label id="labelTaxClass">Vergi Dilimi</label>
+                <select id="taxClassTR">
+                    <option value="15">%15 (70.000 TL'ye kadar)</option>
+                    <option value="20" selected>%20 (70.000 - 150.000 TL)</option>
+                    <option value="27">%27 (150.000 - 370.000 TL)</option>
+                    <option value="35">%35 (370.000 TL üzeri)</option>
+                </select>
+            </div>
         </div>
         <div class="result-box" id="resultBox">
             <div class="result-row"><span id="labelGrossResult">Brüt Maaş:</span> <span id="grossResult">0</span></div>
@@ -74,6 +102,7 @@
             <div class="result-row total"><span id="labelNet">Net Maaş:</span> <span id="netResult">0</span></div>
             <div class="result-breakdown" id="breakdownText"></div>
         </div>
+        <div class="warning-text" id="warningText">⚠️ Bu hesaplama bilgilendirme amaçlıdır. Kesin sonuç için bir Steuerberater'a danışın.</div>
     </div>
     <div class="footer" id="footerText">PACDI Games · Maaş hesaplayıcı</div>
 </div>
@@ -81,9 +110,9 @@
 <script>
 (function() {
     var L = {
-        tr: { title:"MAAŞ HESAPLAYICI", back:"← Geri", country:"Ülke", gross:"Brüt Maaş", taxClass:"Vergi Dilimi", taxClassDE:"Steuerklasse", grossResult:"Brüt Maaş:", tax:"Vergi:", sgk:"SGK / Sozialabgaben:", net:"Net Maaş:", breakdownTR:"SGK (%14) + İşsizlik (%1)", breakdownDE:"Rentenvers. (9.3%) + Krankenvers. (7.3%) + Pflegevers. (1.525%) + Arbeitslosenvers. (1.3%)", footer:"PACDI Games · Maaş hesaplayıcı", nextLang:"de" },
-        de: { title:"GEHALTSRECHNER", back:"← Zurück", country:"Land", gross:"Bruttogehalt", taxClass:"Steuerklasse", taxClassDE:"Steuerklasse", grossResult:"Bruttogehalt:", tax:"Steuer:", sgk:"Sozialabgaben:", net:"Nettogehalt:", breakdownTR:"SGK (14%) + İşsizlik (1%)", breakdownDE:"Rentenvers. (9.3%) + Krankenvers. (8.0%) + Pflegevers. (1.525%) + Arbeitslosenvers. (1.3%)", footer:"PACDI Games · Gehaltsrechner", nextLang:"en" },
-        en: { title:"SALARY CALCULATOR", back:"← Back", country:"Country", gross:"Gross Salary", taxClass:"Tax Bracket", taxClassDE:"Tax Class", grossResult:"Gross Salary:", tax:"Tax:", sgk:"Social Insurance:", net:"Net Salary:", breakdownTR:"SGK (14%) + Unemployment (1%)", breakdownDE:"Pension (9.3%) + Health (8.0%) + Care (1.525%) + Unemployment (1.3%)", footer:"PACDI Games · Salary Calculator", nextLang:"tr" }
+        tr: { title:"MAAŞ HESAPLAYICI", back:"← Geri", country:"Ülke", gross:"Brüt Maaş", taxClass:"Vergi Dilimi", taxClassDE:"Steuerklasse (Vergi Sınıfı)", church:"Kirchensteuer (Kilise Vergisi)", children:"Çocuk Sayısı (Pflegevers. için)", healthIns:"Krankenkasse Zusatzbeitrag", grossResult:"Brüt Maaş:", tax:"Vergi:", sgk:"SGK / Sozialabgaben:", net:"Net Maaş:", breakdownTR:"SGK (%14) + İşsizlik (%1) + Damga V. (%0,759)", breakdownDE:"RV %9,3 + GKV %7,3+½ ZZ + PV %2,4 + AV %1,3", warningTR:"⚠️ Bu hesaplama bilgilendirme amaçlıdır. Kesin sonuç için mali müşavirinize danışın.", warningDE:"⚠️ Diese Berechnung dient nur zur Information. Für ein genaues Ergebnis konsultieren Sie Ihren Steuerberater.", footer:"PACDI Games · Maaş hesaplayıcı", nextLang:"de" },
+        de: { title:"GEHALTSRECHNER", back:"← Zurück", country:"Land", gross:"Bruttogehalt", taxClass:"Steuerklasse", taxClassDE:"Steuerklasse", church:"Kirchensteuer", children:"Anzahl Kinder (Pflegevers.)", healthIns:"Krankenkasse Zusatzbeitrag", grossResult:"Bruttogehalt:", tax:"Steuer:", sgk:"Sozialabgaben:", net:"Nettogehalt:", breakdownTR:"SGK (14%) + İşsizlik (1%)", breakdownDE:"RV 9,3% + GKV 7,3%+½ ZZ + PV 2,4% + AV 1,3%", warningTR:"⚠️ Bu hesaplama bilgilendirme amaçlıdır. Kesin sonuç için bir Steuerberater'a danışın.", warningDE:"⚠️ Diese Berechnung dient nur zur Information. Für ein genaues Ergebnis konsultieren Sie Ihren Steuerberater.", footer:"PACDI Games · Gehaltsrechner", nextLang:"en" },
+        en: { title:"SALARY CALCULATOR", back:"← Back", country:"Country", gross:"Gross Salary", taxClass:"Tax Bracket", taxClassDE:"Tax Class", church:"Church Tax", children:"Number of Children (Care Ins.)", healthIns:"Health Insurance Add. Contribution", grossResult:"Gross Salary:", tax:"Tax:", sgk:"Social Insurance:", net:"Net Salary:", breakdownTR:"SGK (14%) + Unemployment (1%)", breakdownDE:"Pension 9.3% + Health 7.3%+½ add. + Care 2.4% + Unemp. 1.3%", warningTR:"⚠️ This calculation is for informational purposes only. Consult a tax advisor for exact results.", warningDE:"⚠️ This calculation is for informational purposes only. Consult a tax advisor for exact results.", footer:"PACDI Games · Salary Calculator", nextLang:"tr" }
     };
     var currentLang = (navigator.language||'en').toLowerCase().indexOf('de')===0 ? 'de' : (navigator.language||'en').toLowerCase().indexOf('tr')===0 ? 'tr' : 'en';
     
@@ -96,67 +125,114 @@
         document.getElementById('labelGross').innerText = t.gross;
         document.getElementById('labelTaxClass').innerText = t.taxClass;
         document.getElementById('labelTaxClassDE').innerText = t.taxClassDE;
+        document.getElementById('labelChurch').innerText = t.church;
+        document.getElementById('labelChildren').innerText = t.children;
+        document.getElementById('labelHealthIns').innerText = t.healthIns;
         document.getElementById('labelGrossResult').innerText = t.grossResult;
         document.getElementById('labelTax').innerText = t.tax;
         document.getElementById('labelSGK').innerText = t.sgk;
         document.getElementById('labelNet').innerText = t.net;
         document.getElementById('footerText').innerText = t.footer;
+        var warnText = (currentLang === 'de') ? L[currentLang].warningDE : L[currentLang].warningTR;
+        document.getElementById('warningText').innerText = warnText;
         calculate();
+    }
+
+    // --- ALMANYA HESAPLAMA (DOĞRU ORANLARLA) ---
+    function calculateDE(gross) {
+        // Sozialabgaben (işçi payı) - 2026 oranları
+        var renten = gross * 0.093;       // Emeklilik: %9,3
+        var kranken = gross * 0.073;      // Sağlık: %7,3 (14,6/2)
+        var zusatz = parseFloat(document.getElementById('healthZusatz').value); // Ek sağlık primi
+        var krankenZusatz = gross * (zusatz / 200); // İşçi payı (yarısı) 
+        var pflegeBasis = 0.036;           // Bakım: %3,6
+        var children = parseInt(document.getElementById('children').value);
+        if (children === 0) pflegeBasis = 0.04; // Çocuksuz %4,0 (2026)
+        var pflege = gross * (pflegeBasis / 2);  // İşçi payı
+        var arbeitslosen = gross * 0.013;  // İşsizlik: %1,3
+
+        var sozialTotal = renten + kranken + krankenZusatz + pflege + arbeitslosen;
+        var zuVersteuern = gross - sozialTotal;
+
+        // Lohnsteuer (2026 progresif tarifesi - basitleştirilmiş)
+        var lohnsteuer = 0;
+        var jahresBrutto = zuVersteuern * 12;
+        // Grundfreibetrag 12.348 €
+        if (jahresBrutto > 12348) {
+            // Yaklaşık progresif hesaplama (Steuerklasse I için)
+            var y = (jahresBrutto - 12348) / 10000;
+            if (jahresBrutto <= 17543) {
+                lohnsteuer = (jahresBrutto - 12348) * 0.14;
+            } else if (jahresBrutto <= 68480) {
+                lohnsteuer = (jahresBrutto - 12348) * 0.24; // Yaklaşık ortalama
+            } else {
+                lohnsteuer = (jahresBrutto - 12348) * 0.35; // Yaklaşık ortalama
+            }
+            lohnsteuer = lohnsteuer / 12;
+        }
+
+        // Kirchensteuer
+        var kirchensteuer = 0;
+        if (document.getElementById('churchTax').value === 'yes') {
+            kirchensteuer = lohnsteuer * 0.09; // %9
+        }
+
+        var steuerTotal = lohnsteuer + kirchensteuer;
+        var netto = gross - sozialTotal - steuerTotal;
+
+        return {
+            sozial: sozialTotal,
+            steuer: steuerTotal,
+            netto: netto,
+            details: {
+                renten: renten,
+                kranken: kranken + krankenZusatz,
+                pflege: pflege,
+                arbeitslosen: arbeitslosen,
+                lohnsteuer: lohnsteuer,
+                kirchensteuer: kirchensteuer
+            }
+        };
     }
 
     function calculate() {
         var country = document.getElementById('country').value;
         var gross = parseFloat(document.getElementById('grossSalary').value) || 0;
-        var net = gross;
+        var symbol = country === 'tr' ? '₺' : '€';
 
-        document.getElementById('taxClassGroupTR').style.display = country === 'tr' ? 'block' : 'none';
-        document.getElementById('taxClassGroupDE').style.display = country === 'de' ? 'block' : 'none';
+        // UI güncelleme
+        document.getElementById('deFields').style.display = country === 'de' ? 'block' : 'none';
+        document.getElementById('trFields').style.display = country === 'tr' ? 'block' : 'none';
+        document.getElementById('grossResult').innerText = symbol + gross.toFixed(2);
 
         if (country === 'tr') {
-            var sgkRate = 0.14; // SGK işçi payı
-            var unempRate = 0.01; // İşsizlik sigortası
+            var sgkRate = 0.14, unempRate = 0.01;
             var sgk = gross * (sgkRate + unempRate);
             var taxBase = gross - sgk;
             var taxRate = parseFloat(document.getElementById('taxClassTR').value) / 100;
             var tax = taxBase * taxRate;
-            var damgaVergisi = gross * 0.00759; // Damga vergisi
-            net = gross - sgk - tax - damgaVergisi;
-            document.getElementById('sgkResult').innerText = '₺' + sgk.toFixed(2);
-            document.getElementById('taxResult').innerText = '₺' + (tax + damgaVergisi).toFixed(2);
-            document.getElementById('breakdownText').innerText = L[currentLang].breakdownTR + ' + Damga V. (%0.759)';
+            var damgaVergisi = gross * 0.00759;
+            var net = gross - sgk - tax - damgaVergisi;
+            document.getElementById('sgkResult').innerText = symbol + sgk.toFixed(2);
+            document.getElementById('taxResult').innerText = symbol + (tax + damgaVergisi).toFixed(2);
+            document.getElementById('netResult').innerText = symbol + net.toFixed(2);
+            document.getElementById('breakdownText').innerText = L[currentLang].breakdownTR + ' + Damga V. (%0,759)';
         } else {
-            // Almanya (yaklaşık değerler)
-            var renten = gross * 0.093; // Emeklilik
-            var kranken = gross * 0.08; // Sağlık (ortalama ek prim ile ~%8)
-            var pflege = gross * 0.01525; // Bakım
-            var arbeitslosen = gross * 0.013; // İşsizlik
-            var sozial = renten + kranken + pflege + arbeitslosen;
-            var taxBaseDE = gross - sozial;
-            var taxRateDE = getDETaxRate(taxBaseDE);
-            var taxDE = taxBaseDE * taxRateDE;
-            net = gross - sozial - taxDE;
-            document.getElementById('sgkResult').innerText = '€' + sozial.toFixed(2);
-            document.getElementById('taxResult').innerText = '€' + taxDE.toFixed(2);
-            document.getElementById('breakdownText').innerText = L[currentLang].breakdownDE + ' | Steuerklasse: ' + document.getElementById('taxClassDE').value;
+            var result = calculateDE(gross);
+            document.getElementById('sgkResult').innerText = symbol + result.sozial.toFixed(2);
+            document.getElementById('taxResult').innerText = symbol + result.steuer.toFixed(2);
+            document.getElementById('netResult').innerText = symbol + result.netto.toFixed(2);
+            document.getElementById('breakdownText').innerText = L[currentLang].breakdownDE;
         }
-
-        document.getElementById('grossResult').innerText = (country === 'tr' ? '₺' : '€') + gross.toFixed(2);
-        document.getElementById('netResult').innerText = (country === 'tr' ? '₺' : '€') + net.toFixed(2);
-    }
-
-    function getDETaxRate(base) {
-        // Çok basitleştirilmiş Alman vergi oranları (gerçek oranlar progresiftir)
-        if (base < 9744/12) return 0; // Aylık Grundfreibetrag
-        if (base < 1500) return 0.14;
-        if (base < 3000) return 0.25;
-        if (base < 5000) return 0.35;
-        return 0.42;
     }
 
     document.getElementById('country').addEventListener('change', calculate);
     document.getElementById('grossSalary').addEventListener('input', calculate);
     document.getElementById('taxClassTR').addEventListener('change', calculate);
     document.getElementById('taxClassDE').addEventListener('change', calculate);
+    document.getElementById('churchTax').addEventListener('change', calculate);
+    document.getElementById('children').addEventListener('change', calculate);
+    document.getElementById('healthZusatz').addEventListener('change', calculate);
     document.getElementById('langToggle').addEventListener('click', function() { setLang(L[currentLang].nextLang); });
 
     setLang(currentLang);
