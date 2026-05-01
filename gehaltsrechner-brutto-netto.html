@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Brüt Net Hesaplama Araçları | PACDI Games</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+        body { background:#04162E; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
+        .game-container { max-width:500px; width:100%; background:rgba(4,22,46,0.85); border-radius:56px; padding:24px 20px; box-shadow:0 20px 35px rgba(0,0,0,0.5); border:1px solid rgba(246,180,95,0.3); text-align:center; }
+        .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+        .logo { font-size:1.4rem; font-weight:800; color:#F6B45F; }
+        .lang-btn { font-size:1.3rem; cursor:pointer; background:#0a1018; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:1px solid rgba(246,180,95,0.3); color:#F6B45F; }
+        .top-actions { display:flex; gap:8px; align-items:center; }
+        .back-link { color:#F6B45F; text-decoration:none; font-weight:bold; font-size:0.75rem; background:#0a1018; padding:5px 10px; border-radius:30px; border:1px solid rgba(246,180,95,0.3); }
+        .content-area { background:#0a1018; border-radius:28px; padding:20px 16px; margin-bottom:20px; }
+        .intro-text { color:#b8d0e8; font-size:0.85rem; margin-bottom:20px; line-height:1.5; }
+        .link-card { background:#1e2a3a; border-radius:16px; padding:16px; margin-bottom:12px; display:flex; align-items:center; gap:12px; text-decoration:none; transition:0.15s; border:1px solid rgba(246,180,95,0.2); }
+        .link-card:hover { border-color:#F6B45F; }
+        .card-icon { font-size:2rem; }
+        .card-text { flex:1; text-align:left; }
+        .card-title { color:#F6B45F; font-weight:bold; font-size:0.95rem; margin-bottom:4px; }
+        .card-desc { color:#9bb7d4; font-size:0.75rem; }
+        .external-icon { color:#F6B45F; font-size:0.8rem; }
+        .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:12px; }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="top-bar">
+        <div class="logo" id="gameTitle">BRÜT NET ARAÇLARI</div>
+        <div class="top-actions">
+            <div class="lang-btn" id="langToggle" title="Dil değiştir">🌐</div>
+            <a href="index.html" class="back-link" id="backLink">← Geri</a>
+        </div>
+    </div>
+    <div class="content-area">
+        <div class="intro-text" id="introText">
+            Almanya'da brüt maaştan net maaş hesaplaması oldukça karmaşıktır (Steuerklasse, Kirchensteuer, Bundesland vb.). En doğru sonucu almak için aşağıdaki güvenilir resmi ve özel hesaplayıcıları kullanabilirsiniz. Hepsi ücretsizdir.
+        </div>
+
+        <a href="https://www.nettolohn.de/rechner/gehaltsrechner.html" target="_blank" class="link-card">
+            <div class="card-icon">🧮</div>
+            <div class="card-text">
+                <div class="card-title">Nettolohn.de</div>
+                <div class="card-desc">En popüler ve detaylı maaş hesaplayıcı. Tüm Steuerklasse'leri destekler.</div>
+            </div>
+            <div class="external-icon">↗️</div>
+        </a>
+
+        <a href="https://www.brutto-netto-rechner.info/" target="_blank" class="link-card">
+            <div class="card-icon">💰</div>
+            <div class="card-text">
+                <div class="card-title">Brutto-Netto-Rechner</div>
+                <div class="card-desc">2026 güncel vergi oranlarıyla hesaplama yapar.</div>
+            </div>
+            <div class="external-icon">↗️</div>
+        </a>
+
+        <a href="https://www.bmf-steuerrechner.de/brutto-netto-rechner/" target="_blank" class="link-card">
+            <div class="card-icon">🏛️</div>
+            <div class="card-text">
+                <div class="card-title">BMF Resmi Hesaplayıcı</div>
+                <div class="card-desc">Alman Maliye Bakanlığı'nın resmi hesaplayıcısı.</div>
+            </div>
+            <div class="external-icon">↗️</div>
+        </a>
+    </div>
+    <div class="footer" id="footerText">PACDI Games · Brüt Net Araçları</div>
+</div>
+
+<script>
+(function() {
+    var L = {
+        tr: { title:"BRÜT NET ARAÇLARI", back:"← Geri", intro:"Almanya'da brüt maaştan net maaş hesaplaması oldukça karmaşıktır (Steuerklasse, Kirchensteuer, Bundesland vb.). En doğru sonucu almak için aşağıdaki güvenilir resmi ve özel hesaplayıcıları kullanabilirsiniz. Hepsi ücretsizdir.", footer:"PACDI Games · Brüt Net Araçları", nextLang:"de" },
+        de: { title:"BRUTTO-NETTO RECHNER", back:"← Zurück", intro:"Die Berechnung des Nettogehalts aus dem Bruttogehalt ist in Deutschland sehr komplex (Steuerklasse, Kirchensteuer, Bundesland usw.). Für das genaueste Ergebnis nutzen Sie bitte die folgenden zuverlässigen und offiziellen Rechner. Alle sind kostenlos.", footer:"PACDI Games · Brutto-Netto Rechner", nextLang:"en" },
+        en: { title:"GROSS NET TOOLS", back:"← Back", intro:"Calculating net salary from gross in Germany is very complex (tax class, church tax, federal state, etc.). For the most accurate result, please use the following reliable official and private calculators. All are free.", footer:"PACDI Games · Gross Net Tools", nextLang:"tr" }
+    };
+    var currentLang = (navigator.language||'en').toLowerCase().indexOf('de')===0 ? 'de' : (navigator.language||'en').toLowerCase().indexOf('tr')===0 ? 'tr' : 'en';
+    function setLang(lang) {
+        currentLang = lang;
+        var t = L[lang];
+        document.getElementById('gameTitle').innerText = t.title;
+        document.getElementById('backLink').innerText = t.back;
+        document.getElementById('introText').innerText = t.intro;
+        document.getElementById('footerText').innerText = t.footer;
+    }
+    document.getElementById('langToggle').addEventListener('click', function() { setLang(L[currentLang].nextLang); });
+    setLang(currentLang);
+})();
+</script>
+</body>
+</html>
