@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Stopaj Hesaplayıcı | PACDI Games</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+        body { background:#04162E; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
+        .game-container { max-width:500px; width:100%; background:rgba(4,22,46,0.85); border-radius:56px; padding:24px 20px; box-shadow:0 20px 35px rgba(0,0,0,0.5); border:1px solid rgba(246,180,95,0.3); text-align:center; }
+        .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+        .logo { font-size:1.4rem; font-weight:800; color:#F6B45F; }
+        .lang-btn { font-size:1.3rem; cursor:pointer; background:#0a1018; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:1px solid rgba(246,180,95,0.3); color:#F6B45F; }
+        .top-actions { display:flex; gap:8px; align-items:center; }
+        .back-link { color:#F6B45F; text-decoration:none; font-weight:bold; font-size:0.75rem; background:#0a1018; padding:5px 10px; border-radius:30px; border:1px solid rgba(246,180,95,0.3); }
+        .calc-area { background:#0a1018; border-radius:28px; padding:20px 16px; margin-bottom:20px; }
+        .input-group { margin-bottom:16px; text-align:left; }
+        .input-group label { color:#9bb7d4; font-size:0.8rem; display:block; margin-bottom:6px; }
+        .input-group select { width:100%; padding:12px 16px; border-radius:14px; border:2px solid rgba(246,180,95,0.3); background:#1e2a3a; color:#eaf2fb; font-size:1rem; outline:none; font-family:inherit; cursor:pointer; appearance:none; -webkit-appearance:none; background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="%23F6B45F"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat:no-repeat; background-position:right 12px center; }
+        .input-group input { width:100%; padding:12px 16px; border-radius:14px; border:2px solid rgba(246,180,95,0.3); background:#1e2a3a; color:#eaf2fb; font-size:1rem; outline:none; font-family:inherit; }
+        .input-group select:focus, .input-group input:focus { border-color:#F6B45F; }
+        .result-box { background:rgba(46,204,113,0.1); border:1px solid rgba(46,204,113,0.3); border-radius:20px; padding:16px; margin-top:12px; }
+        .result-row { display:flex; justify-content:space-between; padding:6px 0; color:#eaf2fb; font-size:0.9rem; }
+        .result-row.total { font-weight:bold; color:#F6B45F; font-size:1.1rem; border-top:1px solid rgba(246,180,95,0.2); margin-top:6px; padding-top:10px; }
+        .warning-text { font-size:0.65rem; color:#E74C3C; margin-top:10px; text-align:center; }
+        .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:12px; }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="top-bar">
+        <div class="logo" id="gameTitle">STOPAJ HESAPLAYICI</div>
+        <div class="top-actions">
+            <div class="lang-btn" id="langToggle" title="Dil değiştir">🌐</div>
+            <a href="index.html" class="back-link" id="backLink">← Geri</a>
+        </div>
+    </div>
+    <div class="calc-area">
+        <div class="input-group">
+            <label id="labelCountry">Ülke</label>
+            <select id="country">
+                <option value="tr">🇹🇷 Türkiye</option>
+                <option value="de">🇩🇪 Deutschland</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label id="labelType">Vergi Türü</label>
+            <select id="withholdingType">
+                <option value="rent">Kira / Miete</option>
+                <option value="dividend">Temettü / Dividende</option>
+                <option value="freelance">Serbest Meslek / Freiberufler</option>
+                <option value="deposit">Mevduat / Kapitalertrag</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label id="labelAmount">Brüt Tutar</label>
+            <input type="number" id="amount" placeholder="0" value="10000" step="any">
+        </div>
+        <div class="result-box" id="resultBox">
+            <div class="result-row"><span id="labelGross">Brüt Tutar:</span> <span id="grossResult">₺10,000.00</span></div>
+            <div class="result-row"><span id="labelRate">Vergi Oranı:</span> <span id="rateResult">%20</span></div>
+            <div class="result-row total"><span id="labelNet">Net Tutar:</span> <span id="netResult">₺8,000.00</span></div>
+        </div>
+        <div class="warning-text" id="warningText">⚠️ Bu hesaplama bilgilendirme amaçlıdır. Kesin sonuç için mali müşavirinize danışın.</div>
+    </div>
+    <div class="footer" id="footerText">PACDI Games · Stopaj hesaplayıcı</div>
+</div>
+
+<script>
+(function() {
+    var L = {
+        tr: { title:"STOPAJ HESAPLAYICI", back:"← Geri", country:"Ülke", type:"Vergi Türü", amount:"Brüt Tutar", gross:"Brüt Tutar:", rate:"Vergi Oranı:", net:"Net Tutar:", warning:"⚠️ Bu hesaplama bilgilendirme amaçlıdır. Kesin sonuç için mali müşavirinize danışın.", footer:"PACDI Games · Stopaj hesaplayıcı", nextLang:"de" },
+        de: { title:"QUELLENSTEUERRECHNER", back:"← Zurück", country:"Land", type:"Steuerart", amount:"Bruttobetrag", gross:"Bruttobetrag:", rate:"Steuersatz:", net:"Nettobetrag:", warning:"⚠️ Diese Berechnung dient nur zur Information. Für ein genaues Ergebnis konsultieren Sie Ihren Steuerberater.", footer:"PACDI Games · Quellensteuerrechner", nextLang:"en" },
+        en: { title:"WITHHOLDING TAX", back:"← Back", country:"Country", type:"Tax Type", amount:"Gross Amount", gross:"Gross Amount:", rate:"Tax Rate:", net:"Net Amount:", warning:"⚠️ This calculation is for informational purposes only. Consult your tax advisor for exact results.", footer:"PACDI Games · Withholding Tax Calculator", nextLang:"tr" }
+    };
+    var currentLang = (navigator.language||'en').toLowerCase().indexOf('de')===0 ? 'de' : (navigator.language||'en').toLowerCase().indexOf('tr')===0 ? 'tr' : 'en';
+
+    var ratesTR = { rent:0.20, dividend:0.10, freelance:0.17, deposit:0.05 };
+    var ratesDE = { rent:0.00, dividend:0.25, freelance:0.15, deposit:0.25 }; // DE'de kira stopajı yok
+
+    function setLang(lang) {
+        currentLang = lang;
+        var t = L[lang];
+        document.getElementById('gameTitle').innerText = t.title;
+        document.getElementById('backLink').innerText = t.back;
+        document.getElementById('labelCountry').innerText = t.country;
+        document.getElementById('labelType').innerText = t.type;
+        document.getElementById('labelAmount').innerText = t.amount;
+        document.getElementById('labelGross').innerText = t.gross;
+        document.getElementById('labelRate').innerText = t.rate;
+        document.getElementById('labelNet').innerText = t.net;
+        document.getElementById('warningText').innerText = t.warning;
+        document.getElementById('footerText').innerText = t.footer;
+        calculate();
+    }
+
+    function calculate() {
+        var country = document.getElementById('country').value;
+        var amount = parseFloat(document.getElementById('amount').value) || 0;
+        var type = document.getElementById('withholdingType').value;
+        var rates = country === 'tr' ? ratesTR : ratesDE;
+        var rate = rates[type] || 0;
+        var tax = amount * rate;
+        var net = amount - tax;
+        var symbol = country === 'tr' ? '₺' : '€';
+        document.getElementById('grossResult').innerText = symbol + amount.toFixed(2);
+        document.getElementById('rateResult').innerText = '%' + (rate * 100).toFixed(0);
+        document.getElementById('netResult').innerText = symbol + net.toFixed(2);
+    }
+
+    document.getElementById('country').addEventListener('change', calculate);
+    document.getElementById('withholdingType').addEventListener('change', calculate);
+    document.getElementById('amount').addEventListener('input', calculate);
+    document.getElementById('langToggle').addEventListener('click', function() { setLang(L[currentLang].nextLang); });
+
+    setLang(currentLang);
+})();
+</script>
+</body>
+</html>

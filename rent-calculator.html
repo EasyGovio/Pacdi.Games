@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Kira Hesaplayıcı | PACDI Games</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+        body { background:#04162E; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
+        .game-container { max-width:500px; width:100%; background:rgba(4,22,46,0.85); border-radius:56px; padding:24px 20px; box-shadow:0 20px 35px rgba(0,0,0,0.5); border:1px solid rgba(246,180,95,0.3); text-align:center; }
+        .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+        .logo { font-size:1.4rem; font-weight:800; color:#F6B45F; }
+        .lang-btn { font-size:1.3rem; cursor:pointer; background:#0a1018; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:1px solid rgba(246,180,95,0.3); color:#F6B45F; }
+        .top-actions { display:flex; gap:8px; align-items:center; }
+        .back-link { color:#F6B45F; text-decoration:none; font-weight:bold; font-size:0.75rem; background:#0a1018; padding:5px 10px; border-radius:30px; border:1px solid rgba(246,180,95,0.3); }
+        .calc-area { background:#0a1018; border-radius:28px; padding:20px 16px; margin-bottom:20px; }
+        .input-group { margin-bottom:16px; text-align:left; }
+        .input-group label { color:#9bb7d4; font-size:0.8rem; display:block; margin-bottom:6px; }
+        .input-group input, .input-group select { width:100%; padding:12px 16px; border-radius:14px; border:2px solid rgba(246,180,95,0.3); background:#1e2a3a; color:#eaf2fb; font-size:1rem; outline:none; font-family:inherit; }
+        .input-group select { cursor:pointer; appearance:none; -webkit-appearance:none; background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="%23F6B45F"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat:no-repeat; background-position:right 12px center; }
+        .input-group input:focus, .input-group select:focus { border-color:#F6B45F; }
+        .result-box { background:rgba(46,204,113,0.1); border:1px solid rgba(46,204,113,0.3); border-radius:20px; padding:16px; margin-top:12px; }
+        .result-row { display:flex; justify-content:space-between; padding:6px 0; color:#eaf2fb; font-size:0.9rem; }
+        .result-row.total { font-weight:bold; color:#F6B45F; font-size:1.1rem; border-top:1px solid rgba(246,180,95,0.2); margin-top:6px; padding-top:10px; }
+        .result-row.warning { color:#E74C3C; font-size:0.75rem; margin-top:8px; padding:8px; background:rgba(231,76,60,0.1); border-radius:10px; }
+        .share-btn { background:#2ECC71; color:#04162E; border:none; padding:8px 16px; border-radius:30px; font-weight:bold; font-size:0.75rem; cursor:pointer; margin-top:8px; }
+        .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:12px; }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="top-bar">
+        <div class="logo" id="gameTitle">KİRA HESAPLAYICI</div>
+        <div class="top-actions">
+            <div class="lang-btn" id="langToggle" title="Dil değiştir">🌐</div>
+            <a href="index.html" class="back-link" id="backLink">← Geri</a>
+        </div>
+    </div>
+    <div class="calc-area">
+        <div class="input-group">
+            <label id="labelCity">Şehir (Mietpreisbremse kontrolü için)</label>
+            <select id="city">
+                <option value="">— Seçiniz —</option>
+                <option value="berlin">Berlin</option>
+                <option value="muenchen">München</option>
+                <option value="hamburg">Hamburg</option>
+                <option value="koeln">Köln</option>
+                <option value="frankfurt">Frankfurt</option>
+                <option value="stuttgart">Stuttgart</option>
+                <option value="diger">Diğer / Andere</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label id="labelCold">Soğuk Kira (Kaltmiete)</label>
+            <input type="number" id="coldRent" placeholder="0" value="500" step="any">
+        </div>
+        <div class="input-group">
+            <label id="labelUtilities">Yan Giderler (Nebenkosten)</label>
+            <input type="number" id="utilities" placeholder="0" value="150" step="any">
+        </div>
+        <div class="input-group">
+            <label id="labelHeating">Isıtma (Heizung)</label>
+            <input type="number" id="heating" placeholder="0" value="80" step="any">
+        </div>
+        <div class="input-group">
+            <label id="labelSqm">Metrekare (m²)</label>
+            <input type="number" id="sqm" placeholder="0" value="65" step="any">
+        </div>
+        <div class="result-box" id="resultBox">
+            <div class="result-row"><span id="labelWarm">Sıcak Kira (Warmmiete):</span> <span id="warmRent">€730.00</span></div>
+            <div class="result-row"><span id="labelPerSqm">m² başına:</span> <span id="perSqm">€11.23</span></div>
+            <div class="result-row"><span id="labelKaution">Depozito (3 × Kaltmiete):</span> <span id="kaution">€1,500.00</span></div>
+            <div class="result-row warning" id="mietpreisbremseWarning" style="display:none;"></div>
+        </div>
+        <button class="share-btn" id="shareBtn">📤 Sonucu Paylaş</button>
+    </div>
+    <div class="footer" id="footerText">PACDI Games · Kira hesaplayıcı</div>
+</div>
+
+<script>
+(function() {
+    var L = {
+        tr: { title:"KİRA HESAPLAYICI", back:"← Geri", city:"Şehir (Mietpreisbremse kontrolü için)", cold:"Soğuk Kira (Kaltmiete)", utilities:"Yan Giderler (Nebenkosten)", heating:"Isıtma (Heizung)", sqm:"Metrekare (m²)", warm:"Sıcak Kira (Warmmiete):", perSqm:"m² başına:", kaution:"Depozito (3 × Kaltmiete):", share:"📤 Sonucu Paylaş", footer:"PACDI Games · Kira hesaplayıcı", nextLang:"de",
+            mietpreisbremse: "⚠️ Bu şehirde Mietpreisbremse (kira freni) uygulanmaktadır. Soğuk kira, bölgedeki karşılaştırmalı kira bedelinin (ortsübliche Vergleichsmiete) en fazla %10 üzerinde olabilir. Daha fazla bilgi için mieterverein'e danışın.",
+            shareText: "🏠 Kira Hesabı\nSoğuk Kira: {cold}€\nSıcak Kira: {warm}€\nm² başına: {persqm}€\nDepozito: {kaution}€\nHesaplayıcı: pacdi.games/rent-calculator.html" },
+        de: { title:"MIETRECHNER", back:"← Zurück", city:"Stadt (Mietpreisbremse)", cold:"Kaltmiete", utilities:"Nebenkosten", heating:"Heizung", sqm:"Quadratmeter (m²)", warm:"Warmmiete:", perSqm:"pro m²:", kaution:"Kaution (3 × Kaltmiete):", share:"📤 Ergebnis teilen", footer:"PACDI Games · Mietrechner", nextLang:"en",
+            mietpreisbremse: "⚠️ In dieser Stadt gilt die Mietpreisbremse. Die Kaltmiete darf die ortsübliche Vergleichsmiete um maximal 10% übersteigen. Für weitere Informationen wenden Sie sich an den Mieterverein.",
+            shareText: "🏠 Mietberechnung\nKaltmiete: {cold}€\nWarmmiete: {warm}€\npro m²: {persqm}€\nKaution: {kaution}€\nRechner: pacdi.games/rent-calculator.html" },
+        en: { title:"RENT CALCULATOR", back:"← Back", city:"City (Mietpreisbremse check)", cold:"Cold Rent (Kaltmiete)", utilities:"Utilities (Nebenkosten)", heating:"Heating (Heizung)", sqm:"Square Meters (m²)", warm:"Warm Rent (Warmmiete):", perSqm:"per m²:", kaution:"Deposit (3 × Cold Rent):", share:"📤 Share Result", footer:"PACDI Games · Rent Calculator", nextLang:"tr",
+            mietpreisbremse: "⚠️ Mietpreisbremse (rent brake) applies in this city. The cold rent may not exceed the local comparative rent (ortsübliche Vergleichsmiete) by more than 10%. Contact the Mieterverein for more information.",
+            shareText: "🏠 Rent Calculation\nCold Rent: {cold}€\nWarm Rent: {warm}€\nper m²: {persqm}€\nDeposit: {kaution}€\nCalculator: pacdi.games/rent-calculator.html" }
+    };
+    var currentLang = (navigator.language||'en').toLowerCase().indexOf('de')===0 ? 'de' : (navigator.language||'en').toLowerCase().indexOf('tr')===0 ? 'tr' : 'en';
+    
+    var mietpreisbremseCities = ['berlin', 'muenchen', 'hamburg', 'koeln', 'frankfurt', 'stuttgart'];
+    
+    function setLang(lang) {
+        currentLang = lang;
+        var t = L[lang];
+        document.getElementById('gameTitle').innerText = t.title;
+        document.getElementById('backLink').innerText = t.back;
+        document.getElementById('labelCity').innerText = t.city;
+        document.getElementById('labelCold').innerText = t.cold;
+        document.getElementById('labelUtilities').innerText = t.utilities;
+        document.getElementById('labelHeating').innerText = t.heating;
+        document.getElementById('labelSqm').innerText = t.sqm;
+        document.getElementById('labelWarm').innerText = t.warm;
+        document.getElementById('labelPerSqm').innerText = t.perSqm;
+        document.getElementById('labelKaution').innerText = t.kaution;
+        document.getElementById('shareBtn').innerText = t.share;
+        document.getElementById('footerText').innerText = t.footer;
+        calculate();
+    }
+
+    function calculate() {
+        var cold = parseFloat(document.getElementById('coldRent').value) || 0;
+        var utils = parseFloat(document.getElementById('utilities').value) || 0;
+        var heat = parseFloat(document.getElementById('heating').value) || 0;
+        var sqm = parseFloat(document.getElementById('sqm').value) || 1;
+        var city = document.getElementById('city').value;
+        var warm = cold + utils + heat;
+        var perSqm = warm / sqm;
+        var kaution = cold * 3;
+
+        document.getElementById('warmRent').innerText = '€' + warm.toFixed(2);
+        document.getElementById('perSqm').innerText = '€' + perSqm.toFixed(2);
+        document.getElementById('kaution').innerText = '€' + kaution.toFixed(2);
+
+        var warning = document.getElementById('mietpreisbremseWarning');
+        if (city && mietpreisbremseCities.indexOf(city) !== -1) {
+            warning.style.display = 'block';
+            warning.innerText = L[currentLang].mietpreisbremse;
+        } else {
+            warning.style.display = 'none';
+        }
+    }
+
+    function shareResult() {
+        var cold = parseFloat(document.getElementById('coldRent').value) || 0;
+        var warm = parseFloat(document.getElementById('warmRent').innerText.replace('€', ''));
+        var perSqm = parseFloat(document.getElementById('perSqm').innerText.replace('€', ''));
+        var kaution = parseFloat(document.getElementById('kaution').innerText.replace('€', ''));
+        var text = L[currentLang].shareText
+            .replace('{cold}', cold.toFixed(2))
+            .replace('{warm}', warm.toFixed(2))
+            .replace('{persqm}', perSqm.toFixed(2))
+            .replace('{kaution}', kaution.toFixed(2));
+        navigator.clipboard.writeText(text).then(function() {
+            alert('📤 Sonuç panoya kopyalandı!');
+        });
+    }
+
+    document.getElementById('coldRent').addEventListener('input', calculate);
+    document.getElementById('utilities').addEventListener('input', calculate);
+    document.getElementById('heating').addEventListener('input', calculate);
+    document.getElementById('sqm').addEventListener('input', calculate);
+    document.getElementById('city').addEventListener('change', calculate);
+    document.getElementById('langToggle').addEventListener('click', function() { setLang(L[currentLang].nextLang); });
+    document.getElementById('shareBtn').addEventListener('click', shareResult);
+    setLang(currentLang);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>İlaç Hatırlatıcı | PACDI Games</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+        body { background:#04162E; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
+        .game-container { max-width:500px; width:100%; background:rgba(4,22,46,0.85); border-radius:56px; padding:24px 20px; box-shadow:0 20px 35px rgba(0,0,0,0.5); border:1px solid rgba(246,180,95,0.3); text-align:center; }
+        .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+        .logo { font-size:1.4rem; font-weight:800; color:#F6B45F; }
+        .lang-btn { font-size:1.3rem; cursor:pointer; background:#0a1018; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:1px solid rgba(246,180,95,0.3); color:#F6B45F; }
+        .top-actions { display:flex; gap:8px; align-items:center; }
+        .back-link { color:#F6B45F; text-decoration:none; font-weight:bold; font-size:0.75rem; background:#0a1018; padding:5px 10px; border-radius:30px; border:1px solid rgba(246,180,95,0.3); }
+        .add-area { background:#0a1018; border-radius:28px; padding:20px 16px; margin-bottom:20px; }
+        .input-group { margin-bottom:14px; text-align:left; }
+        .input-group label { color:#9bb7d4; font-size:0.8rem; display:block; margin-bottom:6px; }
+        .input-group input, .input-group select { width:100%; padding:12px 16px; border-radius:14px; border:2px solid rgba(246,180,95,0.3); background:#1e2a3a; color:#eaf2fb; font-size:1rem; outline:none; font-family:inherit; }
+        .input-group select { cursor:pointer; appearance:none; -webkit-appearance:none; background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="%23F6B45F"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat:no-repeat; background-position:right 12px center; }
+        .input-group input:focus, .input-group select:focus { border-color:#F6B45F; }
+        .btn { background:#F6B45F; border:none; font-weight:bold; padding:12px 24px; border-radius:40px; color:#04162E; cursor:pointer; font-size:0.9rem; width:100%; }
+        .btn:active { transform:scale(0.96); }
+        .pill-list { display:flex; flex-direction:column; gap:8px; }
+        .pill-item { background:#0a1018; border-radius:20px; padding:14px 16px; display:flex; justify-content:space-between; align-items:center; border:1px solid rgba(246,180,95,0.2); }
+        .pill-info { text-align:left; }
+        .pill-name { color:#F6B45F; font-weight:bold; font-size:0.95rem; }
+        .pill-time { color:#9bb7d4; font-size:0.75rem; margin-top:3px; }
+        .pill-dose { color:#6c8fb0; font-size:0.7rem; }
+        .pill-taken { background:#2ECC71; color:#04162E; border:none; padding:8px 14px; border-radius:30px; font-weight:bold; font-size:0.8rem; cursor:pointer; }
+        .pill-taken.done { background:rgba(46,204,113,0.3); color:#2ECC71; }
+        .del-btn { background:transparent; border:1px solid #E74C3C; color:#E74C3C; width:30px; height:30px; border-radius:50%; cursor:pointer; font-size:0.8rem; margin-left:6px; }
+        .empty-state { color:#6c8fb0; padding:30px; font-size:0.9rem; }
+        .notification-note { font-size:0.65rem; color:#F6B45F; margin-top:10px; text-align:center; line-height:1.5; }
+        .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:12px; }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="top-bar">
+        <div class="logo" id="gameTitle">💊 İLAÇ HATIRLATICI</div>
+        <div class="top-actions">
+            <div class="lang-btn" id="langToggle" title="Dil değiştir">🌐</div>
+            <a href="index.html" class="back-link" id="backLink">← Geri</a>
+        </div>
+    </div>
+    <div class="add-area">
+        <div class="input-group">
+            <label id="labelName">İlaç Adı</label>
+            <input type="text" id="pillName" placeholder="Örn: Aspirin">
+        </div>
+        <div class="input-group">
+            <label id="labelTime">Saat</label>
+            <input type="time" id="pillTime" value="08:00">
+        </div>
+        <div class="input-group">
+            <label id="labelDose">Doz</label>
+            <input type="text" id="pillDose" placeholder="Örn: 1 tablet" value="1 tablet">
+        </div>
+        <button class="btn" id="addBtn">➕ Ekle</button>
+    </div>
+    <div class="pill-list" id="pillList">
+        <div class="empty-state" id="emptyState">Henüz ilaç eklenmedi.</div>
+    </div>
+    <div class="notification-note" id="notificationNote">
+        🔔 Sayfa açıkken her dakika kontrol eder, ilaç vaktinde bildirim gönderir. 
+        İlacınızı almazsanız 30 dakika sonra tekrar hatırlatır.
+        <br>📲 Ana ekrana ekleyerek daha güvenilir kullanabilirsiniz.
+    </div>
+    <div class="footer" id="footerText">PACDI Games · İlaç hatırlatıcı</div>
+</div>
+
+<script>
+(function() {
+    var L = {
+        tr: { title:"💊 İLAÇ HATIRLATICI", back:"← Geri", name:"İlaç Adı", time:"Saat", dose:"Doz", add:"➕ Ekle", empty:"Henüz ilaç eklenmedi.", taken:"Alındı ✓", notTaken:"Al", note:"🔔 Sayfa açıkken her dakika kontrol eder, ilaç vaktinde bildirim gönderir. İlacınızı almazsanız 30 dakika sonra tekrar hatırlatır. <br>📲 Ana ekrana ekleyerek daha güvenilir kullanabilirsiniz.", footer:"PACDI Games · İlaç hatırlatıcı", nextLang:"de", doseEx:"1 tablet", notifyTitle:"💊 İlaç Vakti!", notifyBody:"İlacınızı almayı unutmayın!" },
+        de: { title:"💊 MEDIKAMENTENERINNERUNG", back:"← Zurück", name:"Medikament", time:"Uhrzeit", dose:"Dosis", add:"➕ Hinzufügen", empty:"Noch keine Medikamente.", taken:"Eingenommen ✓", notTaken:"Nehmen", note:"🔔 Überprüft minütlich, sendet Benachrichtigung zur Einnahmezeit. Bei Nicht-Einnahme erfolgt nach 30 Min. eine weitere Erinnerung. <br>📲 Für zuverlässigere Nutzung zum Startbildschirm hinzufügen.", footer:"PACDI Games · Medikamentenerinnerung", nextLang:"en", doseEx:"1 Tablette", notifyTitle:"💊 Medikamentenzeit!", notifyBody:"Vergessen Sie nicht, Ihr Medikament einzunehmen!" },
+        en: { title:"💊 PILL REMINDER", back:"← Back", name:"Medicine Name", time:"Time", dose:"Dosage", add:"➕ Add", empty:"No pills added yet.", taken:"Taken ✓", notTaken:"Take", note:"🔔 Checks every minute, sends notification at pill time. If not taken, reminds again after 30 minutes. <br>📲 Add to home screen for more reliable use.", footer:"PACDI Games · Pill Reminder", nextLang:"tr", doseEx:"1 tablet", notifyTitle:"💊 Pill Time!", notifyBody:"Don't forget to take your medicine!" }
+    };
+    var currentLang = (navigator.language||'en').toLowerCase().indexOf('de')===0 ? 'de' : (navigator.language||'en').toLowerCase().indexOf('tr')===0 ? 'tr' : 'en';
+    var pills = [];
+    var notifiedToday = {};
+
+    function loadPills() {
+        var saved = localStorage.getItem('pacdi_pills_' + currentLang);
+        if (saved) { try { pills = JSON.parse(saved); } catch(e) { pills = []; } }
+        else pills = [];
+        var savedNotified = localStorage.getItem('pacdi_pills_notified');
+        if (savedNotified) { try { notifiedToday = JSON.parse(savedNotified); } catch(e) { notifiedToday = {}; } }
+        renderPills();
+    }
+
+    function savePills() {
+        localStorage.setItem('pacdi_pills_' + currentLang, JSON.stringify(pills));
+    }
+
+    function setLang(lang) {
+        currentLang = lang;
+        var t = L[lang];
+        document.getElementById('gameTitle').innerText = t.title;
+        document.getElementById('backLink').innerText = t.back;
+        document.getElementById('labelName').innerText = t.name;
+        document.getElementById('labelTime').innerText = t.time;
+        document.getElementById('labelDose').innerText = t.dose;
+        document.getElementById('addBtn').innerText = t.add;
+        document.getElementById('notificationNote').innerHTML = t.note;
+        document.getElementById('footerText').innerText = t.footer;
+        document.getElementById('pillDose').placeholder = t.doseEx;
+        loadPills();
+    }
+
+    function addPill() {
+        var name = document.getElementById('pillName').value.trim();
+        var time = document.getElementById('pillTime').value;
+        var dose = document.getElementById('pillDose').value.trim() || '1 tablet';
+        if (!name || !time) return;
+        pills.push({ name:name, time:time, dose:dose, taken:false });
+        savePills();
+        document.getElementById('pillName').value = '';
+        document.getElementById('pillDose').value = '';
+        checkNewDay();
+        renderPills();
+    }
+
+    function toggleTaken(idx) {
+        pills[idx].taken = !pills[idx].taken;
+        savePills();
+        renderPills();
+    }
+
+    function deletePill(idx) {
+        pills.splice(idx, 1);
+        savePills();
+        renderPills();
+    }
+
+    function checkNewDay() {
+        var today = new Date().toDateString();
+        if (localStorage.getItem('pacdi_pills_day') !== today) {
+            for (var i = 0; i < pills.length; i++) pills[i].taken = false;
+            localStorage.setItem('pacdi_pills_day', today);
+            notifiedToday = {};
+            localStorage.setItem('pacdi_pills_notified', JSON.stringify(notifiedToday));
+            savePills();
+        }
+    }
+
+    function renderPills() {
+        var list = document.getElementById('pillList');
+        var t = L[currentLang];
+        if (pills.length === 0) {
+            list.innerHTML = '<div class="empty-state">' + t.empty + '</div>';
+            return;
+        }
+        list.innerHTML = '';
+        for (var i = 0; i < pills.length; i++) {
+            var p = pills[i];
+            var item = document.createElement('div');
+            item.className = 'pill-item';
+            item.innerHTML = 
+                '<div class="pill-info">' +
+                '<div class="pill-name">' + p.name + '</div>' +
+                '<div class="pill-time">🕐 ' + p.time + '</div>' +
+                '<div class="pill-dose">💊 ' + p.dose + '</div>' +
+                '</div>' +
+                '<div style="display:flex; align-items:center; gap:6px;">' +
+                '<button class="pill-taken' + (p.taken ? ' done' : '') + '">' + (p.taken ? t.taken : t.notTaken) + '</button>' +
+                '<button class="del-btn">✕</button>' +
+                '</div>';
+            list.appendChild(item);
+            item.querySelector('.pill-taken').addEventListener('click', (function(idx) { return function() { toggleTaken(idx); }; })(i));
+            item.querySelector('.del-btn').addEventListener('click', (function(idx) { return function() { deletePill(idx); }; })(i));
+        }
+    }
+
+    function scheduleReminder(pillName, pillDose, pillTime) {
+        var REMINDER_INTERVAL = 30; // dakika
+        var reminderKey = 'reminder_' + pillName + '_' + pillTime;
+        var alreadyScheduled = localStorage.getItem(reminderKey);
+        
+        if (!alreadyScheduled) {
+            localStorage.setItem(reminderKey, Date.now() + REMINDER_INTERVAL * 60000);
+            setTimeout(function() {
+                if (Notification.permission === 'granted') {
+                    try {
+                        new Notification(L[currentLang].notifyTitle, {
+                            body: '🔔 ' + L[currentLang].notifyBody + '\n' + pillName + ' - ' + pillDose,
+                            tag: reminderKey
+                        });
+                    } catch(e) {}
+                }
+                localStorage.removeItem(reminderKey);
+            }, REMINDER_INTERVAL * 60000);
+        }
+    }
+
+    function checkAndNotify() {
+        if (!('Notification' in window)) return;
+        var now = new Date();
+        var currentTime = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+        var today = now.toDateString();
+        
+        if (localStorage.getItem('pacdi_pills_day') !== today) checkNewDay();
+
+        for (var i = 0; i < pills.length; i++) {
+            var p = pills[i];
+            if (!p.taken && p.time === currentTime && !notifiedToday[p.name + '_' + p.time]) {
+                notifiedToday[p.name + '_' + p.time] = true;
+                localStorage.setItem('pacdi_pills_notified', JSON.stringify(notifiedToday));
+                if (Notification.permission === 'granted') {
+                    try { 
+                        new Notification(L[currentLang].notifyTitle, { 
+                            body: p.name + ' - ' + p.dose + '\n' + L[currentLang].notifyBody 
+                        }); 
+                    } catch(e) {}
+                    scheduleReminder(p.name, p.dose, p.time);
+                }
+            }
+        }
+    }
+
+    document.getElementById('addBtn').addEventListener('click', addPill);
+    document.getElementById('langToggle').addEventListener('click', function() { setLang(L[currentLang].nextLang); });
+
+    if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+        Notification.requestPermission();
+    }
+
+    setLang(currentLang);
+    checkNewDay();
+    setInterval(checkAndNotify, 60000);
+    checkAndNotify();
+})();
+</script>
+</body>
+</html>

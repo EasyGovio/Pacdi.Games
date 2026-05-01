@@ -1,0 +1,155 @@
+
+<!DOCTYPE html>
+
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Randevu Takibi | PACDI Games</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+        body { background:#04162E; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
+        .game-container { max-width:500px; width:100%; background:rgba(4,22,46,0.85); border-radius:56px; padding:24px 20px; box-shadow:0 20px 35px rgba(0,0,0,0.5); border:1px solid rgba(246,180,95,0.3); text-align:center; }
+        .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+        .logo { font-size:1.4rem; font-weight:800; color:#F6B45F; }
+        .lang-btn { font-size:1.3rem; cursor:pointer; background:#0a1018; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:1px solid rgba(246,180,95,0.3); color:#F6B45F; }
+        .top-actions { display:flex; gap:8px; align-items:center; }
+        .back-link { color:#F6B45F; text-decoration:none; font-weight:bold; font-size:0.75rem; background:#0a1018; padding:5px 10px; border-radius:30px; border:1px solid rgba(246,180,95,0.3); }
+        .add-area { background:#0a1018; border-radius:28px; padding:20px 16px; margin-bottom:20px; }
+        .input-group { margin-bottom:12px; text-align:left; }
+        .input-group label { color:#9bb7d4; font-size:0.75rem; display:block; margin-bottom:4px; }
+        .input-group input, .input-group textarea { width:100%; padding:10px 14px; border-radius:12px; border:2px solid rgba(246,180,95,0.3); background:#1e2a3a; color:#eaf2fb; font-size:0.9rem; outline:none; font-family:inherit; resize:vertical; }
+        .input-group input:focus, .input-group textarea:focus { border-color:#F6B45F; }
+        .btn { background:#F6B45F; border:none; font-weight:bold; padding:12px 24px; border-radius:40px; color:#04162E; cursor:pointer; font-size:0.9rem; width:100%; }
+        .btn:active { transform:scale(0.96); }
+        .list-area { background:#0a1018; border-radius:20px; padding:12px; max-height:350px; overflow-y:auto; }
+        .appt-item { background:#1e2a3a; border-radius:14px; padding:12px 14px; margin-bottom:8px; border-left:4px solid #F6B45F; text-align:left; }
+        .appt-item.past { border-left-color:#6c8fb0; opacity:0.6; }
+        .appt-item.today { border-left-color:#2ECC71; }
+        .appt-name { color:#F6B45F; font-weight:bold; font-size:0.95rem; }
+        .appt-date { color:#9bb7d4; font-size:0.75rem; margin-top:3px; }
+        .appt-desc { color:#6c8fb0; font-size:0.7rem; margin-top:2px; }
+        .appt-actions { display:flex; gap:6px; margin-top:8px; }
+        .del-appt { background:transparent; border:1px solid #E74C3C; color:#E74C3C; padding:4px 10px; border-radius:20px; cursor:pointer; font-size:0.65rem; }
+        .empty-state { color:#6c8fb0; padding:30px; font-size:0.9rem; }
+        .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:12px; }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="top-bar">
+        <div class="logo" id="gameTitle">📅 RANDEVU TAKİBİ</div>
+        <div class="top-actions">
+            <div class="lang-btn" id="langToggle" title="Dil değiştir">🌐</div>
+            <a href="index.html" class="back-link" id="backLink">← Geri</a>
+        </div>
+    </div>
+    <div class="add-area">
+        <div class="input-group">
+            <label id="labelName">Randevu Adı</label>
+            <input type="text" id="apptName" placeholder="Örn: Doktor kontrolü">
+        </div>
+        <div class="input-group">
+            <label id="labelDate">Tarih</label>
+            <input type="date" id="apptDate">
+        </div>
+        <div class="input-group">
+            <label id="labelTime">Saat</label>
+            <input type="time" id="apptTime">
+        </div>
+        <div class="input-group">
+            <label id="labelDesc">Açıklama</label>
+            <textarea id="apptDesc" rows="2" placeholder="Opsiyonel not..."></textarea>
+        </div>
+        <button class="btn" id="saveBtn">💾 Kaydet</button>
+    </div>
+    <div class="list-area" id="listArea">
+        <div class="empty-state" id="emptyState">Henüz randevu yok.</div>
+    </div>
+    <div class="footer" id="footerText">PACDI Games · Randevu takibi</div>
+</div>
+
+<script>
+(function() {
+    var L = {
+        tr: { title:"📅 RANDEVU TAKİBİ", back:"← Geri", name:"Randevu Adı", date:"Tarih", time:"Saat", desc:"Açıklama", save:"💾 Kaydet", empty:"Henüz randevu yok.", past:"Geçmiş", today:"Bugün", upcoming:"Yaklaşan", footer:"PACDI Games · Randevu takibi", nextLang:"de" },
+        de: { title:"📅 TERMINVERWALTUNG", back:"← Zurück", name:"Terminname", date:"Datum", time:"Uhrzeit", desc:"Beschreibung", save:"💾 Speichern", empty:"Noch keine Termine.", past:"Vergangen", today:"Heute", upcoming:"Bevorstehend", footer:"PACDI Games · Terminverwaltung", nextLang:"en" },
+        en: { title:"📅 APPOINTMENT TRACKER", back:"← Back", name:"Appointment Name", date:"Date", time:"Time", desc:"Description", save:"💾 Save", empty:"No appointments yet.", past:"Past", today:"Today", upcoming:"Upcoming", footer:"PACDI Games · Appointment Tracker", nextLang:"tr" }
+    };
+    var currentLang = (navigator.language||'en').toLowerCase().indexOf('de')===0 ? 'de' : (navigator.language||'en').toLowerCase().indexOf('tr')===0 ? 'tr' : 'en';
+    var appointments = [];
+
+    function loadAppointments() {
+        var saved = localStorage.getItem('pacdi_appointments_' + currentLang);
+        if (saved) { try { appointments = JSON.parse(saved); } catch(e) { appointments = []; } }
+        else appointments = [];
+        renderAppointments();
+    }
+
+    function saveAppointments() { localStorage.setItem('pacdi_appointments_' + currentLang, JSON.stringify(appointments)); }
+
+    function setLang(lang) {
+        currentLang = lang;
+        var t = L[lang];
+        document.getElementById('gameTitle').innerText = t.title;
+        document.getElementById('backLink').innerText = t.back;
+        document.getElementById('labelName').innerText = t.name;
+        document.getElementById('labelDate').innerText = t.date;
+        document.getElementById('labelTime').innerText = t.time;
+        document.getElementById('labelDesc').innerText = t.desc;
+        document.getElementById('saveBtn').innerText = t.save;
+        document.getElementById('footerText').innerText = t.footer;
+        loadAppointments();
+    }
+
+    function addAppointment() {
+        var name = document.getElementById('apptName').value.trim();
+        var date = document.getElementById('apptDate').value;
+        var time = document.getElementById('apptTime').value;
+        var desc = document.getElementById('apptDesc').value.trim();
+        if (!name || !date) return;
+        appointments.push({ name:name, date:date, time:time, desc:desc });
+        appointments.sort(function(a, b) { return new Date(a.date + 'T' + (a.time || '00:00')) - new Date(b.date + 'T' + (b.time || '00:00')); });
+        saveAppointments();
+        document.getElementById('apptName').value = '';
+        document.getElementById('apptDesc').value = '';
+        renderAppointments();
+    }
+
+    function deleteAppointment(idx) { appointments.splice(idx, 1); saveAppointments(); renderAppointments(); }
+
+    function renderAppointments() {
+        var list = document.getElementById('listArea');
+        var t = L[currentLang];
+        if (appointments.length === 0) { list.innerHTML = '<div class="empty-state">' + t.empty + '</div>'; return; }
+        
+        var today = new Date().toISOString().split('T')[0];
+        list.innerHTML = '';
+        
+        for (var i = 0; i < appointments.length; i++) {
+            var a = appointments[i];
+            var item = document.createElement('div');
+            var isPast = a.date < today;
+            var isToday = a.date === today;
+            item.className = 'appt-item' + (isPast ? ' past' : '') + (isToday ? ' today' : '');
+            
+            var html = '<div class="appt-name">' + a.name + '</div>';
+            html += '<div class="appt-date">📅 ' + a.date + (a.time ? ' 🕐 ' + a.time : '') + '</div>';
+            if (a.desc) html += '<div class="appt-desc">' + a.desc + '</div>';
+            html += '<div class="appt-actions"><button class="del-appt" onclick="window._delAppt('+i+')">✕ Sil</button></div>';
+            item.innerHTML = html;
+            list.appendChild(item);
+        }
+    }
+
+    window._delAppt = deleteAppointment;
+
+    document.getElementById('saveBtn').addEventListener('click', addAppointment);
+    document.getElementById('langToggle').addEventListener('click', function() { setLang(L[currentLang].nextLang); });
+    document.getElementById('apptDate').value = new Date().toISOString().split('T')[0];
+    setLang(currentLang);
+})();
+</script>
+
+</body>
+</html>
