@@ -3,6 +3,171 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Maaş Hesaplayıcı | PACDI Games</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+        body { background:#04162E; font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:16px; }
+        .game-container { max-width:500px; width:100%; background:rgba(4,22,46,0.85); border-radius:56px; padding:24px 20px; box-shadow:0 20px 35px rgba(0,0,0,0.5); border:1px solid rgba(246,180,95,0.3); text-align:center; }
+        .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+        .logo { font-size:1.4rem; font-weight:800; color:#F6B45F; }
+        .lang-btn { font-size:1.3rem; cursor:pointer; background:#0a1018; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:1px solid rgba(246,180,95,0.3); color:#F6B45F; }
+        .top-actions { display:flex; gap:8px; align-items:center; }
+        .back-link { color:#F6B45F; text-decoration:none; font-weight:bold; font-size:0.75rem; background:#0a1018; padding:5px 10px; border-radius:30px; border:1px solid rgba(246,180,95,0.3); }
+        .calc-area { background:#0a1018; border-radius:28px; padding:20px 16px; margin-bottom:20px; }
+        .input-group { margin-bottom:16px; text-align:left; }
+        .input-group label { color:#9bb7d4; font-size:0.8rem; display:block; margin-bottom:6px; }
+        .input-group input, .input-group select { width:100%; padding:12px 16px; border-radius:14px; border:2px solid rgba(246,180,95,0.3); background:#1e2a3a; color:#eaf2fb; font-size:1rem; outline:none; font-family:inherit; }
+        .input-group select { cursor:pointer; appearance:none; -webkit-appearance:none; background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="%23F6B45F"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat:no-repeat; background-position:right 12px center; }
+        .input-group input:focus, .input-group select:focus { border-color:#F6B45F; }
+        .result-box { background:rgba(46,204,113,0.1); border:1px solid rgba(46,204,113,0.3); border-radius:20px; padding:16px; margin-top:12px; }
+        .result-row { display:flex; justify-content:space-between; padding:6px 0; color:#eaf2fb; font-size:0.9rem; }
+        .result-row.total { font-weight:bold; color:#F6B45F; font-size:1.1rem; border-top:1px solid rgba(246,180,95,0.2); margin-top:6px; padding-top:10px; }
+        .result-breakdown { font-size:0.7rem; color:#6c8fb0; margin-top:6px; }
+        .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:12px; }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="top-bar">
+        <div class="logo" id="gameTitle">MAAŞ HESAPLAYICI</div>
+        <div class="top-actions">
+            <div class="lang-btn" id="langToggle" title="Dil değiştir">🌐</div>
+            <a href="index.html" class="back-link" id="backLink">← Geri</a>
+        </div>
+    </div>
+    <div class="calc-area">
+        <div class="input-group">
+            <label id="labelCountry">Ülke</label>
+            <select id="country">
+                <option value="tr">🇹🇷 Türkiye</option>
+                <option value="de">🇩🇪 Deutschland</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label id="labelGross">Brüt Maaş</label>
+            <input type="number" id="grossSalary" placeholder="0" value="35000" step="any">
+        </div>
+        <div class="input-group" id="taxClassGroupTR" style="display:none;">
+            <label id="labelTaxClass">Vergi Dilimi</label>
+            <select id="taxClassTR">
+                <option value="15">%15 (70.000 TL'ye kadar)</option>
+                <option value="20" selected>%20 (70.000 - 150.000 TL)</option>
+                <option value="27">%27 (150.000 - 370.000 TL)</option>
+                <option value="35">%35 (370.000 TL üzeri)</option>
+            </select>
+        </div>
+        <div class="input-group" id="taxClassGroupDE" style="display:none;">
+            <label id="labelTaxClassDE">Steuerklasse</label>
+            <select id="taxClassDE">
+                <option value="1" selected>Klasse I (Bekar)</option>
+                <option value="2">Klasse II (Tek Ebeveyn)</option>
+                <option value="3">Klasse III (Evli - Yüksek Gelir)</option>
+                <option value="4">Klasse IV (Evli - Eşit Gelir)</option>
+                <option value="5">Klasse V (Evli - Düşük Gelir)</option>
+                <option value="6">Klasse VI (İkinci İş)</option>
+            </select>
+        </div>
+        <div class="result-box" id="resultBox">
+            <div class="result-row"><span id="labelGrossResult">Brüt Maaş:</span> <span id="grossResult">0</span></div>
+            <div class="result-row"><span id="labelTax">Vergi:</span> <span id="taxResult">0</span></div>
+            <div class="result-row"><span id="labelSGK">SGK / Sozialabgaben:</span> <span id="sgkResult">0</span></div>
+            <div class="result-row total"><span id="labelNet">Net Maaş:</span> <span id="netResult">0</span></div>
+            <div class="result-breakdown" id="breakdownText"></div>
+        </div>
+    </div>
+    <div class="footer" id="footerText">PACDI Games · Maaş hesaplayıcı</div>
+</div>
+
+<script>
+(function() {
+    var L = {
+        tr: { title:"MAAŞ HESAPLAYICI", back:"← Geri", country:"Ülke", gross:"Brüt Maaş", taxClass:"Vergi Dilimi", taxClassDE:"Steuerklasse", grossResult:"Brüt Maaş:", tax:"Vergi:", sgk:"SGK / Sozialabgaben:", net:"Net Maaş:", breakdownTR:"SGK (%14) + İşsizlik (%1)", breakdownDE:"Rentenvers. (9.3%) + Krankenvers. (7.3%) + Pflegevers. (1.525%) + Arbeitslosenvers. (1.3%)", footer:"PACDI Games · Maaş hesaplayıcı", nextLang:"de" },
+        de: { title:"GEHALTSRECHNER", back:"← Zurück", country:"Land", gross:"Bruttogehalt", taxClass:"Steuerklasse", taxClassDE:"Steuerklasse", grossResult:"Bruttogehalt:", tax:"Steuer:", sgk:"Sozialabgaben:", net:"Nettogehalt:", breakdownTR:"SGK (14%) + İşsizlik (1%)", breakdownDE:"Rentenvers. (9.3%) + Krankenvers. (8.0%) + Pflegevers. (1.525%) + Arbeitslosenvers. (1.3%)", footer:"PACDI Games · Gehaltsrechner", nextLang:"en" },
+        en: { title:"SALARY CALCULATOR", back:"← Back", country:"Country", gross:"Gross Salary", taxClass:"Tax Bracket", taxClassDE:"Tax Class", grossResult:"Gross Salary:", tax:"Tax:", sgk:"Social Insurance:", net:"Net Salary:", breakdownTR:"SGK (14%) + Unemployment (1%)", breakdownDE:"Pension (9.3%) + Health (8.0%) + Care (1.525%) + Unemployment (1.3%)", footer:"PACDI Games · Salary Calculator", nextLang:"tr" }
+    };
+    var currentLang = (navigator.language||'en').toLowerCase().indexOf('de')===0 ? 'de' : (navigator.language||'en').toLowerCase().indexOf('tr')===0 ? 'tr' : 'en';
+    
+    function setLang(lang) {
+        currentLang = lang;
+        var t = L[lang];
+        document.getElementById('gameTitle').innerText = t.title;
+        document.getElementById('backLink').innerText = t.back;
+        document.getElementById('labelCountry').innerText = t.country;
+        document.getElementById('labelGross').innerText = t.gross;
+        document.getElementById('labelTaxClass').innerText = t.taxClass;
+        document.getElementById('labelTaxClassDE').innerText = t.taxClassDE;
+        document.getElementById('labelGrossResult').innerText = t.grossResult;
+        document.getElementById('labelTax').innerText = t.tax;
+        document.getElementById('labelSGK').innerText = t.sgk;
+        document.getElementById('labelNet').innerText = t.net;
+        document.getElementById('footerText').innerText = t.footer;
+        calculate();
+    }
+
+    function calculate() {
+        var country = document.getElementById('country').value;
+        var gross = parseFloat(document.getElementById('grossSalary').value) || 0;
+        var net = gross;
+
+        document.getElementById('taxClassGroupTR').style.display = country === 'tr' ? 'block' : 'none';
+        document.getElementById('taxClassGroupDE').style.display = country === 'de' ? 'block' : 'none';
+
+        if (country === 'tr') {
+            var sgkRate = 0.14; // SGK işçi payı
+            var unempRate = 0.01; // İşsizlik sigortası
+            var sgk = gross * (sgkRate + unempRate);
+            var taxBase = gross - sgk;
+            var taxRate = parseFloat(document.getElementById('taxClassTR').value) / 100;
+            var tax = taxBase * taxRate;
+            var damgaVergisi = gross * 0.00759; // Damga vergisi
+            net = gross - sgk - tax - damgaVergisi;
+            document.getElementById('sgkResult').innerText = '₺' + sgk.toFixed(2);
+            document.getElementById('taxResult').innerText = '₺' + (tax + damgaVergisi).toFixed(2);
+            document.getElementById('breakdownText').innerText = L[currentLang].breakdownTR + ' + Damga V. (%0.759)';
+        } else {
+            // Almanya (yaklaşık değerler)
+            var renten = gross * 0.093; // Emeklilik
+            var kranken = gross * 0.08; // Sağlık (ortalama ek prim ile ~%8)
+            var pflege = gross * 0.01525; // Bakım
+            var arbeitslosen = gross * 0.013; // İşsizlik
+            var sozial = renten + kranken + pflege + arbeitslosen;
+            var taxBaseDE = gross - sozial;
+            var taxRateDE = getDETaxRate(taxBaseDE);
+            var taxDE = taxBaseDE * taxRateDE;
+            net = gross - sozial - taxDE;
+            document.getElementById('sgkResult').innerText = '€' + sozial.toFixed(2);
+            document.getElementById('taxResult').innerText = '€' + taxDE.toFixed(2);
+            document.getElementById('breakdownText').innerText = L[currentLang].breakdownDE + ' | Steuerklasse: ' + document.getElementById('taxClassDE').value;
+        }
+
+        document.getElementById('grossResult').innerText = (country === 'tr' ? '₺' : '€') + gross.toFixed(2);
+        document.getElementById('netResult').innerText = (country === 'tr' ? '₺' : '€') + net.toFixed(2);
+    }
+
+    function getDETaxRate(base) {
+        // Çok basitleştirilmiş Alman vergi oranları (gerçek oranlar progresiftir)
+        if (base < 9744/12) return 0; // Aylık Grundfreibetrag
+        if (base < 1500) return 0.14;
+        if (base < 3000) return 0.25;
+        if (base < 5000) return 0.35;
+        return 0.42;
+    }
+
+    document.getElementById('country').addEventListener('change', calculate);
+    document.getElementById('grossSalary').addEventListener('input', calculate);
+    document.getElementById('taxClassTR').addEventListener('change', calculate);
+    document.getElementById('taxClassDE').addEventListener('change', calculate);
+    document.getElementById('langToggle').addEventListener('click', function() { setLang(L[currentLang].nextLang); });
+
+    setLang(currentLang);
+})();
+</script>
+</body>
+</html><!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Stopaj Hesaplayıcı | PACDI Games</title>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
