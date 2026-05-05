@@ -196,9 +196,9 @@
           if(!best || timerSeconds < parseInt(best)) {
             localStorage.setItem(bestKey, timerSeconds);
             updateBestDisplay();
-            document.getElementById("message").innerHTML = "🎉 MÜKEMMEL! YENİ REKOR!<br><button onclick='location.reload()'>Tekrar Oyna</button>";
+            document.getElementById("message").innerHTML = "🎉 MÜKEMMEL! YENİ REKOR!<br><button onclick='resetGame()'>Tekrar Oyna</button>";
           } else {
-            document.getElementById("message").innerHTML = "🎉 TEBRİKLER! Oyunu tamamladın!<br><button onclick='location.reload()'>Tekrar Oyna</button>";
+            document.getElementById("message").innerHTML = "🎉 TEBRİKLER! Oyunu tamamladın!<br><button onclick='resetGame()'>Tekrar Oyna</button>";
           }
         }
       } else {
