@@ -168,7 +168,7 @@
       } else {
         gameActive = false;
         saveBest();
-        document.getElementById("message").innerHTML = "❌ Oyun bitti! En uzun doğru dizi uzunluğu: "+maxLength+"<br><button onclick='location.reload()'>Tekrar Oyna</button>";
+        document.getElementById("message").innerHTML = "❌ Oyun bitti! En uzun doğru dizi uzunluğu: "+maxLength+"<br><button onclick='resetGame()'>Tekrar Oyna</button>";
         document.getElementById("submitBtn").disabled = true;
       }
     }
