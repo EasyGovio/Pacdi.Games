@@ -89,6 +89,11 @@
         document.getElementById('questionText').innerText = t.question;
         document.getElementById('footerText').innerText = t.footer;
     }
+    function setLanguage(lang) {
+        currentLang = lang;
+        updateLanguage();
+        loadBest();
+    }
     function loadBest() { var s = localStorage.getItem('plaka_best_'+difficulty+'_'+currentLang); bestScore = s?parseInt(s):0; document.getElementById('bestNum').innerText = bestScore||'—'; }
     function saveBest() { if(score>bestScore){ bestScore=score; localStorage.setItem('plaka_best_'+difficulty+'_'+currentLang,bestScore); document.getElementById('bestNum').innerText = bestScore; } }
     function shuffle(a) { for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i];a[i]=a[j];a[j]=t; } return a; }
