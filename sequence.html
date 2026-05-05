@@ -186,7 +186,7 @@
       setTimeout(function(){ showSequence(); },800);
     }
     function gameOver() {
-      document.getElementById("message").innerHTML = "❌ Oyun bitti! Son seviye: "+level+".<br><button onclick='location.reload()'>Tekrar Oyna</button>";
+      document.getElementById("message").innerHTML = "❌ Oyun bitti! Son seviye: "+level+".<br><button onclick='resetGame()'>Tekrar Oyna</button>";
       saveBest();
       playerTurn = false;
       canClick = false;
