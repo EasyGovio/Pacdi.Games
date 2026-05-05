@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
@@ -87,114 +88,126 @@
         "  +---+<br>  |   |<br>  O   |<br> /|\\  |<br> / \\  |<br>      |<br> ======"
     ];
 
-    var currentLang = "tr";
-    var targetWord = "";
-    var guessedLetters = [];
-    var wrongGuesses = 0;
-    var maxWrong = 6;
-    var score = 0;
-    var bestScore = 0;
-    var gameActive = true;
+```
+var currentLang = "tr";
+var targetWord = "";
+var guessedLetters = [];
+var wrongGuesses = 0;
+var maxWrong = 6;
+var score = 0;
+var bestScore = 0;
+var gameActive = true;
 
-    function loadBest() { var s=localStorage.getItem('hangman_best_'+currentLang); bestScore=s?parseInt(s):0; document.getElementById('bestNum').innerText=bestScore||'—'; }
-    function saveBest() { if(score>bestScore){ bestScore=score; localStorage.setItem('hangman_best_'+currentLang,bestScore); document.getElementById('bestNum').innerText=bestScore; } }
+// Klavye düzenleri
+var keyboardLayouts = {
+    tr: 'ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ'.split(''),
+    de: 'ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜ'.split(''),
+    en: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
+};
 
-    function updateLanguage() {
-        var t=langData[currentLang];
-        document.getElementById('gameTitle').innerText=t.title;
-        document.getElementById('backLink').innerText=t.back;
-        document.getElementById('scoreLabel').innerHTML=t.score+' <span id="scoreNum">'+score+'</span>';
-        document.getElementById('bestLabel').innerHTML=t.best+' <span id="bestNum">'+(bestScore||'—')+'</span>';
-        document.getElementById('resetText').innerText=t.reset;
-        document.querySelector('.footer').innerText=t.footer;
+function loadBest() { var s=localStorage.getItem('hangman_best_'+currentLang); bestScore=s?parseInt(s):0; document.getElementById('bestNum').innerText=bestScore||'—'; }
+function saveBest() { if(score>bestScore){ bestScore=score; localStorage.setItem('hangman_best_'+currentLang,bestScore); document.getElementById('bestNum').innerText=bestScore; } }
+
+function updateLanguage() {
+    var t=langData[currentLang];
+    document.getElementById('gameTitle').innerText=t.title;
+    document.getElementById('backLink').innerText=t.back;
+    document.getElementById('scoreLabel').innerHTML=t.score+' <span id="scoreNum">'+score+'</span>';
+    document.getElementById('bestLabel').innerHTML=t.best+' <span id="bestNum">'+(bestScore||'—')+'</span>';
+    document.getElementById('resetText').innerText=t.reset;
+    document.querySelector('.footer').innerText=t.footer;
+}
+
+function setLanguage(lang) {
+    currentLang=lang; updateLanguage(); loadBest();
+    var btns=document.querySelectorAll('.lang-btn');
+    for(var i=0;i<btns.length;i++) btns[i].classList.toggle('active', btns[i].getAttribute('data-lang')===lang);
+    resetGame();
+}
+
+function pickWord() {
+    var list = wordLists[currentLang];
+    return list[Math.floor(Math.random()*list.length)].toUpperCase();
+}
+
+function renderGame() {
+    var wd = document.getElementById('wordDisplay');
+    wd.innerHTML = '';
+    for(var i=0;i<targetWord.length;i++) {
+        var box = document.createElement('div');
+        box.className = 'letter-box' + (guessedLetters.indexOf(targetWord[i])!==-1 ? ' revealed' : '');
+        box.innerText = guessedLetters.indexOf(targetWord[i])!==-1 ? targetWord[i] : '';
+        wd.appendChild(box);
     }
+    document.getElementById('hangmanFigure').innerHTML = hangmanStages[wrongGuesses];
+    document.getElementById('feedbackMsg').innerHTML = '';
+    renderKeyboard();
+}
 
-    function setLanguage(lang) {
-        currentLang=lang; updateLanguage(); loadBest();
-        var btns=document.querySelectorAll('.lang-btn');
-        for(var i=0;i<btns.length;i++) btns[i].classList.toggle('active', btns[i].getAttribute('data-lang')===lang);
-        resetGame();
-    }
-
-    function pickWord() {
-        var list = wordLists[currentLang];
-        return list[Math.floor(Math.random()*list.length)].toUpperCase();
-    }
-
-    function renderGame() {
-        var wd = document.getElementById('wordDisplay');
-        wd.innerHTML = '';
-        for(var i=0;i<targetWord.length;i++) {
-            var box = document.createElement('div');
-            box.className = 'letter-box' + (guessedLetters.indexOf(targetWord[i])!==-1 ? ' revealed' : '');
-            box.innerText = guessedLetters.indexOf(targetWord[i])!==-1 ? targetWord[i] : '';
-            wd.appendChild(box);
+function renderKeyboard() {
+    var kb = document.getElementById('keyboard');
+    kb.innerHTML = '';
+    // Dile göre klavye düzenini seç
+    var letters = keyboardLayouts[currentLang] || keyboardLayouts['tr'];
+    for(var i=0;i<letters.length;i++) {
+        var key = document.createElement('button');
+        key.className = 'key';
+        key.innerText = letters[i];
+        var isGuessed = guessedLetters.indexOf(letters[i])!==-1;
+        if(isGuessed) {
+            key.classList.add('used');
+            if(targetWord.indexOf(letters[i])!==-1) key.classList.add('correct');
+            else key.classList.add('wrong');
         }
-        document.getElementById('hangmanFigure').innerHTML = hangmanStages[wrongGuesses];
-        document.getElementById('feedbackMsg').innerHTML = '';
-        renderKeyboard();
+        key.addEventListener('click', (function(l){ return function(){ guessLetter(l); }; })(letters[i]));
+        kb.appendChild(key);
     }
+}
 
-    function renderKeyboard() {
-        var kb = document.getElementById('keyboard');
-        kb.innerHTML = '';
-        var letters = 'ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ'.split('');
-        for(var i=0;i<letters.length;i++) {
-            var key = document.createElement('button');
-            key.className = 'key';
-            key.innerText = letters[i];
-            var isGuessed = guessedLetters.indexOf(letters[i])!==-1;
-            if(isGuessed) {
-                key.classList.add('used');
-                if(targetWord.indexOf(letters[i])!==-1) key.classList.add('correct');
-                else key.classList.add('wrong');
-            }
-            key.addEventListener('click', (function(l){ return function(){ guessLetter(l); }; })(letters[i]));
-            kb.appendChild(key);
-        }
+function guessLetter(letter) {
+    if(!gameActive) return;
+    if(guessedLetters.indexOf(letter)!==-1) return;
+    guessedLetters.push(letter);
+    if(targetWord.indexOf(letter)===-1) wrongGuesses++;
+    var won = true;
+    for(var i=0;i<targetWord.length;i++) {
+        if(guessedLetters.indexOf(targetWord[i])===-1) { won=false; break; }
     }
-
-    function guessLetter(letter) {
-        if(!gameActive) return;
-        if(guessedLetters.indexOf(letter)!==-1) return;
-        guessedLetters.push(letter);
-        if(targetWord.indexOf(letter)===-1) wrongGuesses++;
-        var won = true;
-        for(var i=0;i<targetWord.length;i++) {
-            if(guessedLetters.indexOf(targetWord[i])===-1) { won=false; break; }
-        }
-        if(won) {
-            gameActive=false; score++; saveBest();
-            document.getElementById('scoreNum').innerText=score;
-            document.getElementById('feedbackMsg').innerHTML=langData[currentLang].win;
-            document.getElementById('feedbackMsg').style.color='#2ECC71';
-        } else if(wrongGuesses >= maxWrong) {
-            gameActive=false;
-            document.getElementById('feedbackMsg').innerHTML=langData[currentLang].lose + targetWord;
-            document.getElementById('feedbackMsg').style.color='#E74C3C';
-        }
-        renderGame();
-    }
-
-    function resetGame() {
-        gameActive=true; targetWord=pickWord(); guessedLetters=[]; wrongGuesses=0;
+    if(won) {
+        gameActive=false; score++; saveBest();
         document.getElementById('scoreNum').innerText=score;
-        renderGame();
+        document.getElementById('feedbackMsg').innerHTML=langData[currentLang].win;
+        document.getElementById('feedbackMsg').style.color='#2ECC71';
+    } else if(wrongGuesses >= maxWrong) {
+        gameActive=false;
+        document.getElementById('feedbackMsg').innerHTML=langData[currentLang].lose + targetWord;
+        document.getElementById('feedbackMsg').style.color='#E74C3C';
     }
+    renderGame();
+}
 
-    document.getElementById('resetBtn').addEventListener('click', resetGame);
-    var langBtns=document.querySelectorAll('.lang-btn');
-    for(var i=0;i<langBtns.length;i++) langBtns[i].addEventListener('click', function(){ var l=this.getAttribute('data-lang'); if(l!==currentLang) setLanguage(l); });
+function resetGame() {
+    gameActive=true; targetWord=pickWord(); guessedLetters=[]; wrongGuesses=0;
+    document.getElementById('scoreNum').innerText=score;
+    renderGame();
+}
 
-    document.addEventListener('keydown', function(e){
-        if(!gameActive) return;
-        var key = e.key.toUpperCase();
-        var letters = 'ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ';
-        if(letters.indexOf(key)!==-1) guessLetter(key);
-    });
+document.getElementById('resetBtn').addEventListener('click', resetGame);
+var langBtns=document.querySelectorAll('.lang-btn');
+for(var i=0;i<langBtns.length;i++) langBtns[i].addEventListener('click', function(){ var l=this.getAttribute('data-lang'); if(l!==currentLang) setLanguage(l); });
 
-    setLanguage('tr'); loadBest(); resetGame();
+document.addEventListener('keydown', function(e){
+    if(!gameActive) return;
+    var key = e.key.toUpperCase();
+    var letters = 'ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ';
+    if(letters.indexOf(key)!==-1) guessLetter(key);
+});
+
+setLanguage('tr'); loadBest(); resetGame();
+```
+
 })();
 </script>
+
 </body>
 </html>
