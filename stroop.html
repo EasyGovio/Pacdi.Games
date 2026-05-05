@@ -159,9 +159,9 @@
           if(!best || elapsed < parseInt(best)) {
             localStorage.setItem(bestKey, elapsed);
             updateBestDisplay();
-            document.getElementById("message").innerHTML = "🎉 MÜKEMMEL! YENİ REKOR! Süre: "+elapsed+" sn<br><button onclick='location.reload()'>Tekrar Oyna</button>";
+            document.getElementById("message").innerHTML = "🎉 MÜKEMMEL! YENİ REKOR! Süre: "+elapsed+" sn<br><button onclick='resetGame()'>Tekrar Oyna</button>";
           } else {
-            document.getElementById("message").innerHTML = "🎉 TEST TAMAMLANDI! Süre: "+elapsed+" sn<br><button onclick='location.reload()'>Tekrar Oyna</button>";
+            document.getElementById("message").innerHTML = "🎉 TEST TAMAMLANDI! Süre: "+elapsed+" sn<br><button onclick='resetGame()'>Tekrar Oyna</button>";
           }
           return;
         }
