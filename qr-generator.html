@@ -71,6 +71,15 @@
     </div>
 
     <div class="qr-area">
+        <!-- SEO: kullanım örnekleri -->
+        <div id="useCaseBar" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:12px;">
+          <span onclick="setExample(this)" data-val="https://wa.me/49" style="background:#0a1018;border:1px solid rgba(246,180,95,0.25);color:#9bb7d4;font-size:0.68rem;padding:4px 10px;border-radius:20px;cursor:pointer;">🍽️ Restoran Menüsü</span>
+          <span onclick="setExample(this)" data-val="https://g.page/r/" style="background:#0a1018;border:1px solid rgba(246,180,95,0.25);color:#9bb7d4;font-size:0.68rem;padding:4px 10px;border-radius:20px;cursor:pointer;">⭐ Google Yorum</span>
+          <span onclick="setExample(this)" data-val="https://instagram.com/" style="background:#0a1018;border:1px solid rgba(246,180,95,0.25);color:#9bb7d4;font-size:0.68rem;padding:4px 10px;border-radius:20px;cursor:pointer;">📸 Instagram</span>
+          <span onclick="setExample(this)" data-val="WIFI:T:WPA;S:AğAdı;P:Şifre;;" style="background:#0a1018;border:1px solid rgba(246,180,95,0.25);color:#9bb7d4;font-size:0.68rem;padding:4px 10px;border-radius:20px;cursor:pointer;">📶 WiFi Şifresi</span>
+          <span onclick="setExample(this)" data-val="https://wa.me/49" style="background:#0a1018;border:1px solid rgba(246,180,95,0.25);color:#9bb7d4;font-size:0.68rem;padding:4px 10px;border-radius:20px;cursor:pointer;">💬 WhatsApp</span>
+          <span onclick="setExample(this)" data-val="https://yourwebsite.com" style="background:#0a1018;border:1px solid rgba(246,180,95,0.25);color:#9bb7d4;font-size:0.68rem;padding:4px 10px;border-radius:20px;cursor:pointer;">🌐 Web Sitesi</span>
+        </div>
         <input type="text" class="qr-input" id="qrInput" placeholder="Metin veya link girin..." value="https://pacdi.games">
         <button class="generate-btn" id="generateBtn">🔳 QR Kod Oluştur</button>
         <div class="qr-display" id="qrDisplay">
@@ -109,6 +118,15 @@
                 <div class="email-skip" id="emailSkip" onclick="skipEmail()">Şimdi değil</div>
                 <div class="email-privacy" id="emailPrivacy">🔒 E-postanız saklanmaz, üçüncü taraflarla paylaşılmaz.</div>
             </div>
+            <!-- Viral paylaşım -->
+            <div id="shareSection" style="margin-top:16px;text-align:center;display:none;">
+              <div style="color:rgba(246,180,95,0.7);font-size:0.7rem;margin-bottom:8px;letter-spacing:0.06em;">BU ÜCRETSİZ ARACI PAYLAŞ</div>
+              <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+                <button id="shareWA" style="background:#25D366;border:none;color:white;font-weight:700;font-size:0.8rem;padding:9px 18px;border-radius:40px;cursor:pointer;display:flex;align-items:center;gap:6px;">📲 WhatsApp</button>
+                <button id="shareCopy" style="background:#0a1018;border:1px solid rgba(246,180,95,0.4);color:#F6B45F;font-weight:700;font-size:0.8rem;padding:9px 18px;border-radius:40px;cursor:pointer;display:flex;align-items:center;gap:6px;">🔗 Linki Kopyala</button>
+              </div>
+              <div id="copyConfirm" style="color:#2ECC71;font-size:0.7rem;margin-top:6px;display:none;">✓ Link kopyalandı!</div>
+            </div>
         </div>
     </div>
 
@@ -126,7 +144,7 @@
             purposeLabel:"Bu QR kodu ne için kullanıyorsunuz?",
             p1:"🏪 İşletmem", p2:"📅 Etkinlik", p3:"👤 Kişisel", p4:"🔧 Diğer",
             emailTitle:"📧 Yeni araçlardan haberdar ol",
-            emailSub:"İsteğe bağlı — reklam yok, sadece faydalı güncellemeler.",
+            emailSub:"Ayda bir kez — sadece hayatınızı kolaylaştıracak ücretsiz araçlar. Reklam yok, söz.",
             emailPlaceholder:"e-posta@adresiniz.com",
             emailBtn:"Katıl", emailSkip:"Şimdi değil",
             emailSuccess:"✓ Teşekkürler! Sizi ekledik.",
@@ -139,7 +157,7 @@
             purposeLabel:"Wofür verwenden Sie diesen QR Code?",
             p1:"🏪 Geschäft", p2:"📅 Event", p3:"👤 Privat", p4:"🔧 Sonstiges",
             emailTitle:"📧 Über neue Tools informiert bleiben",
-            emailSub:"Optional — kein Spam, nur nützliche Updates.",
+            emailSub:"Einmal im Monat — nur kostenlose Tools, die Ihr Leben erleichtern. Kein Spam, versprochen.",
             emailPlaceholder:"ihre@email.de",
             emailBtn:"Eintragen", emailSkip:"Nicht jetzt",
             emailSuccess:"✓ Danke! Sie wurden eingetragen.",
@@ -152,7 +170,7 @@
             purposeLabel:"What will you use this QR code for?",
             p1:"🏪 Business", p2:"📅 Event", p3:"👤 Personal", p4:"🔧 Other",
             emailTitle:"📧 Stay updated on new tools",
-            emailSub:"Optional — no spam, just useful updates.",
+            emailSub:"Once a month — only free tools that make your life easier. No spam, we promise.",
             emailPlaceholder:"your@email.com",
             emailBtn:"Join", emailSkip:"Not now",
             emailSuccess:"✓ Thank you! You're added.",
@@ -218,7 +236,7 @@
             });
             setTimeout(function() {
                 var canvas = display.querySelector('canvas');
-                if(canvas) { currentCanvas = canvas; dlSection.style.display = 'block'; }
+                if(canvas) { currentCanvas = canvas; dlSection.style.display = 'block'; document.getElementById('shareSection').style.display = 'block'; }
             }, 300);
         } else {
             var img = document.createElement('img');
@@ -233,6 +251,7 @@
                 ctx.drawImage(img, 0, 0);
                 currentCanvas = canvas;
                 dlSection.style.display = 'block';
+                document.getElementById('shareSection').style.display = 'block';
             };
             display.appendChild(img);
         }
@@ -248,32 +267,44 @@
         });
     }
 
-    // E-posta gönder — Supabase qr_leads
+    // E-posta gönder
     document.getElementById('emailBtn').addEventListener('click', function() {
         var email = document.getElementById('emailInput').value.trim();
         if(!email || email.indexOf('@') === -1) return;
-
-        var SUPABASE_URL = 'https://yuagziesbftznkcrnfkd.supabase.co';
-        var SUPABASE_KEY = 'sb_publishable_w26ReXcUk-3OGpw07iMRIg_0T_plkgI';
-
-        fetch(SUPABASE_URL + '/rest/v1/qr_leads', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'apikey': SUPABASE_KEY,
-                'Authorization': 'Bearer ' + SUPABASE_KEY,
-                'Prefer': 'return=minimal'
-            },
-            body: JSON.stringify({
-                email: email,
-                purpose: selectedPurpose || 'other',
-                lang: currentLang
-            })
-        }).catch(function(err) { console.warn('Supabase hata:', err); });
-
+        // Formspree veya mailto ile gönder
+        var subject = encodeURIComponent('PACDI QR Tool - Yeni Kayıt');
+        var body = encodeURIComponent('E-posta: ' + email + '\nKullanım amacı: ' + selectedPurpose + '\nDil: ' + currentLang);
+        window.location.href = 'mailto:mehmet@askmeai.io?subject=' + subject + '&body=' + body;
         document.getElementById('emailSuccess').style.display = 'block';
         document.getElementById('emailInput').value = '';
         document.getElementById('emailSkip').style.display = 'none';
+    });
+
+    // Örnek seç
+    window.setExample = function(el) {
+        document.getElementById('qrInput').value = el.getAttribute('data-val');
+        generateQR();
+    };
+
+    // Paylaş butonları
+    document.getElementById('shareWA').addEventListener('click', function() {
+        var url = encodeURIComponent('https://pacdi.games/qr-generator.html');
+        var msg = encodeURIComponent('Ücretsiz QR kod oluşturucu — kayıt yok, sınır yok: https://pacdi.games/qr-generator.html');
+        window.open('https://wa.me/?text=' + msg, '_blank');
+    });
+    document.getElementById('shareCopy').addEventListener('click', function() {
+        var link = 'https://pacdi.games/qr-generator.html';
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(link).then(function() {
+                document.getElementById('copyConfirm').style.display = 'block';
+                setTimeout(function() { document.getElementById('copyConfirm').style.display = 'none'; }, 2500);
+            });
+        } else {
+            var ta = document.createElement('textarea');
+            ta.value = link; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+            document.getElementById('copyConfirm').style.display = 'block';
+            setTimeout(function() { document.getElementById('copyConfirm').style.display = 'none'; }, 2500);
+        }
     });
 
     window.skipEmail = function() {
