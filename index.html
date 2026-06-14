@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
@@ -7,7 +6,6 @@
   <title>PACDI Games · Zihnini Oynat, Ekosistemi Büyüt</title>
 
   <!-- PWA Meta Etiketleri -->
-
   <link rel="manifest" href="manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -47,7 +45,9 @@
     .game-card { background: rgba(255,255,255,0.05); backdrop-filter: blur(4px); border-radius: 32px; padding: 1rem 1rem 1.2rem; transition: all 0.2s ease; border: 1px solid rgba(246,180,95,0.2); box-shadow: 0 8px 20px rgba(0,0,0,0.2); cursor: pointer; position: relative; }
     .game-card:hover { transform: translateY(-5px); border-color: #F6B45F; background: rgba(255,255,255,0.08); }
     .game-card.weekly-pick { border-color: #2ECC71; box-shadow: 0 0 20px rgba(46,204,113,0.3); }
+    .game-card.featured-tool { border-color: #F6B45F; box-shadow: 0 0 24px rgba(246,180,95,0.35); }
     .weekly-badge { position: absolute; top: -10px; right: -10px; background: #2ECC71; color: #04162E; font-weight: bold; font-size: 0.65rem; padding: 4px 10px; border-radius: 20px; z-index: 1; }
+    .featured-badge { position: absolute; top: -10px; left: -10px; background: #F6B45F; color: #04162E; font-weight: bold; font-size: 0.65rem; padding: 4px 10px; border-radius: 20px; z-index: 1; }
     .info-btn { position: absolute; top: 8px; right: 8px; width: 24px; height: 24px; border-radius: 50%; background: rgba(246,180,95,0.2); border: 1px solid rgba(246,180,95,0.3); color: #F6B45F; font-weight: bold; font-size: 0.7rem; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 1; }
     .game-icon { font-size: 2.3rem; margin-bottom: 0.6rem; }
     .game-name { font-size: 1.1rem; font-weight: 700; color: #F6B45F; margin-bottom: 0.3rem; }
@@ -59,7 +59,7 @@
     .reward-btn { margin-top: 8px; background: #F6B45F; border: none; padding: 6px 20px; border-radius: 60px; font-weight: bold; color: #04162E; cursor: pointer; }
     @media (max-width: 680px) { .header { flex-direction: column; align-items: stretch; text-align: center; } .compass-points { justify-content: center; } .games-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); } .promo-spotlight { flex-direction: column; text-align: center; } }
   </style>
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8426936740213369" crossorigin="anonymous"></script>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8426936740213369" crossorigin="anonymous"></script>
 </head>
 <body>
 <div class="container">
@@ -77,31 +77,20 @@
 
   <img src="og-image.jpg" alt="PACDI Games" class="hero-image" />
 
-  <div class="promo-spotlight">
-    <div class="promo-icon">🧓💰</div>
-    <div class="promo-content">
-      <div class="promo-title">Emekli Pusulası</div>
-      <div class="promo-desc">Türkiye'deki 17–18 milyon emekli için özel olarak tasarlanmış <strong>banka promosyon hesaplama</strong> ve karşılaştırma sistemi. 12 bankanın güncel tekliflerini maaş aralığınıza göre anında görün, en avantajlı seçeneği yakalayın.</div>
-      <div class="promo-stats">
-        <div class="promo-stat">🏦 12 Banka</div>
-        <div class="promo-stat">📊 3 Maaş Aralığı</div>
-        <div class="promo-stat">🎯 Otomatik Hesaplama</div>
-        <div class="promo-stat">🔄 Nisan 2026</div>
-      </div>
-      <a href="emekli-pusulasi.html" class="promo-btn">🔍 Hemen Hesapla</a>
-    </div>
-  </div>
+  <!-- Spotlight: dile göre dinamik -->
+  <div class="promo-spotlight" id="promoSpotlight"></div>
 
   <div class="info-badge-row">
     <div class="info-badge-item">📶 Bu oyunlar internetsiz de çalışır</div>
     <div class="info-badge-item install-prompt" id="installPrompt" style="display:none;" onclick="installPWA()">📲 Ana Ekrana Ekle</div>
   </div>
 
+  <!-- Araçlar üste -->
+  <div class="category"><div class="category-title"><span>🛠️</span> Araçlar & Günlük Hayat</div><div class="games-grid" id="toolsGrid"></div></div>
   <div class="category"><div class="category-title"><span>⚡</span> Refleks & Dikkat</div><div class="games-grid" id="reflexGrid"></div></div>
   <div class="category"><div class="category-title"><span>🧠</span> Hafıza & Mantık</div><div class="games-grid" id="logicGrid"></div></div>
   <div class="category"><div class="category-title"><span>🎨</span> Görsel Algı & Strateji</div><div class="games-grid" id="visualGrid"></div></div>
   <div class="category"><div class="category-title"><span>🌾</span> Hasat, Kültür & Onur</div><div class="games-grid" id="cultureGrid"></div></div>
-  <div class="category"><div class="category-title"><span>🛠️</span> Araçlar & Günlük Hayat</div><div class="games-grid" id="toolsGrid"></div></div>
   <div class="category"><div class="category-title"><span>👥</span> 2 Kişilik Oyunlar</div><div class="games-grid" id="duoGrid"></div></div>
 
   <div class="reward-banner">
@@ -153,6 +142,18 @@
         promptEl.innerText = '📲 Ana Ekrana Ekle (iOS/Android)';
       }
     }, 3000);
+
+    // Dil tespiti
+    var userLang = (navigator.language || navigator.userLanguage || 'tr').toLowerCase();
+    var isTurkish = userLang.indexOf('tr') === 0;
+
+    // Spotlight içeriği
+    var spotlight = document.getElementById('promoSpotlight');
+    if (isTurkish) {
+      spotlight.innerHTML = '<div class="promo-icon">🧓💰</div><div class="promo-content"><div class="promo-title">Emekli Pusulası</div><div class="promo-desc">Türkiye\'deki 17–18 milyon emekli için özel olarak tasarlanmış <strong>banka promosyon hesaplama</strong> ve karşılaştırma sistemi. 12 bankanın güncel tekliflerini maaş aralığınıza göre anında görün, en avantajlı seçeneği yakalayın.</div><div class="promo-stats"><div class="promo-stat">🏦 12 Banka</div><div class="promo-stat">📊 3 Maaş Aralığı</div><div class="promo-stat">🎯 Otomatik Hesaplama</div><div class="promo-stat">🔄 Nisan 2026</div></div><a href="emekli-pusulasi.html" class="promo-btn">🔍 Hemen Hesapla</a></div>';
+    } else {
+      spotlight.innerHTML = '<div class="promo-icon">📱✨</div><div class="promo-content"><div class="promo-title">Free QR Code Generator</div><div class="promo-desc">Create QR codes instantly — <strong>free, unlimited, no registration</strong>. Download in PNG, JPG or SVG. Perfect for business cards, events, menus, and links. No expiry, no watermark.</div><div class="promo-stats"><div class="promo-stat">✅ 100% Free</div><div class="promo-stat">♾️ Unlimited</div><div class="promo-stat">⬇️ PNG / JPG / SVG</div><div class="promo-stat">🚫 No Registration</div></div><a href="qr-generator.html" class="promo-btn">🔳 Create QR Code</a></div>';
+    }
 
     function getWeekNumber() {
       var now = new Date();
@@ -216,7 +217,7 @@
       'world-cities.html': 'Meşhur şehirleri simgeleriyle eşleştir.',
       'daily-quote.html': 'Her gün yeni bir ilham verici alıntı.',
       'currency-converter.html': 'Canlı döviz kurlarıyla anında çeviri yap.',
-      'qr-generator.html': 'Metin veya linkleri QR koda dönüştür.',
+      'qr-generator.html': 'Metin veya linkleri QR koda dönüştür. Ücretsiz, sınırsız, kayıt gerekmez.',
       'water-reminder.html': 'Günlük su hedefini takip et. Bildirimlerle hatırlatsın.',
       'todo-list.html': 'Görevlerini ekle, tamamla, sil. Basit yapılacaklar listesi.',
       'dice-roller.html': 'Birden fazla zar at, toplamları gör. Şans oyunları için ideal.',
@@ -245,6 +246,20 @@
     };
 
     var games = {
+      tools: [
+        { name: "QR Kod Oluşturucu", desc: "Ücretsiz, sınırsız QR kod. PNG / JPG / SVG indir.", icon: "📱", file: "qr-generator.html", featured: true },
+        { name: "Döviz Çevirici", desc: "Canlı döviz kurlarıyla anında çeviri.", icon: "💱", file: "currency-converter.html" },
+        { name: "Su İçme Hatırlatıcı", desc: "Günlük su hedefini takip et, bildirim al.", icon: "💧", file: "water-reminder.html" },
+        { name: "Yapılacaklar Listesi", desc: "Görevlerini ekle, tamamla, sil.", icon: "✅", file: "todo-list.html" },
+        { name: "Zar Atma", desc: "Birden fazla zar at, toplamı gör.", icon: "🎲", file: "dice-roller.html" },
+        { name: "Kira Hesaplayıcı", desc: "Soğuk kiradan sıcak kirayı hesapla.", icon: "🏠", file: "rent-calculator.html" },
+        { name: "Maaş Hesaplayıcı", desc: "Brütten nete maaş hesabı (TR & DE).", icon: "💰", file: "salary-calculator.html" },
+        { name: "Stopaj Hesaplayıcı", desc: "Kira, temettü, serbest meslek stopajı.", icon: "🧾", file: "withholding-tax.html" },
+        { name: "İlaç Hatırlatıcı", desc: "Günlük ilaç takibi, bildirimlerle hatırlatma.", icon: "💊", file: "pill-reminder.html" },
+        { name: "Sağlık Takibi", desc: "Tansiyon ve şeker ölçümlerini kaydet.", icon: "🩺", file: "health-tracker.html" },
+        { name: "Alışveriş Listesi", desc: "Kategorili alışveriş listesi, toplam fiyat ve paylaşma.", icon: "🛒", file: "shopping-list.html" },
+        { name: "Randevu Takibi", desc: "Randevularını kaydet, takip et.", icon: "📅", file: "appointment-tracker.html" }
+      ],
       reflex: [
         { name: "Reaction Tap", desc: "Hedefe dokun, reaksiyon süreni ölç.", icon: "⚡", file: "reaction-tap.html" },
         { name: "Stroop Testi", desc: "Renk ve kelime çatışması.", icon: "🎨", file: "stroop.html" },
@@ -307,20 +322,6 @@
         { name: "Dünya Şehirleri", desc: "Meşhur şehirleri özellikleriyle eşleştir.", icon: "🌍", file: "world-cities.html" },
         { name: "Günün Sözü", desc: "Her gün yeni bir ilham verici alıntı.", icon: "💬", file: "daily-quote.html" }
       ],
-      tools: [
-        { name: "Döviz Çevirici", desc: "Canlı döviz kurlarıyla anında çeviri.", icon: "💱", file: "currency-converter.html" },
-        { name: "QR Kod Oluşturucu", desc: "Metin veya linklerden QR kod üret.", icon: "📱", file: "qr-generator.html" },
-        { name: "Su İçme Hatırlatıcı", desc: "Günlük su hedefini takip et, bildirim al.", icon: "💧", file: "water-reminder.html" },
-        { name: "Yapılacaklar Listesi", desc: "Görevlerini ekle, tamamla, sil.", icon: "✅", file: "todo-list.html" },
-        { name: "Zar Atma", desc: "Birden fazla zar at, toplamı gör.", icon: "🎲", file: "dice-roller.html" },
-        { name: "Kira Hesaplayıcı", desc: "Soğuk kiradan sıcak kirayı hesapla.", icon: "🏠", file: "rent-calculator.html" },
-        { name: "Maaş Hesaplayıcı", desc: "Brütten nete maaş hesabı (TR & DE).", icon: "💰", file: "salary-calculator.html" },
-        { name: "Stopaj Hesaplayıcı", desc: "Kira, temettü, serbest meslek stopajı.", icon: "🧾", file: "withholding-tax.html" },
-        { name: "İlaç Hatırlatıcı", desc: "Günlük ilaç takibi, bildirimlerle hatırlatma.", icon: "💊", file: "pill-reminder.html" },
-        { name: "Sağlık Takibi", desc: "Tansiyon ve şeker ölçümlerini kaydet.", icon: "🩺", file: "health-tracker.html" },
-        { name: "Alışveriş Listesi", desc: "Kategorili alışveriş listesi, toplam fiyat ve paylaşma.", icon: "🛒", file: "shopping-list.html" },
-        { name: "Randevu Takibi", desc: "Randevularını kaydet, takip et.", icon: "📅", file: "appointment-tracker.html" }
-      ],
       duo: [
         { name: "Domino", desc: "İki kişilik klasik domino oyunu.", icon: "🀄", file: "domino.html" },
         { name: "Dama", desc: "Klasik 8x8 dama, sırayla oynayın.", icon: "⏺️", file: "checkers.html" },
@@ -360,13 +361,25 @@
 
     function createGameCard(game) {
       var card = document.createElement('div'); card.className = 'game-card';
-      if (game.file === weeklyGameFile) {
+
+      // Öne çıkan araç badge
+      if (game.featured) {
+        card.classList.add('featured-tool');
+        var featuredBadge = document.createElement('div');
+        featuredBadge.className = 'featured-badge';
+        featuredBadge.innerText = '⭐ Öne Çıkan';
+        card.appendChild(featuredBadge);
+      }
+
+      // Haftanın oyunu badge
+      if (game.file === weeklyGameFile && !game.featured) {
         card.classList.add('weekly-pick');
         var badge = document.createElement('div');
         badge.className = 'weekly-badge';
         badge.innerText = '⭐ Haftanın Oyunu';
         card.appendChild(badge);
       }
+
       var infoBtn = document.createElement('div');
       infoBtn.className = 'info-btn';
       infoBtn.innerText = 'ℹ️';
@@ -392,11 +405,11 @@
       for (var i = 0; i < gamesArray.length; i++) container.appendChild(createGameCard(gamesArray[i]));
     }
 
+    renderCategory('toolsGrid', games.tools);
     renderCategory('reflexGrid', games.reflex);
     renderCategory('logicGrid', games.logic);
     renderCategory('visualGrid', games.visual);
     renderCategory('cultureGrid', games.culture);
-    renderCategory('toolsGrid', games.tools);
     renderCategory('duoGrid', games.duo);
 
     var total = 0;
