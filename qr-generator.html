@@ -19,8 +19,22 @@
         .qr-input:focus { border-color:#F6B45F; }
         .qr-display { display:flex; justify-content:center; margin:20px 0; min-height:200px; align-items:center; }
         .qr-display canvas, .qr-display img { border-radius:16px; background:white; padding:10px; }
-        .generate-btn { background:#F6B45F; border:none; font-weight:bold; padding:14px 32px; border-radius:60px; color:#04162E; cursor:pointer; font-size:1rem; }
+        .generate-btn { background:#F6B45F; border:none; font-weight:bold; padding:14px 32px; border-radius:60px; color:#04162E; cursor:pointer; font-size:1rem; width:100%; }
         .generate-btn:active { transform:scale(0.96); }
+
+        /* İndirme butonları */
+        .download-section { margin-top:16px; display:none; }
+        .download-label { color:rgba(246,180,95,0.7); font-size:0.72rem; margin-bottom:10px; letter-spacing:0.08em; text-transform:uppercase; }
+        .download-btns { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+        .dl-btn { background:#0a1018; border:1px solid rgba(246,180,95,0.4); color:#F6B45F; font-size:0.8rem; font-weight:700; padding:10px 18px; border-radius:40px; cursor:pointer; transition:0.15s; display:flex; align-items:center; gap:6px; }
+        .dl-btn:hover, .dl-btn:active { background:#F6B45F; color:#04162E; transform:scale(0.97); }
+        .dl-btn.png { border-color:#2ECC71; color:#2ECC71; }
+        .dl-btn.png:hover { background:#2ECC71; color:#04162E; }
+        .dl-btn.jpg { border-color:#3498DB; color:#3498DB; }
+        .dl-btn.jpg:hover { background:#3498DB; color:#04162E; }
+        .dl-btn.svg { border-color:#9B59B6; color:#9B59B6; }
+        .dl-btn.svg:hover { background:#9B59B6; color:white; }
+
         .footer { text-align:center; font-size:0.6rem; color:#6c8fb0; margin-top:12px; }
     </style>
 </head>
@@ -41,43 +55,65 @@
         <div class="qr-display" id="qrDisplay">
             <span style="color:#9bb7d4;">QR kod burada görünecek</span>
         </div>
+
+        <!-- İndirme bölümü -->
+        <div class="download-section" id="downloadSection">
+            <div class="download-label" id="downloadLabel">İndir</div>
+            <div class="download-btns">
+                <button class="dl-btn png" id="dlPng">⬇️ PNG</button>
+                <button class="dl-btn jpg" id="dlJpg">⬇️ JPG</button>
+                <button class="dl-btn svg" id="dlSvg">⬇️ SVG</button>
+            </div>
+        </div>
     </div>
     <div class="footer" id="footerText">PACDI Games · Hızlı QR kod oluşturucu.</div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js">
-</script>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script>
 (function(){
     var langData = {
-        tr: { title:"QR KOD", back:"← Geri", generate:"🔳 QR Kod Oluştur", placeholder:"Metin veya link girin...", empty:"QR kod burada görünecek", footer:"PACDI Games · Hızlı QR kod oluşturucu." },
-        de: { title:"QR CODE", back:"← Zurück", generate:"🔳 QR Code erstellen", placeholder:"Text oder Link eingeben...", empty:"QR Code erscheint hier", footer:"PACDI Games · Schneller QR Code Generator." },
-        en: { title:"QR CODE", back:"← Back", generate:"🔳 Generate QR Code", placeholder:"Enter text or link...", empty:"QR code will appear here", footer:"PACDI Games · Fast QR code generator." }
+        tr: { title:"QR KOD", back:"← Geri", generate:"🔳 QR Kod Oluştur", placeholder:"Metin veya link girin...", empty:"QR kod burada görünecek", footer:"PACDI Games · Hızlı QR kod oluşturucu.", downloadLabel:"İndir" },
+        de: { title:"QR CODE", back:"← Zurück", generate:"🔳 QR Code erstellen", placeholder:"Text oder Link eingeben...", empty:"QR Code erscheint hier", footer:"PACDI Games · Schneller QR Code Generator.", downloadLabel:"Herunterladen" },
+        en: { title:"QR CODE", back:"← Back", generate:"🔳 Generate QR Code", placeholder:"Enter text or link...", empty:"QR code will appear here", footer:"PACDI Games · Fast QR code generator.", downloadLabel:"Download" }
     };
     var currentLang = "tr";
+    var currentCanvas = null;
+    var currentText = "";
 
     function updateLanguage() {
-        var t=langData[currentLang];
-        document.getElementById('gameTitle').innerText=t.title;
-        document.getElementById('backLink').innerText=t.back;
-        document.getElementById('generateBtn').innerText=t.generate;
-        document.getElementById('qrInput').placeholder=t.placeholder;
-        document.getElementById('footerText').innerText=t.footer;
+        var t = langData[currentLang];
+        document.getElementById('gameTitle').innerText = t.title;
+        document.getElementById('backLink').innerText = t.back;
+        document.getElementById('generateBtn').innerText = t.generate;
+        document.getElementById('qrInput').placeholder = t.placeholder;
+        document.getElementById('footerText').innerText = t.footer;
+        document.getElementById('downloadLabel').innerText = t.downloadLabel;
     }
 
     function setLanguage(lang) {
-        currentLang=lang; updateLanguage();
-        var btns=document.querySelectorAll('.lang-btn');
-        for(var i=0;i<btns.length;i++) btns[i].classList.toggle('active', btns[i].getAttribute('data-lang')===lang);
+        currentLang = lang;
+        updateLanguage();
+        var btns = document.querySelectorAll('.lang-btn');
+        for(var i = 0; i < btns.length; i++) {
+            btns[i].classList.toggle('active', btns[i].getAttribute('data-lang') === lang);
+        }
     }
 
     function generateQR() {
         var text = document.getElementById('qrInput').value.trim();
         var display = document.getElementById('qrDisplay');
+        var dlSection = document.getElementById('downloadSection');
+        currentText = text;
+        currentCanvas = null;
         display.innerHTML = '';
+        dlSection.style.display = 'none';
+
         if(!text) {
             display.innerHTML = '<span style="color:#9bb7d4;">' + langData[currentLang].empty + '</span>';
             return;
         }
+
         if(typeof QRCode !== 'undefined') {
             new QRCode(display, {
                 text: text,
@@ -87,20 +123,84 @@
                 colorLight: '#ffffff',
                 correctLevel: QRCode.CorrectLevel.M
             });
+            // Canvas'ı bul
+            setTimeout(function() {
+                var canvas = display.querySelector('canvas');
+                if(canvas) {
+                    currentCanvas = canvas;
+                    dlSection.style.display = 'block';
+                }
+            }, 300);
         } else {
             var img = document.createElement('img');
             img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(text);
             img.alt = 'QR Code';
             img.style.borderRadius = '12px';
+            img.crossOrigin = 'anonymous';
+            img.onload = function() {
+                // img'yi canvas'a çiz
+                var canvas = document.createElement('canvas');
+                canvas.width = 200;
+                canvas.height = 200;
+                var ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                currentCanvas = canvas;
+                dlSection.style.display = 'block';
+            };
             display.appendChild(img);
         }
     }
 
-    document.getElementById('generateBtn').addEventListener('click', generateQR);
-    document.getElementById('qrInput').addEventListener('keydown', function(e){ if(e.key==='Enter') generateQR(); });
+    // PNG indir
+    document.getElementById('dlPng').addEventListener('click', function() {
+        if(!currentCanvas) return;
+        var link = document.createElement('a');
+        link.download = 'qr-code.png';
+        link.href = currentCanvas.toDataURL('image/png');
+        link.click();
+    });
 
-    var langBtns=document.querySelectorAll('.lang-btn');
-    for(var i=0;i<langBtns.length;i++) langBtns[i].addEventListener('click', function(){ var l=this.getAttribute('data-lang'); if(l!==currentLang) setLanguage(l); });
+    // JPG indir
+    document.getElementById('dlJpg').addEventListener('click', function() {
+        if(!currentCanvas) return;
+        // JPG için beyaz arka plan ekle
+        var canvas = document.createElement('canvas');
+        canvas.width = currentCanvas.width;
+        canvas.height = currentCanvas.height;
+        var ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(currentCanvas, 0, 0);
+        var link = document.createElement('a');
+        link.download = 'qr-code.jpg';
+        link.href = canvas.toDataURL('image/jpeg', 0.95);
+        link.click();
+    });
+
+    // SVG indir
+    document.getElementById('dlSvg').addEventListener('click', function() {
+        if(!currentText) return;
+        // SVG için API kullan
+        var svgUrl = 'https://api.qrserver.com/v1/create-qr-code/?format=svg&size=300x300&data=' + encodeURIComponent(currentText);
+        var link = document.createElement('a');
+        link.download = 'qr-code.svg';
+        link.href = svgUrl;
+        link.target = '_blank';
+        link.click();
+    });
+
+    document.getElementById('generateBtn').addEventListener('click', generateQR);
+    document.getElementById('qrInput').addEventListener('keydown', function(e) {
+        if(e.key === 'Enter') generateQR();
+    });
+
+    var langBtns = document.querySelectorAll('.lang-btn');
+    for(var i = 0; i < langBtns.length; i++) {
+        langBtns[i].addEventListener('click', function() {
+            var l = this.getAttribute('data-lang');
+            if(l !== currentLang) setLanguage(l);
+        });
+    }
 
     setLanguage('tr');
     generateQR();
