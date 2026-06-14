@@ -248,14 +248,29 @@
         });
     }
 
-    // E-posta gönder
+    // E-posta gönder — Supabase qr_leads
     document.getElementById('emailBtn').addEventListener('click', function() {
         var email = document.getElementById('emailInput').value.trim();
         if(!email || email.indexOf('@') === -1) return;
-        // Formspree veya mailto ile gönder
-        var subject = encodeURIComponent('PACDI QR Tool - Yeni Kayıt');
-        var body = encodeURIComponent('E-posta: ' + email + '\nKullanım amacı: ' + selectedPurpose + '\nDil: ' + currentLang);
-        window.location.href = 'mailto:mehmet@askmeai.io?subject=' + subject + '&body=' + body;
+
+        var SUPABASE_URL = 'https://yuagziesbftznkcrnfkd.supabase.co';
+        var SUPABASE_KEY = 'sb_publishable_w26ReXcUk-3OGpw07iMRIg_0T_plkgI';
+
+        fetch(SUPABASE_URL + '/rest/v1/qr_leads', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'apikey': SUPABASE_KEY,
+                'Authorization': 'Bearer ' + SUPABASE_KEY,
+                'Prefer': 'return=minimal'
+            },
+            body: JSON.stringify({
+                email: email,
+                purpose: selectedPurpose || 'other',
+                lang: currentLang
+            })
+        }).catch(function(err) { console.warn('Supabase hata:', err); });
+
         document.getElementById('emailSuccess').style.display = 'block';
         document.getElementById('emailInput').value = '';
         document.getElementById('emailSkip').style.display = 'none';
