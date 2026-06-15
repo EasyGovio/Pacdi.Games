@@ -59,6 +59,15 @@
     .play-btn { display: inline-block; margin-top: 0.8rem; background: #F6B45F; color: #04162E; font-weight: bold; padding: 6px 16px; border-radius: 60px; font-size: 0.75rem; text-decoration: none; transition: 0.1s; }
 
     .footer { text-align: center; margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid rgba(246,180,95,0.2); font-size: 0.7rem; color: #6c8fb0; }
+    .eco-map { display:flex; justify-content:center; align-items:center; flex-wrap:wrap; gap:0; margin:1.2rem auto 0.8rem; }
+    .eco-node { background:#0a1018; border:1px solid rgba(246,180,95,0.3); border-radius:14px; padding:8px 14px; text-align:center; min-width:105px; }
+    .eco-node.active { border-color:#F6B45F; }
+    .eco-node.soon { opacity:0.55; }
+    .eco-name { font-size:0.72rem; font-weight:700; color:#F6B45F; }
+    .eco-desc { font-size:0.58rem; color:#6c8fb0; margin-top:2px; }
+    .eco-badge { display:inline-block; font-size:0.52rem; padding:1px 7px; border-radius:20px; margin-top:3px; background:rgba(46,204,113,0.2); color:#2ECC71; }
+    .eco-badge.soon { background:rgba(246,180,95,0.1); color:rgba(246,180,95,0.45); }
+    .eco-arrow { color:rgba(246,180,95,0.3); font-size:1rem; padding:0 4px; }
     .reward-banner { background: #0a1018; border-radius: 48px; padding: 1rem; text-align: center; margin-top: 1rem; border: 1px solid #F6B45F20; }
     .reward-btn { margin-top: 8px; background: #F6B45F; border: none; padding: 6px 20px; border-radius: 60px; font-weight: bold; color: #04162E; cursor: pointer; }
     @media (max-width: 680px) { .header { flex-direction: column; align-items: stretch; text-align: center; } .compass-points { justify-content: center; } .games-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); } .promo-spotlight { flex-direction: column; text-align: center; } }
@@ -103,7 +112,26 @@
   </div>
 
   <div class="footer">
-    PACDI Games · <span id="totalGamesSpan">0</span> oyun & araç · Her oyun onurla hazırlanmıştır
+    <div class="eco-map">
+      <div class="eco-node active">
+        <div class="eco-name">🎮 pacdi.games</div>
+        <div class="eco-desc">Oyun & Araçlar</div>
+        <div class="eco-badge">✅ Canlı</div>
+      </div>
+      <div class="eco-arrow">→</div>
+      <div class="eco-node soon">
+        <div class="eco-name">💼 pacdi.digital</div>
+        <div class="eco-desc">Dijital Kimlik</div>
+        <div class="eco-badge soon">🔜 Yakında</div>
+      </div>
+      <div class="eco-arrow">→</div>
+      <div class="eco-node soon">
+        <div class="eco-name">📈 pacdi.works</div>
+        <div class="eco-desc">Strateji & Büyüme</div>
+        <div class="eco-badge soon">🔜 Yakında</div>
+      </div>
+    </div>
+    <div style="margin-top:0.6rem;">PACDI Games · <span id="totalGamesSpan">0</span> oyun & araç · Her oyun onurla hazırlanmıştır</div>
   </div>
 </div>
 
