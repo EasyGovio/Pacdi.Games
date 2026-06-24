@@ -11,61 +11,12 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Get domain from CNAME
-        id: domain
-        run: |
-          DOMAIN=$(cat CNAME 2>/dev/null | tr -d '\n\r' || echo "example.com")
-          echo "domain=$DOMAIN" >> $GITHUB_OUTPUT
-
-      - name: Write Python script
-        run: |
-          cat > /tmp/inject.py << 'PYEOF'
-import os, sys
-
-domain = sys.argv[1]
-
-ANALYTICS = '    <script async src="https://www.googletagmanager.com/gtag/js?id=G-E6ML8EDW0H"></script>\n    <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag(\'js\',new Date());gtag(\'config\',\'G-E6ML8EDW0H\');</script>'
-ADSENSE = '    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8426936740213369" crossorigin="anonymous"></script>'
-SKIP = ['legal.html','impressum.html','datenschutz.html','404.html','master-template.html','test.html']
-
-updated = 0
-for root, dirs, files in os.walk('.'):
-    dirs[:] = [d for d in dirs if d not in ['.git','.github']]
-    for fname in files:
-        if not fname.endswith('.html') or fname.startswith('google4d'):
-            continue
-        fpath = os.path.join(root, fname)
-        with open(fpath, 'r', encoding='utf-8', errors='ignore') as f:
-            content = f.read()
-        if '</head>' not in content:
-            continue
-        orig = content
-        relpath = fpath.lstrip('./')
-        url = ('https://' + domain + '/') if relpath == 'index.html' else ('https://' + domain + '/' + relpath)
-        insert = ''
-        if 'G-E6ML8EDW0H' not in content:
-            insert += '\n' + ANALYTICS
-        if 'ca-pub-8426936740213369' not in content and fname not in SKIP:
-            insert += '\n' + ADSENSE
-        if 'canonical' not in content:
-            insert += '\n    <link rel="canonical" href="' + url + '" />'
-        if insert:
-            content = content.replace('</head>', insert + '\n</head>', 1)
-        if content != orig:
-            with open(fpath, 'w', encoding='utf-8') as f:
-                f.write(content)
-            updated += 1
-            print('Updated: ' + fpath)
-
-print('Total: ' + str(updated))
-PYEOF
-
       - name: Run inject script
-        run: python3 /tmp/inject.py "${{ steps.domain.outputs.domain }}"
+        run: python3 inject.py
 
       - name: Commit changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "PACDI Bot"
           git add -A
-          git diff --staged --quiet || git commit -m "Auto: Analytics + AdSense + Canonical" && git push || true
+          git diff --staged --quiet || (git commit -m "Auto: Analytics + AdSense + Canonical" && git push)
