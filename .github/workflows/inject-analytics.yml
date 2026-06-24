@@ -1,1 +1,81 @@
+name: Inject Analytics & Canonical
 
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  inject:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Get domain from CNAME
+        id: domain
+        run: |
+          if [ -f CNAME ]; then
+            echo "domain=$(cat CNAME | tr -d '\n\r')" >> $GITHUB_OUTPUT
+          else
+            echo "domain=example.com" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Inject Analytics + AdSense + Canonical
+        run: |
+          DOMAIN="${{ steps.domain.outputs.domain }}"
+          ANALYTICS='<script async src="https://www.googletagmanager.com/gtag/js?id=G-E6ML8EDW0H"></script>\n    <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-E6ML8EDW0H");</script>'
+          ADSENSE='<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8426936740213369" crossorigin="anonymous"></script>'
+
+          find . -name "*.html" \
+            ! -path "./.github/*" \
+            ! -name "google4d*.html" \
+            ! -name "404.html" \
+            ! -name "master-template.html" \
+            ! -name "p2p-test.html" \
+            ! -name "ws-test.html" \
+            ! -name "test.html" | while read file; do
+
+            # Analytics ekle (yoksa)
+            if ! grep -q "G-E6ML8EDW0H" "$file"; then
+              sed -i "s|</head>|    ${ANALYTICS}\n</head>|" "$file"
+              echo "Analytics eklendi: $file"
+            fi
+
+            # AdSense ekle (yoksa, legal/privacy/impressum hariç)
+            BASENAME=$(basename "$file")
+            if ! grep -q "ca-pub-8426936740213369" "$file" && \
+               [[ "$BASENAME" != "legal.html" ]] && \
+               [[ "$BASENAME" != "impressum.html" ]] && \
+               [[ "$BASENAME" != "datenschutz.html" ]] && \
+               [[ "$BASENAME" != "privacy"* ]]; then
+              sed -i "s|</head>|    ${ADSENSE}\n</head>|" "$file"
+              echo "AdSense eklendi: $file"
+            fi
+
+            # Canonical ekle (yoksa)
+            if ! grep -q "canonical" "$file"; then
+              # URL hesapla
+              RELPATH="${file#./}"
+              if [ "$RELPATH" = "index.html" ]; then
+                URL="https://${DOMAIN}/"
+              else
+                URL="https://${DOMAIN}/${RELPATH}"
+              fi
+              sed -i "s|</head>|    <link rel=\"canonical\" href=\"${URL}\" />\n</head>|" "$file"
+              echo "Canonical eklendi: $file -> $URL"
+            fi
+
+          done
+
+      - name: Commit changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "PACDI Bot"
+          git add -A
+          if git diff --staged --quiet; then
+            echo "Değişiklik yok"
+          else
+            git commit -m "🤖 Auto: Analytics + AdSense + Canonical inject"
+            git push
+          fi
