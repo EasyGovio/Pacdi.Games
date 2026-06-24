@@ -1,1 +1,84 @@
+name: Inject Analytics & Canonical
 
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  inject:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Inject with Python
+        run: |
+          python3 << 'PYEOF'
+          import os, re
+
+          # Domain
+          domain = "example.com"
+          if os.path.exists("CNAME"):
+              with open("CNAME") as f:
+                  domain = f.read().strip()
+
+          ANALYTICS = '''    <script async src="https://www.googletagmanager.com/gtag/js?id=G-E6ML8EDW0H"></script>
+              <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-E6ML8EDW0H');</script>'''
+
+          ADSENSE = '    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8426936740213369" crossorigin="anonymous"></script>'
+
+          SKIP_ADS = ['legal.html','impressum.html','datenschutz.html','404.html',
+                      'master-template.html','p2p-test.html','ws-test.html','test.html']
+
+          updated = 0
+          for root, dirs, files in os.walk('.'):
+              dirs[:] = [d for d in dirs if d != '.git' and d != '.github']
+              for fname in files:
+                  if not fname.endswith('.html'):
+                      continue
+                  if fname.startswith('google4d'):
+                      continue
+                  fpath = os.path.join(root, fname)
+                  with open(fpath, 'r', encoding='utf-8', errors='ignore') as f:
+                      content = f.read()
+                  original = content
+
+                  # URL
+                  relpath = fpath.lstrip('./')
+                  if relpath == 'index.html':
+                      url = f'https://{domain}/'
+                  else:
+                      url = f'https://{domain}/{relpath}'
+
+                  to_insert = ''
+                  if 'G-E6ML8EDW0H' not in content:
+                      to_insert += '\n' + ANALYTICS
+                  if 'ca-pub-8426936740213369' not in content and fname not in SKIP_ADS:
+                      to_insert += '\n' + ADSENSE
+                  if 'canonical' not in content:
+                      to_insert += f'\n    <link rel="canonical" href="{url}" />'
+
+                  if to_insert and '</head>' in content:
+                      content = content.replace('</head>', to_insert + '\n</head>', 1)
+
+                  if content != original:
+                      with open(fpath, 'w', encoding='utf-8') as f:
+                          f.write(content)
+                      updated += 1
+                      print(f'Updated: {fpath}')
+
+          print(f'Toplam {updated} dosya guncellendi')
+          PYEOF
+
+      - name: Commit changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "PACDI Bot"
+          git add -A
+          if git diff --staged --quiet; then
+            echo "Degisiklik yok"
+          else
+            git commit -m "Auto: Analytics + AdSense + Canonical inject"
+            git push
+          fi
