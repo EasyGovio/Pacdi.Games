@@ -1,12 +1,29 @@
 {
-  "name": "PACDI Games",
+  "name": "PACDI — pacdi.games",
   "short_name": "PACDI",
-  "description": "Zihnini Oynat, Ekosistemi Büyüt - 87 oyun ve araç",
-  "start_url": "/",
+  "description": "PACDI Digital — Technology in the service of humanity.",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#04162E",
-  "theme_color": "#F6B45F",
+  "theme_color": "#04162E",
+  "orientation": "portrait",
+  "categories": [
+    "business",
+    "productivity",
+    "utilities"
+  ],
   "icons": [
-    { "src": "og-image.jpg", "sizes": "512x512", "type": "image/jpeg" }
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/6849/6849232.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/6849/6849232.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
   ]
 }
