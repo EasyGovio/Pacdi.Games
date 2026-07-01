@@ -138,7 +138,7 @@
   <div class="category"><div class="category-title" data-cat="duo"><span>👥</span> 2 Kişilik Oyunlar</div><div class="games-grid" id="duoGrid"></div></div>
 
   <div class="reward-banner">
-    <div style="font-size: 0.8rem; color: #F6B45F;">🎉 Her oyunun sonunda ekstra puan kazan!</div>
+    <div style="font-size: 0.8rem; color: #F6B45F;" id="rewardBannerText">🎉 Her oyunun sonunda ekstra puan kazan!</div>
     <button id="mockRewardBtn" class="reward-btn">🎥 Reklam İzle (+10 Puan)</button>
   </div>
 
@@ -259,9 +259,9 @@ var CARD_I18N={
 };
 
 var UI_I18N={
-  tr:{cats:{tools:'🛠️ Araçlar & Günlük Hayat',reflex:'⚡ Refleks & Dikkat',logic:'🧠 Hafıza & Mantık',visual:'🎨 Görsel Algı & Strateji',culture:'🌾 Hasat, Kültür & Onur',duo:'👥 2 Kişilik Oyunlar'},play:'Oyna / Aç →',weeklyBadge:'⭐ Haftanın Oyunu',footer:'PACDI Games · {n} oyun & araç · Her oyun onurla hazırlanmıştır'},
-  de:{cats:{tools:'🛠️ Werkzeuge & Alltag',reflex:'⚡ Reflex & Geschwindigkeit',logic:'🧠 Gedächtnis & Logik',visual:'🎨 Visuelle Wahrnehmung & Strategie',culture:'🌾 Ernte, Kultur & Ehre',duo:'👥 Spiele für 2'},play:'Spielen / Öffnen →',weeklyBadge:'⭐ Spiel der Woche',footer:'PACDI Games · {n} Spiele & Werkzeuge · Jedes Spiel mit Sorgfalt erstellt'},
-  en:{cats:{tools:'🛠️ Tools & Daily Life',reflex:'⚡ Reflex & Speed',logic:'🧠 Memory & Logic',visual:'🎨 Visual Perception & Strategy',culture:'🌾 Harvest, Culture & Honor',duo:'👥 2-Player Games'},play:'Play / Open →',weeklyBadge:'⭐ Game of the Week',footer:'PACDI Games · {n} games & tools · Every game crafted with care'}
+  tr:{cats:{tools:'🛠️ Araçlar & Günlük Hayat',reflex:'⚡ Refleks & Dikkat',logic:'🧠 Hafıza & Mantık',visual:'🎨 Görsel Algı & Strateji',culture:'🌾 Hasat, Kültür & Onur',duo:'👥 2 Kişilik Oyunlar'},play:'Oyna / Aç →',weeklyBadge:'⭐ Haftanın Oyunu',rewardText:'🎉 Her oyunun sonunda ekstra puan kazan!',rewardBtn:'🎥 Reklam İzle (+10 Puan)',footer:'PACDI Games · {n} oyun & araç · Her oyun onurla hazırlanmıştır'},
+  de:{cats:{tools:'🛠️ Werkzeuge & Alltag',reflex:'⚡ Reflex & Geschwindigkeit',logic:'🧠 Gedächtnis & Logik',visual:'🎨 Visuelle Wahrnehmung & Strategie',culture:'🌾 Ernte, Kultur & Ehre',duo:'👥 Spiele für 2'},play:'Spielen / Öffnen →',weeklyBadge:'⭐ Spiel der Woche',rewardText:'🎉 Verdiene nach jedem Spiel Bonuspunkte!',rewardBtn:'🎥 Werbung ansehen (+10 Punkte)',footer:'PACDI Games · {n} Spiele & Werkzeuge · Jedes Spiel mit Sorgfalt erstellt'},
+  en:{cats:{tools:'🛠️ Tools & Daily Life',reflex:'⚡ Reflex & Speed',logic:'🧠 Memory & Logic',visual:'🎨 Visual Perception & Strategy',culture:'🌾 Harvest, Culture & Honor',duo:'👥 2-Player Games'},play:'Play / Open →',weeklyBadge:'⭐ Game of the Week',rewardText:'🎉 Earn bonus points after every game!',rewardBtn:'🎥 Watch ad (+10 Points)',footer:'PACDI Games · {n} games & tools · Every game crafted with care'}
 };
 window._GL = 'tr';
 
@@ -305,6 +305,11 @@ function setGL(lang) {
   var legalLink = document.getElementById('legalLink');
   var legalTexts = {tr:'Yasal & Gizlilik', de:'Impressum & Datenschutz', en:'Legal & Privacy'};
   if (legalLink) legalLink.textContent = legalTexts[lang] || legalTexts.de;
+  // Reward banner
+  var rewardText = document.getElementById('rewardBannerText');
+  var rewardBtn = document.getElementById('mockRewardBtn');
+  if (rewardText) rewardText.textContent = ui.rewardText;
+  if (rewardBtn) rewardBtn.textContent = ui.rewardBtn;
   // Footer
   var footerEl = document.getElementById('gamesFooterText');
   var totalEl = document.getElementById('totalGamesSpan');
