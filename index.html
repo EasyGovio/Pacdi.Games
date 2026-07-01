@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="tr" id="htmlRoot">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -71,7 +71,11 @@
     .reward-banner { background: #0a1018; border-radius: 48px; padding: 1rem; text-align: center; margin-top: 1rem; border: 1px solid #F6B45F20; }
     .reward-btn { margin-top: 8px; background: #F6B45F; border: none; padding: 6px 20px; border-radius: 60px; font-weight: bold; color: #04162E; cursor: pointer; }
     @media (max-width: 680px) { .header { flex-direction: column; align-items: stretch; text-align: center; } .compass-points { justify-content: center; } .games-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); } .promo-spotlight { flex-direction: column; text-align: center; } }
-  </style>
+  
+  .lang-bar-g{display:flex;gap:4px;justify-content:center;padding:6px 0 2px;}
+  .lbg{background:transparent;border:1px solid rgba(246,180,95,0.3);color:#7a9ab8;font-size:0.65rem;font-weight:700;padding:3px 9px;border-radius:10px;cursor:pointer;font-family:inherit;text-transform:uppercase;transition:0.2s;}
+  .lbg.active,.lbg:hover{border-color:#F6B45F;color:#F6B45F;}
+</style>
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8426936740213369" crossorigin="anonymous"></script>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-E6ML8EDW0H"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-E6ML8EDW0H");</script>
     <link rel="canonical" href="https://pacdi.games/" />
@@ -126,12 +130,12 @@
   </div>
 
   <!-- Araçlar üste -->
-  <div class="category"><div class="category-title"><span>🛠️</span> Araçlar & Günlük Hayat</div><div class="games-grid" id="toolsGrid"></div></div>
-  <div class="category"><div class="category-title"><span>⚡</span> Refleks & Dikkat</div><div class="games-grid" id="reflexGrid"></div></div>
-  <div class="category"><div class="category-title"><span>🧠</span> Hafıza & Mantık</div><div class="games-grid" id="logicGrid"></div></div>
-  <div class="category"><div class="category-title"><span>🎨</span> Görsel Algı & Strateji</div><div class="games-grid" id="visualGrid"></div></div>
-  <div class="category"><div class="category-title"><span>🌾</span> Hasat, Kültür & Onur</div><div class="games-grid" id="cultureGrid"></div></div>
-  <div class="category"><div class="category-title"><span>👥</span> 2 Kişilik Oyunlar</div><div class="games-grid" id="duoGrid"></div></div>
+  <div class="category"><div class="category-title" data-cat="tools"><span>🛠️</span> Araçlar & Günlük Hayat</div><div class="games-grid" id="toolsGrid"></div></div>
+  <div class="category"><div class="category-title" data-cat="reflex"><span>⚡</span> Refleks & Dikkat</div><div class="games-grid" id="reflexGrid"></div></div>
+  <div class="category"><div class="category-title" data-cat="logic"><span>🧠</span> Hafıza & Mantık</div><div class="games-grid" id="logicGrid"></div></div>
+  <div class="category"><div class="category-title" data-cat="visual"><span>🎨</span> Görsel Algı & Strateji</div><div class="games-grid" id="visualGrid"></div></div>
+  <div class="category"><div class="category-title" data-cat="culture"><span>🌾</span> Hasat, Kültür & Onur</div><div class="games-grid" id="cultureGrid"></div></div>
+  <div class="category"><div class="category-title" data-cat="duo"><span>👥</span> 2 Kişilik Oyunlar</div><div class="games-grid" id="duoGrid"></div></div>
 
   <div class="reward-banner">
     <div style="font-size: 0.8rem; color: #F6B45F;">🎉 Her oyunun sonunda ekstra puan kazan!</div>
@@ -158,7 +162,12 @@
         <div class="eco-badge soon">🔜 Yakında</div>
       </div>
     </div>
-    <div style="margin-top:0.6rem;">PACDI Games · <span id="totalGamesSpan">0</span> oyun & araç · Her oyun onurla hazırlanmıştır</div>
+    <div style="margin-top:0.6rem;"><span id="gamesFooterText">PACDI Games · <span id="totalGamesSpan">0</span> oyun & araç · Her oyun onurla hazırlanmıştır</span></div>
+    <div class="lang-bar-g">
+      <button class="lbg active" onclick="setGL('tr')">TR</button>
+      <button class="lbg" onclick="setGL('de')">DE</button>
+      <button class="lbg" onclick="setGL('en')">EN</button>
+    </div>
   </div>
 </div>
 
@@ -454,10 +463,15 @@
       });
       card.appendChild(infoBtn);
 
+      card.setAttribute('data-tr-name', game.name);
+      var _ci = CARD_I18N[game.name]; var _lang = window._GL || 'tr';
+      var _name = _ci ? _ci[_lang][0] : game.name;
+      var _desc = _ci ? _ci[_lang][1] : game.desc;
+      var _play = {'tr':'Oyna / Aç →','de':'Spielen / Öffnen →','en':'Play / Open →'}[_lang] || 'Oyna / Aç →';
       var iconDiv = document.createElement('div'); iconDiv.className = 'game-icon'; iconDiv.innerText = game.icon;
-      var nameDiv = document.createElement('div'); nameDiv.className = 'game-name'; nameDiv.innerText = game.name;
-      var descDiv = document.createElement('div'); descDiv.className = 'game-desc'; descDiv.innerText = game.desc;
-      var playBtn = document.createElement('a'); playBtn.className = 'play-btn'; playBtn.innerText = 'Oyna / Aç →'; playBtn.href = game.file;
+      var nameDiv = document.createElement('div'); nameDiv.className = 'game-name'; nameDiv.innerText = _name;
+      var descDiv = document.createElement('div'); descDiv.className = 'game-desc'; descDiv.innerText = _desc;
+      var playBtn = document.createElement('a'); playBtn.className = 'play-btn'; playBtn.innerText = _play; playBtn.href = game.file;
       card.appendChild(iconDiv); card.appendChild(nameDiv); card.appendChild(descDiv); card.appendChild(playBtn);
       return card;
     }
@@ -487,7 +501,145 @@
     window.pacdiGames.addPoints = addPoints;
     window.pacdiGames.showInfoPopup = showInfoPopup;
   })();
+
 </script>
+<script>
+var CARD_I18N={
+  'QR Kod Oluşturucu':{tr:['QR Kod Oluşturucu','Restoran menüsü, Instagram, WiFi, Google Yorum — ücretsiz, sınırsız, kayıt yok.'],de:['QR-Code-Generator','Restaurantmenü, Instagram, WiFi, Google Bewertungen — kostenlos, unbegrenzt, keine Registrierung.'],en:['QR Code Generator','Restaurant menu, Instagram, WiFi, Google Reviews — free, unlimited, no sign-up.']},
+  'Döviz Çevirici':{tr:['Döviz Çevirici','Canlı döviz kurlarıyla anında çeviri.'],de:['Währungsumrechner','Sofortige Umrechnung mit Live-Wechselkursen.'],en:['Currency Converter','Instant conversion with live exchange rates.']},
+  'Su İçme Hatırlatıcı':{tr:['Su İçme Hatırlatıcı','Günlük su hedefini takip et, bildirim al.'],de:['Trinkwasser-Erinnerung','Tägliches Trinkziel verfolgen, Benachrichtigungen erhalten.'],en:['Water Drinking Reminder','Track daily water intake goal, get notifications.']},
+  'Yapılacaklar Listesi':{tr:['Yapılacaklar Listesi','Görevlerini ekle, tamamla, sil.'],de:['Aufgabenliste','Aufgaben hinzufügen, abhaken, löschen.'],en:['To-Do List','Add, complete, and delete your tasks.']},
+  'Zar Atma':{tr:['Zar Atma','Birden fazla zar at, toplamı gör.'],de:['Würfelwerfer','Mehrere Würfel werfen, Summe anzeigen.'],en:['Dice Roller','Roll multiple dice, see the total.']},
+  'Kira Hesaplayıcı':{tr:['Kira Hesaplayıcı','Soğuk kiradan sıcak kirayı hesapla.'],de:['Mietenrechner','Kaltmiete in Warmmiete umrechnen.'],en:['Rent Calculator','Calculate warm rent from cold rent.']},
+  'Maaş Hesaplayıcı':{tr:['Maaş Hesaplayıcı','Brütten nete maaş hesabı (TR & DE).'],de:['Gehaltsrechner','Brutto-Netto-Gehaltsberechnung (TR & DE).'],en:['Salary Calculator','Gross-to-net salary calculation (TR & DE).']},
+  'Stopaj Hesaplayıcı':{tr:['Stopaj Hesaplayıcı','Kira, temettü, serbest meslek stopajı.'],de:['Quellensteuerrechner','Miete, Dividenden, freiberufliche Quellensteuer.'],en:['Withholding Tax Calculator','Rent, dividend, and freelance withholding tax.']},
+  'İlaç Hatırlatıcı':{tr:['İlaç Hatırlatıcı','Günlük ilaç takibi, bildirimlerle hatırlatma.'],de:['Medikamenten-Erinnerung','Tägliche Medikamentenverfolgung mit Benachrichtigungen.'],en:['Medication Reminder','Daily medication tracking with notifications.']},
+  'Sağlık Takibi':{tr:['Sağlık Takibi','Tansiyon ve şeker ölçümlerini kaydet.'],de:['Gesundheits-Tracker','Blutdruck- und Blutzuckermessungen aufzeichnen.'],en:['Health Tracker','Record blood pressure and blood sugar readings.']},
+  'Alışveriş Listesi':{tr:['Alışveriş Listesi','Kategorili alışveriş listesi, toplam fiyat ve paylaşma.'],de:['Einkaufsliste','Kategorisierte Einkaufsliste, Gesamtpreis und Teilen.'],en:['Shopping List','Categorized shopping list, total price, and sharing.']},
+  'Randevu Takibi':{tr:['Randevu Takibi','Randevularını kaydet, takip et.'],de:['Terminverfolgung','Termine erfassen und verfolgen.'],en:['Appointment Tracker','Save and track your appointments.']},
+  'Reaction Tap':{tr:['Reaction Tap','Hedefe dokun, reaksiyon süreni ölç.'],de:['Reaction Tap','Auf das Ziel tippen, Reaktionszeit messen.'],en:['Reaction Tap','Tap the target to measure your reaction time.']},
+  'Stroop Testi':{tr:['Stroop Testi','Renk ve kelime çatışması.'],de:['Stroop-Test','Farb- und Wortkonflikt.'],en:['Stroop Test','Color and word conflict.']},
+  'Number Hunt':{tr:['Number Hunt','Sayıları küçükten büyüğe bul.'],de:['Number Hunt','Zahlen von klein nach groß finden.'],en:['Number Hunt','Find numbers from smallest to largest.']},
+  'Helix Jump':{tr:['Helix Jump','Topu döndür, boşluklardan geçir.'],de:['Helix Jump','Ball drehen, durch Lücken führen.'],en:['Helix Jump','Rotate the ball, guide it through gaps.']},
+  'Odd One Out':{tr:['Odd One Out','Farklı olan nesneyi bul.'],de:['Odd One Out','Das abweichende Objekt finden.'],en:['Odd One Out','Find the odd object.']},
+  'Visual Hunt':{tr:['Visual Hunt','İzgarada farklı olanı bul.'],de:['Visual Hunt','Das Andersartige im Raster finden.'],en:['Visual Hunt','Find the different one in the grid.']},
+  'Bio Sync Rhythm':{tr:['Bio Sync Rhythm','Ritimle refleksini senkronize et.'],de:['Bio Sync Rhythm','Reflexe mit dem Rhythmus synchronisieren.'],en:['Bio Sync Rhythm','Synchronize your reflexes with the rhythm.']},
+  'Renk Algısı':{tr:['Renk Algısı','Renk tonlarını ayırt et.'],de:['Farbwahrnehmung','Farbtöne unterscheiden.'],en:['Color Perception','Distinguish color shades.']},
+  'Flappy Compass':{tr:['Flappy Compass','Pusula kuşunu engellerden geçir.'],de:['Flappy Compass','Den Kompassvogel durch Hindernisse führen.'],en:['Flappy Compass','Guide the compass bird through obstacles.']},
+  'Renk Yakalama':{tr:['Renk Yakalama','Hedef rengi ekranda hızla yakala.'],de:['Farbfang','Zielfarbe auf dem Bildschirm schnell fangen.'],en:['Color Catch','Quickly catch the target color on screen.']},
+  'Ses Taklidi':{tr:['Ses Taklidi','Hedef sesi mikrofonla taklit et.'],de:['Klangimitation','Zielklang mit Mikrofon imitieren.'],en:['Sound Mimic','Mimic the target sound using the microphone.']},
+  'Logic Compass':{tr:['Logic Compass','Gizli renk kodunu mantıkla bul.'],de:['Logic Compass','Versteckten Farbcode logisch finden.'],en:['Logic Compass','Find the hidden color code with logic.']},
+  'Sudoku':{tr:['Sudoku','9x9 sayı yerleştirme.'],de:['Sudoku','9x9 Zahlen platzieren.'],en:['Sudoku','9x9 number placement.']},
+  'Merge':{tr:['Merge','Sayıları birleştir, 2048\'e ulaş.'],de:['Merge','Zahlen verschmelzen, 2048 erreichen.'],en:['Merge','Merge numbers, reach 2048.']},
+  'Nova 2048':{tr:['Nova 2048','Grid büyür, puan artar.'],de:['Nova 2048','Grid wächst, Punktzahl steigt.'],en:['Nova 2048','Grid grows, score increases.']},
+  '2048':{tr:['2048','Klasik sayı birleştirme.'],de:['2048','Klassische Zahlenverschmelzung.'],en:['2048','Classic number merging.']},
+  'Memory Pair':{tr:['Memory Pair','Kartları eşleştir, hafızanı test et.'],de:['Memory Pair','Karten paaren, Gedächtnis testen.'],en:['Memory Pair','Pair the cards, test your memory.']},
+  'Sıra Hatırlama':{tr:['Sıra Hatırlama','Işık ve ses dizisini tekrarla.'],de:['Sequenz-Wiederholung','Licht- und Tonsequenz wiederholen.'],en:['Sequence Recall','Repeat the light and sound sequence.']},
+  'Kelime Türetme':{tr:['Kelime Türetme','Harflerden kelime üret.'],de:['Wortbildner','Aus Buchstaben Wörter bilden.'],en:['Word Builder','Form words from letters.']},
+  'Math Sprint':{tr:['Math Sprint','Hızlı matematik egzersizi.'],de:['Math Sprint','Schnelle Mathematik-Übung.'],en:['Math Sprint','Quick math exercise.']},
+  'Sayılar':{tr:['Sayılar','Sayısal mantık bulmacaları.'],de:['Zahlen','Numerische Logikrätsel.'],en:['Numbers','Numerical logic puzzles.']},
+  'Kelime Bahçesi':{tr:['Kelime Bahçesi','Kelimeleri topla, bahçeni büyüt.'],de:['Wortgarten','Wörter sammeln, Garten vergrößern.'],en:['Word Garden','Collect words, grow your garden.']},
+  'Mahjong':{tr:['Mahjong','Eşleştirme tabanlı klasik oyun.'],de:['Mahjong','Klassisches Paarungs-Spiel.'],en:['Mahjong','Classic matching-based game.']},
+  'Adam Asmaca':{tr:['Adam Asmaca','Harf tahmin et, adamı kurtar.'],de:['Adam Asmaca','Buchstaben raten, Mann retten.'],en:['Adam Asmaca','Guess letters, save the man.']},
+  'Taş Kağıt Makas':{tr:['Taş Kağıt Makas','Klasik el oyunu, AI\'ya karşı.'],de:['Schere Stein Papier','Klassisches Handspiel gegen KI.'],en:['Rock Paper Scissors','Classic hand game against AI.']},
+  'Günlük Quiz':{tr:['Günlük Quiz','Her gün yeni sorularla bilgi testi.'],de:['Tägliches Quiz','Täglicher Wissenstest mit neuen Fragen.'],en:['Daily Quiz','Daily knowledge test with new questions.']},
+  'Hızlı Yazma':{tr:['Hızlı Yazma','30 saniyede en hızlı sen yaz.'],de:['Schnelltippen','In 30 Sekunden am schnellsten tippen.'],en:['Fast Typing','Type the fastest in 30 seconds.']},
+  'Bayrak Bulmaca':{tr:['Bayrak Bulmaca','Ülke bayraklarını tahmin et.'],de:['Flaggenrätsel','Länderflaggen erraten.'],en:['Flag Puzzle','Guess country flags.']},
+  'Rotate':{tr:['Rotate','Şekli döndür, hedefe hizala.'],de:['Rotate','Form drehen, auf Ziel ausrichten.'],en:['Rotate','Rotate the shape to align with the target.']},
+  'Shadow Match':{tr:['Shadow Match','Nesneyi gölgesiyle eşleştir.'],de:['Shadow Match','Objekt mit Schatten paaren.'],en:['Shadow Match','Match the object with its shadow.']},
+  'Color Lines':{tr:['Color Lines','Aynı renkleri birleştir, patlat.'],de:['Color Lines','Gleiche Farben verbinden, platzen lassen.'],en:['Color Lines','Connect same colors, make them pop.']},
+  'Counterfeit':{tr:['Counterfeit','Sahte banknotu gerçeğinden ayır.'],de:['Counterfeit','Falsche Banknote von echter unterscheiden.'],en:['Counterfeit','Distinguish fake banknotes from real ones.']},
+  'Pattern Match':{tr:['Pattern Match','Deseni ezberle, doğru hücreleri seç.'],de:['Pattern Match','Muster merken, richtige Zellen wählen.'],en:['Pattern Match','Memorize the pattern, select the correct cells.']},
+  'Hidden Object':{tr:['Hidden Object','Gizli nesneleri bul.'],de:['Hidden Object','Versteckte Objekte finden.'],en:['Hidden Object','Find hidden objects.']},
+  'Water Sort Pro':{tr:['Water Sort Pro','Renkleri tüplerde sırala.'],de:['Water Sort Pro','Farben in Röhren sortieren.'],en:['Water Sort Pro','Sort colors in tubes.']},
+  'Water Sort X':{tr:['Water Sort X','Progresif zorlukta 6 renk sırala.'],de:['Water Sort X','6 Farben mit progressivem Schwierigkeitsgrad sortieren.'],en:['Water Sort X','Sort 6 colors with progressive difficulty.']},
+  'Fark Avcısı':{tr:['Fark Avcısı','İki resim arasındaki farkları bul.'],de:['Fark Avcısı','Unterschiede zwischen zwei Bildern finden.'],en:['Fark Avcısı','Find the differences between two pictures.']},
+  'Match Three':{tr:['Match Three','Aynı renk 3 taşı eşleştir, patlat.'],de:['Match Three','3 gleichfarbige Steine paaren, platzen lassen.'],en:['Match Three','Match 3 same-colored stones, make them pop.']},
+  'PACDI Run':{tr:['PACDI Run','Engellerden kaç, koşmaya devam et.'],de:['PACDI Run','Hindernissen ausweichen, weiterlaufen.'],en:['PACDI Run','Dodge obstacles, keep running.']},
+  'Labirent':{tr:['Labirent','Labirentten çık, zihnini keskinleştir.'],de:['Labyrinth','Aus dem Labyrinth entkommen, Geist schärfen.'],en:['Maze','Escape the maze, sharpen your mind.']},
+  'Nefes Pusulası':{tr:['Nefes Pusulası','Kriz anında nefes egzersizi.'],de:['Nefes Pusulası','Atemübung in Krisenmomenten.'],en:['Nefes Pusulası','Breathing exercise for moments of crisis.']},
+  'Günlük Pusula':{tr:['Günlük Pusula','Namaz vakitleri, hicri takvim, ayetler.'],de:['Günlük Pusula','Gebetszeiten, Hijri-Kalender, Verse.'],en:['Günlük Pusula','Prayer times, Hijri calendar, verses.']},
+  'Geçmişin Yankısı':{tr:['Geçmişin Yankısı','Anıları canlandıran bulmaca.'],de:['Geçmişin Yankısı','Erinnerungen weckendes Puzzle.'],en:['Geçmişin Yankısı','A puzzle that brings memories to life.']},
+  'Ata Albümü':{tr:['Ata Albümü','Soy ağacı ve aile bilgileri.'],de:['Ata Albümü','Stammbaum und Familieninformationen.'],en:['Ata Albümü','Family tree and family information.']},
+  'İyiliğin Grameri':{tr:['İyiliğin Grameri','Barış kelimelerini dillerde eşleştir.'],de:['İyiliğin Grameri','Friedenswörter in verschiedenen Sprachen paaren.'],en:['İyiliğin Grameri','Match peace words across languages.']},
+  'Unutulmuş Zariflikler':{tr:['Unutulmuş Zariflikler','Eski nezaket kurallarını hatırla.'],de:['Unutulmuş Zariflikler','Alte Höflichkeitsregeln wiederentdecken.'],en:['Unutulmuş Zariflikler','Remember old rules of courtesy.']},
+  'Bilgelik Halkası':{tr:['Bilgelik Halkası','Etik değerleri farklı kültürlerde eşleştir.'],de:['Bilgelik Halkası','Ethische Werte in verschiedenen Kulturen paaren.'],en:['Bilgelik Halkası','Match ethical values across different cultures.']},
+  'Dijital Miras':{tr:['Dijital Miras','Fotoğraf yükle, sorularla parçaları aç.'],de:['Dijital Miras','Fotos hochladen, mit Fragen Teile freischalten.'],en:['Dijital Miras','Upload photos, unlock pieces with questions.']},
+  'Sesli Hafıza':{tr:['Sesli Hafıza','Aile seslerini tanı.'],de:['Sesli Hafıza','Familienstimmen erkennen.'],en:['Sesli Hafıza','Recognize family voices.']},
+  'Peg Solitaire':{tr:['Peg Solitaire','Tek çivi kalana kadar zıpla.'],de:['Peg Solitaire','Springen, bis nur noch ein Stift übrig bleibt.'],en:['Peg Solitaire','Jump until only one peg remains.']},
+  'Plaka Kodları':{tr:['Plaka Kodları','Türkiye illerini plaka kodlarıyla eşleştir.'],de:['Plaka Kodları','Türkische Provinzen mit Kennzeichen paaren.'],en:['Plaka Kodları','Match Turkish provinces with license plate codes.']},
+  'Kelime Avı':{tr:['Kelime Avı','Gizli kelimeyi 6 denemede bul.'],de:['Kelime Avı','Verstecktes Wort in 6 Versuchen finden.'],en:['Kelime Avı','Find the hidden word in 6 tries.']},
+  'Dünya Şehirleri':{tr:['Dünya Şehirleri','Meşhur şehirleri özellikleriyle eşleştir.'],de:['Dünya Şehirleri','Berühmte Städte mit Merkmalen paaren.'],en:['Dünya Şehirleri','Match famous cities with their features.']},
+  'Günün Sözü':{tr:['Günün Sözü','Her gün yeni bir ilham verici alıntı.'],de:['Günün Sözü','Täglich ein neues inspirierendes Zitat.'],en:['Günün Sözü','A new inspiring quote every day.']},
+  'Domino':{tr:['Domino','İki kişilik klasik domino oyunu.'],de:['Domino','Klassisches Domino für zwei Spieler.'],en:['Domino','Classic domino game for two players.']},
+  'Dama':{tr:['Dama','Klasik 8x8 dama, sırayla oynayın.'],de:['Dama','Klassisches 8x8-Dame, abwechselnd spielen.'],en:['Dama','Classic 8x8 checkers, play in turns.']},
+  'Satranç':{tr:['Satranç','Klasik satranç, iki kişilik.'],de:['Satranç','Klassisches Schach für zwei Spieler.'],en:['Satranç','Classic chess for two players.']},
+  'Dokuz Taş':{tr:['Dokuz Taş','Geleneksel dokuz taş oyunu.'],de:['Dokuz Taş','Traditionelles Neun-Steine-Spiel.'],en:['Dokuz Taş','Traditional nine stones game.']},
+  'Mangala':{tr:['Mangala','Klasik Türk mangala oyunu.'],de:['Mangala','Klassisches türkisches Mangala-Spiel.'],en:['Mangala','Classic Turkish Mangala game.']},
+  'Kızma Birader':{tr:['Kızma Birader','Zar at, taş kır, eve ulaş.'],de:['Kızma Birader','Würfeln, Steine schlagen, nach Hause kommen.'],en:['Kızma Birader','Roll the dice, hit stones, reach home.']},
+  'Kniffel':{tr:['Kniffel','5 zar, 3 atış, en yüksek skor.'],de:['Kniffel','5 Würfel, 3 Würfe, höchste Punktzahl.'],en:['Kniffel','5 dice, 3 rolls, highest score.']},
+  'Rommé':{tr:['Rommé','Kartları diz, setleri aç.'],de:['Rommé','Karten anordnen, Sets auslegen.'],en:['Rommé','Arrange cards, lay down sets.']},
+  'Skat':{tr:['Skat','Alman milli kart oyunu.'],de:['Skat','Deutsches Nationalkartenspiel.'],en:['Skat','German national card game.']},
+  'Peg Düello':{tr:['Peg Düello','Rekabetçi çivi atlama düellosu.'],de:['Peg Düello','Wettbewerbsduell im Stifthüpfen.'],en:['Peg Düello','Competitive peg jumping duel.']},
+  'XOX Düello':{tr:['XOX Düello','Klasik 3x3 XOX oyunu.'],de:['XOX Düello','Klassisches 3x3 XOX-Spiel.'],en:['XOX Düello','Classic 3x3 XOX game.']},
+  'Deniz Savaşı':{tr:['Deniz Savaşı','Gemileri batır, rakibini yen.'],de:['Deniz Savaşı','Schiffe versenken, Gegner besiegen.'],en:['Deniz Savaşı','Sink ships, defeat your opponent.']},
+  'Kelime Kapmaca':{tr:['Kelime Kapmaca','Aynı harflerden sırayla kelime türet.'],de:['Kelime Kapmaca','Abwechselnd Wörter aus gleichen Buchstaben bilden.'],en:['Kelime Kapmaca','Take turns forming words from the same letters.']},
+  'Kuleden Kule':{tr:['Kuleden Kule','Hanoi tarzı disk taşıma düellosu.'],de:['Kuleden Kule','Hanoi-Stil Scheiben transportieren Duell.'],en:['Kuleden Kule','Hanoi-style disc moving duel.']},
+};
+
+var UI_I18N={
+  tr:{cats:{tools:'🛠️ Araçlar & Günlük Hayat',reflex:'⚡ Refleks & Dikkat',logic:'🧠 Hafıza & Mantık',visual:'🎨 Görsel Algı & Strateji',culture:'🌾 Hasat, Kültür & Onur',duo:'👥 2 Kişilik Oyunlar'},play:'Oyna / Aç →',footer:'PACDI Games · {n} oyun & araç · Her oyun onurla hazırlanmıştır'},
+  de:{cats:{tools:'🛠️ Werkzeuge & Alltag',reflex:'⚡ Reflex & Geschwindigkeit',logic:'🧠 Gedächtnis & Logik',visual:'🎨 Visuelle Wahrnehmung & Strategie',culture:'🌾 Ernte, Kultur & Ehre',duo:'👥 Spiele für 2'},play:'Spielen / Öffnen →',footer:'PACDI Games · {n} Spiele & Werkzeuge · Jedes Spiel mit Sorgfalt erstellt'},
+  en:{cats:{tools:'🛠️ Tools & Daily Life',reflex:'⚡ Reflex & Speed',logic:'🧠 Memory & Logic',visual:'🎨 Visual Perception & Strategy',culture:'🌾 Harvest, Culture & Honor',duo:'👥 2-Player Games'},play:'Play / Open →',footer:'PACDI Games · {n} games & tools · Every game crafted with care'}
+};
+window._GL = 'tr';
+
+function setGL(lang) {
+  window._GL = lang;
+  try { sessionStorage.setItem('autoLang', lang); } catch(e) {}
+  document.getElementById('htmlRoot').lang = lang;
+  document.querySelectorAll('.lbg').forEach(function(b){ b.classList.toggle('active', b.textContent===lang.toUpperCase()); });
+  var ui = UI_I18N[lang];
+  // Update category titles
+  document.querySelectorAll('[data-cat]').forEach(function(el){
+    var k = el.getAttribute('data-cat');
+    if (ui.cats[k]) el.textContent = ui.cats[k];
+  });
+  // Update all cards
+  document.querySelectorAll('[data-tr-name]').forEach(function(card){
+    var trName = card.getAttribute('data-tr-name');
+    var ci = CARD_I18N[trName];
+    if (!ci) return;
+    var nameEl = card.querySelector('.game-name');
+    var descEl = card.querySelector('.game-desc');
+    var playEl = card.querySelector('.play-btn');
+    if (nameEl) nameEl.textContent = ci[lang][0];
+    if (descEl) descEl.textContent = ci[lang][1];
+    if (playEl) playEl.textContent = ui.play;
+  });
+  // Footer
+  var total = 0; for (var c in window.pacdiGames && {}) {} 
+  var totalEl = document.getElementById('totalGamesSpan');
+  var footerEl = document.getElementById('gamesFooterText');
+  if (footerEl && totalEl) footerEl.textContent = ui.footer.replace('{n}', totalEl.textContent);
+}
+
+// Auto-detect on load
+(function(){
+  var detected = null;
+  try { detected = sessionStorage.getItem('autoLang'); } catch(e) {}
+  if (!detected) {
+    var ul = (navigator.language || 'de').toLowerCase();
+    detected = ul.indexOf('tr')===0 ? 'tr' : (ul.indexOf('de')===0 ? 'de' : 'en');
+  }
+  window._GL = detected;
+  document.querySelectorAll('.lbg').forEach(function(b){ b.classList.toggle('active', b.textContent===detected.toUpperCase()); });
+  document.getElementById('htmlRoot').lang = detected;
+  // Will be re-rendered by renderCategory calls after this
+})();
+
+</script>
+
 
   <div style="font-size:0.78rem;color:#8A8F9A;margin-bottom:4px;">Operated by AskMeAI Teknoloji Ltd. Şti. (TR: 23837)</div>
   <div style="font-size:0.72rem;color:#6B7280;margin-bottom:10px;">Intellectual property owned by © 2026 PACDI Global Yazılım Ltd. Şti. &mdash; FSEK No: <a href="https://pacdi.eu/legal.html" style="color:#D4AF37;text-decoration:none;">2026/18897</a></div>
