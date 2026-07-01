@@ -125,7 +125,7 @@
   <div class="promo-spotlight" id="promoSpotlight"></div>
 
   <div class="info-badge-row">
-    <div class="info-badge-item">📶 Bu oyunlar internetsiz de çalışır</div>
+    <div class="info-badge-item" id="offlineBadge">📶 Bu oyunlar internetsiz de çalışır</div>
     <div class="info-badge-item install-prompt" id="installPrompt" style="display:none;" onclick="installPWA()">📲 Ana Ekrana Ekle</div>
   </div>
 
@@ -163,6 +163,9 @@
       </div>
     </div>
     <div style="margin-top:0.6rem;"><span id="gamesFooterText">PACDI Games · <span id="totalGamesSpan">0</span> oyun & araç · Her oyun onurla hazırlanmıştır</span></div>
+    <div style="margin-top:6px;font-size:0.62rem;">
+      <a href="/legal.html" style="color:rgba(246,180,95,0.5);text-decoration:none;" id="legalLink">Impressum & Datenschutz</a>
+    </div>
     <div class="lang-bar-g">
       <button class="lbg active" onclick="setGL('tr')">TR</button>
       <button class="lbg" onclick="setGL('de')">DE</button>
@@ -256,9 +259,9 @@ var CARD_I18N={
 };
 
 var UI_I18N={
-  tr:{cats:{tools:'🛠️ Araçlar & Günlük Hayat',reflex:'⚡ Refleks & Dikkat',logic:'🧠 Hafıza & Mantık',visual:'🎨 Görsel Algı & Strateji',culture:'🌾 Hasat, Kültür & Onur',duo:'👥 2 Kişilik Oyunlar'},play:'Oyna / Aç →',footer:'PACDI Games · {n} oyun & araç · Her oyun onurla hazırlanmıştır'},
-  de:{cats:{tools:'🛠️ Werkzeuge & Alltag',reflex:'⚡ Reflex & Geschwindigkeit',logic:'🧠 Gedächtnis & Logik',visual:'🎨 Visuelle Wahrnehmung & Strategie',culture:'🌾 Ernte, Kultur & Ehre',duo:'👥 Spiele für 2'},play:'Spielen / Öffnen →',footer:'PACDI Games · {n} Spiele & Werkzeuge · Jedes Spiel mit Sorgfalt erstellt'},
-  en:{cats:{tools:'🛠️ Tools & Daily Life',reflex:'⚡ Reflex & Speed',logic:'🧠 Memory & Logic',visual:'🎨 Visual Perception & Strategy',culture:'🌾 Harvest, Culture & Honor',duo:'👥 2-Player Games'},play:'Play / Open →',footer:'PACDI Games · {n} games & tools · Every game crafted with care'}
+  tr:{cats:{tools:'🛠️ Araçlar & Günlük Hayat',reflex:'⚡ Refleks & Dikkat',logic:'🧠 Hafıza & Mantık',visual:'🎨 Görsel Algı & Strateji',culture:'🌾 Hasat, Kültür & Onur',duo:'👥 2 Kişilik Oyunlar'},play:'Oyna / Aç →',weeklyBadge:'⭐ Haftanın Oyunu',footer:'PACDI Games · {n} oyun & araç · Her oyun onurla hazırlanmıştır'},
+  de:{cats:{tools:'🛠️ Werkzeuge & Alltag',reflex:'⚡ Reflex & Geschwindigkeit',logic:'🧠 Gedächtnis & Logik',visual:'🎨 Visuelle Wahrnehmung & Strategie',culture:'🌾 Ernte, Kultur & Ehre',duo:'👥 Spiele für 2'},play:'Spielen / Öffnen →',weeklyBadge:'⭐ Spiel der Woche',footer:'PACDI Games · {n} Spiele & Werkzeuge · Jedes Spiel mit Sorgfalt erstellt'},
+  en:{cats:{tools:'🛠️ Tools & Daily Life',reflex:'⚡ Reflex & Speed',logic:'🧠 Memory & Logic',visual:'🎨 Visual Perception & Strategy',culture:'🌾 Harvest, Culture & Honor',duo:'👥 2-Player Games'},play:'Play / Open →',weeklyBadge:'⭐ Game of the Week',footer:'PACDI Games · {n} games & tools · Every game crafted with care'}
 };
 window._GL = 'tr';
 
@@ -285,11 +288,27 @@ function setGL(lang) {
     if (descEl) descEl.textContent = ci[lang][1];
     if (playEl) playEl.textContent = ui.play;
   });
+  // Update weekly badge
+  document.querySelectorAll('.weekly-badge').forEach(function(b){
+    b.textContent = ui.weeklyBadge || '⭐ Haftanın Oyunu';
+  });
+  // Update spotlight
+  if (window._renderSpotlight) window._renderSpotlight(lang);
+  // Update offline badge & install prompt
+  var offlineBadge = document.getElementById('offlineBadge');
+  var installPrompt = document.getElementById('installPrompt');
+  var offlineTexts = {tr:'📶 Bu oyunlar internetsiz de çalışır', de:'📶 Funktioniert auch offline', en:'📶 Works offline too'};
+  var installTexts = {tr:'📲 Ana Ekrana Ekle', de:'📲 Zum Startbildschirm hinzufügen', en:'📲 Add to Home Screen'};
+  if (offlineBadge) offlineBadge.textContent = offlineTexts[lang] || offlineTexts.en;
+  if (installPrompt) installPrompt.textContent = installTexts[lang] || installTexts.en;
+  // Legal link
+  var legalLink = document.getElementById('legalLink');
+  var legalTexts = {tr:'Yasal & Gizlilik', de:'Impressum & Datenschutz', en:'Legal & Privacy'};
+  if (legalLink) legalLink.textContent = legalTexts[lang] || legalTexts.de;
   // Footer
-  var total = 0; for (var c in window.pacdiGames && {}) {} 
-  var totalEl = document.getElementById('totalGamesSpan');
   var footerEl = document.getElementById('gamesFooterText');
-  if (footerEl && totalEl) footerEl.textContent = ui.footer.replace('{n}', totalEl.textContent);
+  var totalEl = document.getElementById('totalGamesSpan');
+  if (footerEl && totalEl) footerEl.innerHTML = ui.footer.replace('{n}', '<span id="totalGamesSpan">' + totalEl.textContent + '</span>');
 }
 
 // Auto-detect on load
@@ -351,15 +370,18 @@ function setGL(lang) {
 
     // Dil tespiti
     var userLang = (navigator.language || navigator.userLanguage || 'tr').toLowerCase();
-    var isTurkish = userLang.indexOf('tr') === 0;
-
-    // Spotlight içeriği
+    // Spotlight — dil bazlı (TR/DE/EN)
     var spotlight = document.getElementById('promoSpotlight');
-    if (isTurkish) {
-      spotlight.innerHTML = '<div class="promo-icon">🧓💰</div><div class="promo-content"><div class="promo-title">Emekli Pusulası</div><div class="promo-desc">Türkiye\'deki 17–18 milyon emekli için özel olarak tasarlanmış <strong>banka promosyon hesaplama</strong> ve karşılaştırma sistemi. 12 bankanın güncel tekliflerini maaş aralığınıza göre anında görün, en avantajlı seçeneği yakalayın.</div><div class="promo-stats"><div class="promo-stat">🏦 12 Banka</div><div class="promo-stat">📊 3 Maaş Aralığı</div><div class="promo-stat">🎯 Otomatik Hesaplama</div><div class="promo-stat">🔄 Nisan 2026</div></div><a href="emekli-pusulasi.html" class="promo-btn">🔍 Hemen Hesapla</a></div>';
-    } else {
-      spotlight.innerHTML = '<div class="promo-icon">📱✨</div><div class="promo-content"><div class="promo-title">Free QR Code Generator</div><div class="promo-desc">Create QR codes in seconds — <strong>free, unlimited, no registration, no expiry</strong>. Perfect for restaurant menus, Instagram profiles, WiFi passwords, Google Review links, WhatsApp and websites. Download PNG, JPG or SVG instantly.</div><div class="promo-stats"><div class="promo-stat">✅ 100% Free</div><div class="promo-stat">♾️ Unlimited</div><div class="promo-stat">⬇️ PNG / JPG / SVG</div><div class="promo-stat">🚫 No Sign-up</div></div><a href="qr-generator.html" class="promo-btn">🔳 Create QR Code →</a></div>';
-    }
+    var _SPOTLIGHT = {
+      tr: '<div class="promo-icon">🧓💰</div><div class="promo-content"><div class="promo-title">Emekli Pusulası</div><div class="promo-desc">Türkiye&#39;deki 17–18 milyon emekli için özel olarak tasarlanmış <strong>banka promosyon hesaplama</strong> ve karşılaştırma sistemi. 12 bankanın güncel tekliflerini maaş aralığınıza göre anında görün, en avantajlı seçeneği yakalayın.</div><div class="promo-stats"><div class="promo-stat">🏦 12 Banka</div><div class="promo-stat">📊 3 Maaş Aralığı</div><div class="promo-stat">🎯 Otomatik Hesaplama</div><div class="promo-stat">🔄 Nisan 2026</div></div><a href="emekli-pusulasi.html" class="promo-btn">🔍 Hemen Hesapla</a></div>',
+      de: '<div class="promo-icon">📱✨</div><div class="promo-content"><div class="promo-title">QR-Code-Generator</div><div class="promo-desc">QR-Codes in Sekunden erstellen — <strong>kostenlos, unbegrenzt, keine Registrierung</strong>. Ideal für Restaurantmenüs, Instagram, WLAN, Google-Bewertungen. Sofort als PNG, JPG oder SVG herunterladen.</div><div class="promo-stats"><div class="promo-stat">✅ Kostenlos</div><div class="promo-stat">♾️ Unbegrenzt</div><div class="promo-stat">⬇️ PNG/JPG/SVG</div><div class="promo-stat">🚫 Keine Anmeldung</div></div><a href="qr-generator.html" class="promo-btn">🔳 QR-Code erstellen →</a></div>',
+      en: '<div class="promo-icon">📱✨</div><div class="promo-content"><div class="promo-title">Free QR Code Generator</div><div class="promo-desc">Create QR codes in seconds — <strong>free, unlimited, no registration, no expiry</strong>. Perfect for restaurant menus, Instagram, WiFi passwords and websites. Download PNG, JPG or SVG instantly.</div><div class="promo-stats"><div class="promo-stat">✅ 100% Free</div><div class="promo-stat">♾️ Unlimited</div><div class="promo-stat">⬇️ PNG/JPG/SVG</div><div class="promo-stat">🚫 No Sign-up</div></div><a href="qr-generator.html" class="promo-btn">🔳 Create QR Code →</a></div>'
+    };
+    window._renderSpotlight = function(lang) {
+      spotlight.innerHTML = _SPOTLIGHT[lang] || _SPOTLIGHT.en;
+    };
+    window._renderSpotlight(window._GL || 'tr');
+
 
     function getWeekNumber() {
       var now = new Date();
@@ -587,7 +609,7 @@ function setGL(lang) {
         card.classList.add('weekly-pick');
         var badge = document.createElement('div');
         badge.className = 'weekly-badge';
-        badge.innerText = '⭐ Haftanın Oyunu';
+        badge.innerText = UI_I18N[window._GL || 'tr'].weeklyBadge || '⭐ Haftanın Oyunu';
         card.appendChild(badge);
       }
 
