@@ -3,7 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Emekli Pusulası | Şartlı Promosyon Rehberi | PACDI Games</title>
+  <title>Emekli Promosyon Hesaplama 2026 | Hangi Banka En Yüksek Promosyon Veriyor? | Emekli Pusulası</title>
+  <meta name="description" content="2026 Temmuz zammı sonrası güncel emekli banka promosyonu karşılaştırması. Ziraat, Halkbank, VakıfBank, İş Bankası, Garanti BBVA, Akbank, Yapı Kredi, DenizBank, ING, QNB promosyon tutarlarını maaşınıza göre karşılaştırın, taahhüt cayma bedelinizi hesaplayın.">
+  <link rel="canonical" href="https://pacdi.games/emekli-pusulasi.html">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Emekli Promosyon Hesaplama 2026 | Emekli Pusulası">
+  <meta property="og:description" content="Güncel emekli banka promosyonlarını maaşınıza göre karşılaştırın, en yüksek teklifi bulun.">
+  <meta property="og:url" content="https://pacdi.games/emekli-pusulasi.html">
+  <meta property="og:image" content="https://pacdi.games/og-image.jpg">
+  <meta property="og:locale" content="tr_TR">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Emekli Promosyon Hesaplama 2026">
+  <meta name="twitter:description" content="Güncel emekli banka promosyonlarını maaşınıza göre karşılaştırın.">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Emekli Pusulası - Banka Promosyon Hesaplama",
+    "url": "https://pacdi.games/emekli-pusulasi.html",
+    "applicationCategory": "FinanceApplication",
+    "operatingSystem": "Any",
+    "description": "Emekli maaşı banka promosyonlarını karşılaştıran, taahhüt cayma bedeli hesaplayan ücretsiz araç.",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "TRY" }
+  }
+  </script>
   <style>
     * {
       margin: 0;
@@ -328,7 +351,7 @@
   </div>
 
   <div class="info-bar">
-    <div class="info-item">📅 <span id="lastUpdate">Nisan 2026</span></div>
+    <div class="info-item">📅 <span id="lastUpdate">Temmuz 2026</span></div>
     <div class="info-item">🏦 <span id="bankCount">12</span> banka</div>
     <div class="info-item">💰 Maaş aralığı seç</div>
   </div>
@@ -397,7 +420,10 @@
 <script>
   (function() {
     // ------------------------------------------------------------------
-    // GÜNCELLENMİŞ BANKA VERİLERİ (NİSAN 2026) – MAKSİMUM TUTAR + EK ŞARTLAR
+    // GÜNCELLENMİŞ BANKA VERİLERİ (TEMMUZ 2026 ZAM SONRASI) – MAKSİMUM TUTAR + EK ŞARTLAR
+    // Kaynak: Temmuz 2026 zam sonrası banka duyuruları (basın taraması, 16.07.2026 itibarıyla)
+    // Not: Bankalar kampanya şartlarını değiştirme hakkını saklı tutar; büyük taşıma kararlarından
+    // önce ilgili bankanın güncel resmi kampanya sayfası teyit edilmelidir.
     // Her banka için:
     //    baseBySalary : { maaş_aralığı : baz_promosyon }
     //    conditions   : [{ desc, bonus, key, requiredForFinalBonus? }]
@@ -407,55 +433,32 @@
     // ------------------------------------------------------------------
     var banksData = [
       {
-        name: "Vakıf Katılım",
+        name: "Yapı Kredi",
         baseBySalary: {
-          "0-9999": 8750,
-          "10000-14999": 14000,
-          "15000-19999": 17500,
-          "20000-49999": 21000,
-          "50000+": 25000
+          "0-9999": 6250,
+          "10000-14999": 10000,
+          "15000-19999": 12500,
+          "20000-49999": 15000,
+          "50000+": 15000
         },
         conditions: [
-          { desc: "Otomatik fatura ödeme (en az 2 fatura)", bonus: 4500, key: "fatura" },
-          { desc: "Katılım Kredi Kartı başvurusu ve aktif kullanım", bonus: 3000, key: "kart" },
-          { desc: "Hayat sigortası yaptırmak", bonus: 2000, key: "sigorta" }
-        ],
-        finalBonus: { desc: "Tüm şartlar + dijital bankacılık (Ek destek)", bonus: 5000, key: "tumSartlar", requiresAll: true },
-        finalBonusSabit: 15000,   // maaştan bağımsız ek promosyon (tüm şartları sağlayana)
-        requiresAllForExtra: true, // ekBonusSabit de tüm şartları gerektirir
-        warnings: [
-          "⚠️ Hayat sigortasını ilk yıl içinde iptal ederseniz, ilgili promosyon (2.000 TL) iade edilir.",
-          "⚠️ Fatura talimatlarını iptal etmeniz durumunda ek promosyon (4.500 TL) geçersiz olur.",
-          "⚠️ Kredi kartını ilk 6 ay iptal ederseniz kredi kartı promosyonu iade edilir."
-        ]
-      },
-      {
-        name: "ING",
-        baseBySalary: {
-          "0-9999": 8750,
-          "10000-14999": 14000,
-          "15000-19999": 17500,
-          "20000-49999": 21000,
-          "50000+": 25000
-        },
-        conditions: [
-          { desc: "Turuncu Hesap açmak", bonus: 2000, key: "turuncu" },
-          { desc: "Fatura ödeme talimatı (2 fatura)", bonus: 3000, key: "fatura" },
-          { desc: "Kredi kartı başvurusu ve 1 alışveriş", bonus: 2000, key: "kart" }
+          { desc: "60 gün içinde 2 yeni otomatik fatura talimatı", bonus: 5000, key: "fatura" },
+          { desc: "Kredi kartıyla en az 1.000 TL harcama", bonus: 5000, key: "kart" },
+          { desc: "Mobil bankacılık aktifliği + davet kodu (EMEKLIYEMUJDE)", bonus: 5000, key: "mobil" }
         ],
         finalBonus: null,
-        finalBonusSabit: 10000,
-        requiresAllForExtra: true,
-        warnings: ["⚠️ Kredi kartını iptal ederseniz promosyon iade edilir."]
+        finalBonusSabit: 0,
+        requiresAllForExtra: false,
+        warnings: ["⚠️ 3 yıllık maaş taşıma taahhüdü şart. Ek ödüller için 60 gün içinde koşulların tamamlanması gerekir."]
       },
       {
         name: "Garanti BBVA",
         baseBySalary: {
-          "0-9999": 8750,
-          "10000-14999": 14000,
-          "15000-19999": 17500,
-          "20000-49999": 21000,
-          "50000+": 25000
+          "0-9999": 6250,
+          "10000-14999": 10000,
+          "15000-19999": 12500,
+          "20000-49999": 15000,
+          "50000+": 15000
         },
         conditions: [
           { desc: "Bonus Kart veya Paracard ile 2.000 TL harcama", bonus: 6000, key: "kart" },
@@ -463,46 +466,150 @@
           { desc: "Yeni sigorta poliçesi", bonus: 2000, key: "sigorta" }
         ],
         finalBonus: null,
-        finalBonusSabit: 10000,
-        requiresAllForExtra: true,
-        warnings: ["⚠️ Sigorta iptalinde promosyon iadesi.", "⚠️ Avans hesap kapatılırsa bonus iptal."]
+        finalBonusSabit: 0,
+        requiresAllForExtra: false,
+        warnings: ["⚠️ Sigorta iptalinde ilgili promosyon iade edilir.", "⚠️ Avans hesap kapatılırsa bonus iptal olur.", "⚠️ Kampanya 1-31 Temmuz 2026 tarihleri arasında geçerlidir."]
       },
       {
-        name: "Yapı Kredi",
+        name: "Akbank",
         baseBySalary: {
-          "0-9999": 8750,
-          "10000-14999": 14000,
-          "15000-19999": 17500,
-          "20000-49999": 21000,
-          "50000+": 25000
+          "0-9999": 6250,
+          "10000-14999": 10000,
+          "15000-19999": 12500,
+          "20000-49999": 15000,
+          "50000+": 15000
         },
         conditions: [
-          { desc: "Fatura ödeme talimatı (1 fatura)", bonus: 2000, key: "fatura" },
-          { desc: "Kredi kartı harcaması (asgari 2.000 TL/ay)", bonus: 2000, key: "kart" },
-          { desc: "Dijital bankacılık aktif", bonus: 2000, key: "dijital" },
-          { desc: "Mobil üzerinden müşteri açılışı", bonus: 3000, key: "mobil" }
+          { desc: "Yeni fatura talimatı (1 fatura)", bonus: 2000, key: "faturaYeni" },
+          { desc: "Mevcut fatura talimatı", bonus: 1000, key: "faturaMevcut" },
+          { desc: "Axess/Wings kredi kartı harcaması", bonus: 10000, key: "kart" }
         ],
         finalBonus: null,
-        finalBonusSabit: 10000,
-        requiresAllForExtra: true,
-        warnings: ["⚠️ Fatura talimatı iptali promosyonu geçersiz kılar."]
+        finalBonusSabit: 0,
+        requiresAllForExtra: false,
+        warnings: ["⚠️ Bankanın duyurduğu üst limit (referans/davet kodu dahil kampanyalarla) daha yüksek görünebilir; hesaplamada yalnızca doğrudan kişisel şartlar dikkate alınmıştır.", "⚠️ 3 yıl taahhüt şartı."]
       },
-      // Diğer bankalar için aynı mantık (finalBonusSabit ve requiresAllForExtra true)
-      // Kısa tutmak için diğer bankaları da aynı şablonla ekliyorum (sadece isim ve şartlar farklı)
+      {
+        name: "DenizBank",
+        baseBySalary: {
+          "0-9999": 12000,
+          "10000-14999": 12000,
+          "15000-19999": 12000,
+          "20000-49999": 12000,
+          "50000+": 12000
+        },
+        conditions: [
+          { desc: "Kredili Mevduat Hesabı kullanımı", bonus: 6000, key: "kmh" },
+          { desc: "2 adet otomatik fatura talimatı", bonus: 6000, key: "fatura" },
+          { desc: "Aktif kredi kartı kullanımı", bonus: 6000, key: "kart" }
+        ],
+        finalBonus: null,
+        finalBonusSabit: 0,
+        requiresAllForExtra: false,
+        warnings: ["⚠️ Kampanya 11.06.2026 - 31.07.2026 tarihleri arasında geçerlidir.", "⚠️ 3 yıl maaş taşıma taahhüdü şart."]
+      },
+      {
+        name: "İş Bankası",
+        baseBySalary: {
+          "0-9999": 6250,
+          "10000-14999": 10000,
+          "15000-19999": 12500,
+          "20000-49999": 15000,
+          "50000+": 15000
+        },
+        conditions: [
+          { desc: "Maximum Kart aidatsız kullanım + harcama", bonus: 6000, key: "kart" },
+          { desc: "Ek Hesap / dijital bankacılık kullanımı", bonus: 4000, key: "dijital" }
+        ],
+        finalBonus: null,
+        finalBonusSabit: 0,
+        requiresAllForExtra: false,
+        warnings: []
+      },
+      {
+        name: "ING",
+        baseBySalary: {
+          "0-9999": 7500,
+          "10000-14999": 11250,
+          "15000-19999": 13750,
+          "20000-49999": 15000,
+          "50000+": 15000
+        },
+        conditions: [
+          { desc: "Turuncu Hesap açmak", bonus: 5000, key: "turuncu" },
+          { desc: "Fatura ödeme talimatı (2 fatura)", bonus: 6000, key: "fatura" },
+          { desc: "Kredi kartı başvurusu ve harcama", bonus: 6000, key: "kart" }
+        ],
+        finalBonus: null,
+        finalBonusSabit: 0,
+        requiresAllForExtra: false,
+        warnings: ["⚠️ Kampanya 29.06.2026 - 31.07.2026 tarihleri arasında ve yalnızca ilk kez ING'ye maaş taşıyanlar için geçerlidir."]
+      },
+      {
+        name: "QNB",
+        baseBySalary: {
+          "0-9999": 8500,
+          "10000-14999": 12000,
+          "15000-19999": 16000,
+          "20000-49999": 20000,
+          "50000+": 20000
+        },
+        conditions: [
+          { desc: "QNB Emekli Kredi Kartı (ilk yıl ücretsiz, market/eczane iadesi)", bonus: 0, key: "kart" }
+        ],
+        finalBonus: null,
+        finalBonusSabit: 0,
+        requiresAllForExtra: false,
+        warnings: ["⚠️ Üst limit maaş aralığına göre değişir, ek kampanya koşulu şart değildir."]
+      },
+      {
+        name: "Ziraat Bankası",
+        baseBySalary: {
+          "0-9999": 5000,
+          "10000-14999": 7500,
+          "15000-19999": 10000,
+          "20000-49999": 12000,
+          "50000+": 12000
+        },
+        conditions: [],
+        finalBonus: null,
+        finalBonusSabit: 0,
+        requiresAllForExtra: false,
+        warnings: []
+      },
+      {
+        name: "Halkbank",
+        baseBySalary: {
+          "0-9999": 5000,
+          "10000-14999": 8000,
+          "15000-19999": 10000,
+          "20000-49999": 12000,
+          "50000+": 12000
+        },
+        conditions: [],
+        finalBonus: null,
+        finalBonusSabit: 0,
+        requiresAllForExtra: false,
+        warnings: ["⚠️ Genellikle 3 yıllık maaş taşıma taahhüdü şart."]
+      },
+      {
+        name: "Vakıfbank",
+        baseBySalary: {
+          "0-9999": 5000,
+          "10000-14999": 8000,
+          "15000-19999": 10000,
+          "20000-49999": 12000,
+          "50000+": 12000
+        },
+        conditions: [
+          { desc: "Troy Emekli Kredi Kartı ile 9 ay harcama", bonus: 6000, key: "kart" }
+        ],
+        finalBonus: null,
+        finalBonusSabit: 0,
+        requiresAllForExtra: false,
+        warnings: ["⚠️ Kart harcama şartı 9 ay boyunca sürdürülmelidir."]
+      }
     ];
-
-    // Diğer bankaları da ekleyelim (kısa)
-    var moreBanks = [
-      { name: "İş Bankası", baseBySalary: { "0-9999":8750,"10000-14999":14000,"15000-19999":17500,"20000-49999":21000,"50000+":25000 }, conditions:[{desc:"Fatura ödeme (2 fatura)",bonus:3000,key:"fatura"},{desc:"Maximum Kart",bonus:2000,key:"kart"}], finalBonusSabit:9000, requiresAllForExtra:true, warnings:[] },
-      { name: "Ziraat Bankası", baseBySalary: { "0-9999":8750,"10000-14999":14000,"15000-19999":17500,"20000-49999":21000,"50000+":25000 }, conditions:[{desc:"Fatura ödeme (1 fatura)",bonus:2000,key:"fatura"},{desc:"Kredi kartı",bonus:2000,key:"kart"}], finalBonusSabit:8000, requiresAllForExtra:true, warnings:[] },
-      { name: "Halkbank", baseBySalary: { "0-9999":8750,"10000-14999":14000,"15000-19999":17500,"20000-49999":21000,"50000+":25000 }, conditions:[{desc:"Fatura ödeme (1 fatura)",bonus:1500,key:"fatura"},{desc:"Kredi kartı",bonus:2000,key:"kart"}], finalBonusSabit:7000, requiresAllForExtra:true, warnings:[] },
-      { name: "Akbank", baseBySalary: { "0-9999":8750,"10000-14999":14000,"15000-19999":17500,"20000-49999":21000,"50000+":25000 }, conditions:[{desc:"Fatura ödeme (5 fatura)",bonus:5000,key:"fatura"},{desc:"Axess/Wings kredi kartı",bonus:5000,key:"kart"}], finalBonusSabit:10000, requiresAllForExtra:true, warnings:[] },
-      { name: "Denizbank", baseBySalary: { "0-9999":8750,"10000-14999":14000,"15000-19999":17500,"20000-49999":21000,"50000+":25000 }, conditions:[{desc:"Fatura ödeme (2 fatura)",bonus:2500,key:"fatura"},{desc:"Kredi kartı",bonus:2000,key:"kart"}], finalBonusSabit:7000, requiresAllForExtra:true, warnings:[] },
-      { name: "Vakıfbank", baseBySalary: { "0-9999":8750,"10000-14999":14000,"15000-19999":17500,"20000-49999":21000,"50000+":25000 }, conditions:[{desc:"Fatura ödeme (2 fatura)",bonus:3000,key:"fatura"},{desc:"Troy Emekli Kredi Kartı",bonus:2000,key:"kart"}], finalBonusSabit:7000, requiresAllForExtra:true, warnings:[] },
-      { name: "QNB Finansbank", baseBySalary: { "0-9999":8750,"10000-14999":14000,"15000-19999":17500,"20000-49999":21000,"50000+":25000 }, conditions:[{desc:"Fatura ödeme (2 fatura)",bonus:3000,key:"fatura"},{desc:"Kredi kartı (min limit 5.000 TL)",bonus:2500,key:"kart"}], finalBonusSabit:8000, requiresAllForExtra:true, warnings:[] },
-      { name: "Şekerbank", baseBySalary: { "0-9999":8750,"10000-14999":14000,"15000-19999":17500,"20000-49999":21000,"50000+":25000 }, conditions:[{desc:"Fatura ödeme (1 fatura)",bonus:1500,key:"fatura"},{desc:"Kredi kartı",bonus:1500,key:"kart"}], finalBonusSabit:5000, requiresAllForExtra:true, warnings:[] }
-    ];
-    banksData = banksData.concat(moreBanks);
 
     // Maaş aralıkları
     var salaryRanges = [
