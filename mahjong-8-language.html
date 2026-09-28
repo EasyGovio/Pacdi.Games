@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Mahjong Dil Kartları | PACDI Games</title>
+  <meta name="description" content="Mahjong Solitaire dil kartlarıyla — TR, EN, DE, ES, AR, HE, ZH, RU, JA, EL, HI, KO. Ücretsiz, kayıt gerekmez, tarayıcında anında başla.">
+  <meta property="og:title" content="Mahjong Dil Kartları | PACDI Games">
+  <meta property="og:description" content="12 dilde ülke kartlarıyla Mahjong. Telaffuz + orijinal yazı. Ücretsiz, kayıt gerekmez.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://pacdi.games/mahjong.html">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+    body {
+      background: #04162E;
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      flex-direction:column;display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .game-container {
+      max-width: 750px;
+      width: 100%;
+      background: #1e2a3a;
+      border-radius: 48px;
+      padding: 24px;
+      box-shadow: 0 20px 35px rgba(0,0,0,0.4);
+      border: 1px solid rgba(246,180,95,0.3);
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      color: #FFFFFF;
+    }
+    .logo { font-size: 1.4rem; font-weight: bold; }
+    .logo span { color: #F6B45F; }
+    .back-link { color: #F6B45F; text-decoration: none; font-weight: bold; background: #0a1018; padding: 5px 12px; border-radius: 40px; }
+    .stats {
+      display: flex;
+      justify-content: space-between;
+      background: #0a1018;
+      padding: 10px;
+      border-radius: 60px;
+      margin: 15px 0;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items:center;
+    }
+    .stats div { background: #1e2a3a; padding: 4px 12px; border-radius: 40px; color: #F6B45F; font-weight: bold; font-size:0.85rem; }
+    .stats div span { color: #eaf2fb; }
+    button {
+      background: #F6B45F;
+      border: none;
+      padding: 6px 16px;
+      border-radius: 40px;
+      font-weight: bold;
+      cursor: pointer;
+      color: #04162E;
+      font-family: inherit;
+      margin: 2px;
+      font-size:0.85rem;
+    }
+    /* ── Dil seçici ───────────────────────────── */
+    .lang-selector-wrap {
+      background: #0a1018;
+      border-radius: 20px;
+      padding: 10px;
+      margin: 12px 0;
+    }
+    .lang-selector-title {
+      font-size: 0.72rem;
+      color: #7a9ab8;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      padding-left: 6px;
+    }
+    .lang-selector {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .lang-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 5px 10px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.04);
+      border: 1.5px solid rgba(255,255,255,0.12);
+      color: #7a9ab8;
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.15s;
+      font-family: inherit;
+      line-height:1.2;
+      white-space:nowrap;
+    }
+    .lang-chip:active { transform: scale(0.96); }
+    .lang-chip .chip-flag { font-size: 0.85rem; line-height: 1; }
+    /* ── Grid ─────────────────────────────────── */
+    .mahjong-grid {
+      display: grid;
+      grid-template-columns: repeat(8,1fr);
+      gap: 7px;
+      margin: 16px 0;
+    }
+    .tile {
+      position: relative;
+      aspect-ratio: 1/1;
+      background: #0a1018;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 3px;
+      cursor: pointer;
+      border: 2px solid var(--tile-color, #F6B45F);
+      color: #eaf2fb;
+      transition: 0.06s;
+      text-align: center;
+      line-height: 1.05;
+      overflow: hidden;
+    }
+    .tile-flag {
+      position: absolute;
+      top: 2px;
+      right: 4px;
+      font-size: 0.62rem;
+      line-height: 1;
+      opacity: 0.75;
+      pointer-events: none;
+    }
+    .tile-translit {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #F6B45F;
+      letter-spacing: -0.01em;
+      word-break: break-word;
+      max-width: 100%;
+      line-height: 1.08;
+      padding: 0 2px;
+    }
+    .tile-native {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-top: 3px;
+      color: #eaf2fb;
+      word-break: break-word;
+      max-width: 100%;
+      line-height: 1.15;
+      padding: 0 2px;
+    }
+    .tile-text {
+      font-size: 0.9rem;
+      font-weight: 700;
+      word-break: break-word;
+      max-width: 100%;
+      line-height: 1.1;
+      padding: 0 2px;
+    }
+    .tile.selected {
+      background: var(--tile-color, #F6B45F);
+      border-color: var(--tile-color, #F6B45F);
+      color: #fff;
+      transform: scale(0.95);
+      box-shadow: 0 0 12px rgba(255,255,255,0.15);
+    }
+    .tile.selected .tile-translit,
+    .tile.selected .tile-native,
+    .tile.selected .tile-text {
+      color: #fff;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.35);
+    }
+    .tile.selected .tile-flag { opacity: 1; }
+    .tile.removed {
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .message {
+      text-align: center;
+      margin-top: 15px;
+      padding: 10px;
+      background: #0a1018;
+      border-radius: 40px;
+      color: #eaf2fb;
+      font-weight: bold;
+      font-size: 0.88rem;
+      line-height:1.4;
+    }
+    @media (max-width: 600px) {
+      .game-container { padding: 16px; border-radius: 32px; }
+      .mahjong-grid { gap: 5px; }
+      .tile { border-radius: 9px; border-width: 1.6px; }
+      .tile-translit { font-size: 0.58rem; }
+      .tile-native { font-size: 0.78rem; margin-top: 2px; }
+      .tile-text { font-size: 0.72rem; }
+      .tile-flag { font-size: 0.55rem; top: 1px; right: 3px; }
+      .lang-chip { font-size: 0.65rem; padding: 4px 8px; }
+    }
+    @media (max-width: 400px) {
+      .mahjong-grid { gap: 4px; }
+      .tile-translit { font-size: 0.52rem; }
+      .tile-native { font-size: 0.7rem; }
+      .tile-text { font-size: 0.64rem; }
+    }
+  </style>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-E6ML8EDW0H"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-E6ML8EDW0H");</script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8426936740213369" crossorigin="anonymous"></script>
+    <link rel="canonical" href="https://pacdi.games/mahjong.html" />
+    <link rel="manifest" href="/manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PACDI">
+    <script>
+(function(){
+  if (sessionStorage.getItem('autoLang')) return;
+  var bl = (navigator.language || navigator.userLanguage || 'en').substring(0,2).toLowerCase();
+  var supported = ['tr','de','en'];
+  var lang = supported.indexOf(bl) > -1 ? bl : 'en';
+  sessionStorage.setItem('autoLang', lang);
+})();
+</script>
+    <script>
+(function(){
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('beta') === 'pacdi2026') {
+    try { sessionStorage.setItem('betaUnlock', '1'); } catch(e) {}
+  }
+  window.isBetaUnlocked = function() {
+    try { return sessionStorage.getItem('betaUnlock') === '1'; } catch(e) { return false; }
+  };
+})();
+</script>
+    <style>
+    .pacdi-share-bar{margin-top:24px;padding:16px;background:rgba(246,180,95,0.05);border:1px solid rgba(246,180,95,0.15);border-radius:10px;text-align:center;font-family:-apple-system,BlinkMacSystemFont,sans-serif;box-sizing:border-box;}
+    .pacdi-share-label{font-size:0.8rem;color:#7a9ab8;margin-bottom:10px;font-weight:600;}
+    .pacdi-share-btns{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;}
+    .pacdi-share-btn{display:inline-flex;align-items:center;gap:4px;font-size:0.78rem;padding:7px 14px;border-radius:20px;border:1px solid rgba(246,180,95,0.3);background:transparent;color:#F6B45F;text-decoration:none;cursor:pointer;font-family:inherit;}
+    .pacdi-share-btn:hover{background:rgba(246,180,95,0.1);}
+    </style>
+    <script>
+(function(){
+  var GA_ID = "G-E6ML8EDW0H";
+  var ADS_CLIENT = "ca-pub-8426936740213369";
+  var CONSENT_KEY = "pacdiCookieConsent";
+
+  function loadGA(){
+    var s1 = document.createElement("script");
+    s1.async = true;
+    s1.src = "https://www.googletagmanager.com/gtag/js?id=" + GA_ID;
+    document.head.appendChild(s1);
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function(){ dataLayer.push(arguments); };
+    gtag("js", new Date());
+    gtag("config", GA_ID);
+  }
+  function loadAdsense(){
+    var s2 = document.createElement("script");
+    s2.async = true;
+    s2.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=" + ADS_CLIENT;
+    s2.crossOrigin = "anonymous";
+    document.head.appendChild(s2);
+  }
+  function loadAll(){ loadGA(); loadAdsense(); }
+
+  var consent = null;
+  try { consent = localStorage.getItem(CONSENT_KEY); } catch(e){}
+
+  if (consent === "accepted") { loadAll(); return; }
+  if (consent === "rejected") { return; }
+
+  document.addEventListener("DOMContentLoaded", function(){
+    var lang = (document.documentElement.lang || "de").substring(0,2);
+    var texts = {
+      tr: { msg: "Bu site, deneyiminizi iyileştirmek için analiz ve reklam çerezleri kullanır. Detaylar için <a href=\"/legal.html\" style=\"color:#F6B45F;\">Gizlilik Politikamıza</a> bakabilirsiniz.", accept: "Kabul Et", reject: "Reddet" },
+      de: { msg: "Diese Website verwendet Analyse- und Werbe-Cookies, um Ihre Erfahrung zu verbessern. Details finden Sie in unserer <a href=\"/legal.html\" style=\"color:#F6B45F;\">Datenschutzerklärung</a>.", accept: "Akzeptieren", reject: "Ablehnen" },
+      en: { msg: "This site uses analytics and advertising cookies to improve your experience. See our <a href=\"/legal.html\" style=\"color:#F6B45F;\">Privacy Policy</a> for details.", accept: "Accept", reject: "Reject" }
+    };
+    var t = texts[lang] || texts.de;
+
+    var banner = document.createElement("div");
+    banner.id = "pacdi-cookie-banner";
+    banner.style.cssText = "position:fixed;bottom:0;left:0;right:0;background:#04162E;border-top:1px solid rgba(246,180,95,0.25);padding:18px 20px;z-index:99999;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;box-shadow:0 -4px 20px rgba(0,0,0,0.3);font-family:-apple-system,BlinkMacSystemFont,\"Segoe UI\",sans-serif;";
+    banner.innerHTML =
+      "<div style=\"flex:1;min-width:240px;font-size:0.85rem;color:#c8cdd5;line-height:1.5;\">" + t.msg + "</div>" +
+      "<div style=\"display:flex;gap:10px;flex-shrink:0;\">" +
+        "<button id=\"pacdi-cookie-reject\" style=\"background:transparent;border:1px solid rgba(246,180,95,0.4);color:#c8cdd5;padding:10px 20px;border-radius:8px;font-size:0.85rem;font-weight:600;cursor:pointer;\">" + t.reject + "</button>" +
+        "<button id=\"pacdi-cookie-accept\" style=\"background:#F6B45F;border:none;color:#04162E;padding:10px 20px;border-radius:8px;font-size:0.85rem;font-weight:700;cursor:pointer;\">" + t.accept + "</button>" +
+      "</div>";
+    document.body.appendChild(banner);
+
+    document.getElementById("pacdi-cookie-accept").onclick = function(){
+      try { localStorage.setItem(CONSENT_KEY, "accepted"); } catch(e){}
+      loadAll();
+      banner.remove();
+    };
+    document.getElementById("pacdi-cookie-reject").onclick = function(){
+      try { localStorage.setItem(CONSENT_KEY, "rejected"); } catch(e){}
+      banner.remove();
+    };
+  });
+})();
+</script>
+    <style id="viewportLock">html,body{overscroll-behavior:none;}</style>
+<script>
+(function(){
+  function lockCanvases(){
+    document.querySelectorAll('canvas').forEach(function(c){
+      c.style.touchAction = 'none';
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', lockCanvases);
+  } else {
+    lockCanvases();
+  }
+  var mo = new MutationObserver(lockCanvases);
+  mo.observe(document.documentElement, { childList: true, subtree: true });
+})();
+</script>
+    <style>
+    .pacdi-sponsor-title{font-size:0.9rem;font-weight:700;color:#F6B45F;text-align:center;margin-bottom:12px;letter-spacing:0.05em;}
+    .pacdi-sponsor-grid{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;}
+    .pacdi-sponsor-placeholder{color:#6a7a8a;font-size:0.7rem;text-align:center;padding:10px;}
+    .pacdi-sponsor-apply-btn{background:transparent;border:1px solid rgba(246,180,95,0.4);color:#F6B45F;padding:8px 16px;border-radius:20px;font-size:0.78rem;font-weight:600;cursor:pointer;font-family:inherit;}
+    </style>
+</head>
+<body>
+<!--
+╬═══════════════════════════════════════════════════════════════╮
+║         🛡️  PACDI FRAMEWORK — PROTECTED WORK                  ║
+║                                                               ║
+║  © 2026 PACDI Global Yazılım Ltd. Şti.                       ║
+║  FSEK Registration No : 2026/18897                            ║
+║  Trade Registry      : 23836 · Yunusemre / Manisa, TR       ║
+║                                                               ║
+║  This work and its modular software architecture are          ║
+║  protected under PACDI Software Library FSEK registration.   ║
+║  Unauthorized copying is subject to legal action.            ║
+║                                                               ║
+║  pacdi.eu · pacdi.de · info@pacdi.eu                         ║
+╠═══════════════════════════════════════════════════════════════╣
+-->
+
+<div class="game-container">
+  <div class="header">
+    <div class="logo">PACDI<span>Games</span></div>
+    <a href="index.html" class="back-link">← Geri</a>
+  </div>
+  <div class="stats">
+    <div>🀄 Kalan: <span id="remaining">32</span></div>
+    <div>⏱️ Süre: <span id="timer">00:00</span></div>
+    <div>🏆 En İyi: <span id="bestScore">—</span></div>
+    <button id="undoBtn">↩️ Geri Al</button>
+    <button id="resetBtn">Yeni Oyun</button>
+  </div>
+
+  <div class="lang-selector-wrap">
+    <div class="lang-selector-title">🌍 Oynanacak Diller (2–6 seç)</div>
+    <div class="lang-selector" id="langSelector"></div>
+  </div>
+
+  <div id="grid" class="mahjong-grid"></div>
+  <div class="message" id="message">Aynı kavramı taşıyan farklı dildeki kartları eşleştir.</div>
+</div>
+
+<script>
+  (function() {
+    // ─────────────────────────────────────────────
+    // DİL TANIMLARI (bayrak + renk + yazı sistemi)
+    // ─────────────────────────────────────────────
+    var LANGUAGES = {
+      tr: { name:"Türkçe",   flag:"🇹🇷", color:"#E30A17", isLatin:true,  rtl:false },
+      en: { name:"English",  flag:"🇬🇧", color:"#C8102E", isLatin:true,  rtl:false },
+      de: { name:"Deutsch",  flag:"🇩🇪", color:"#DD0000", isLatin:true,  rtl:false },
+      es: { name:"Español",  flag:"🇪🇸", color:"#AA151B", isLatin:true,  rtl:false },
+      ar: { name:"العربية",  flag:"🇸🇦", color:"#006C35", isLatin:false, rtl:true  },
+      he: { name:"עברית",    flag:"🇮🇱", color:"#0038B8", isLatin:false, rtl:true  },
+      zh: { name:"中文",     flag:"🇨🇳", color:"#DE2910", isLatin:false, rtl:false },
+      ru: { name:"Русский",  flag:"🇷🇺", color:"#0039A6", isLatin:false, rtl:false },
+      ja: { name:"日本語",   flag:"🇯🇵", color:"#BC002D", isLatin:false, rtl:false },
+      el: { name:"Ελληνικά", flag:"🇬🇷", color:"#0D5EAF", isLatin:false, rtl:false },
+      hi: { name:"हिन्दी",    flag:"🇮🇳", color:"#CC6600", isLatin:false, rtl:false },
+      ko: { name:"한국어",   flag:"🇰🇷", color:"#CD2E3A", isLatin:false, rtl:false }
+    };
+
+    // ─────────────────────────────────────────────
+    // KAVRAMLAR — her kavram tüm dillerde tanımlı
+    // text: orijinal yazı, translit: Latin okunuş
+    // ─────────────────────────────────────────────
+    var concepts = [
+      { key:"su",
+        tr:{text:"su",     translit:"su"},
+        en:{text:"water",  translit:"water"},
+        de:{text:"Wasser", translit:"Wasser"},
+        es:{text:"agua",   translit:"agua"},
+        ar:{text:"ماء",    translit:"māʾ"},
+        he:{text:"מים",    translit:"mayim"},
+        zh:{text:"水",     translit:"shuǐ"},
+        ru:{text:"вода",   translit:"voda"},
+        ja:{text:"水",     translit:"mizu"},
+        el:{text:"νερό",   translit:"neró"},
+        hi:{text:"पानी",    translit:"pānī"},
+        ko:{text:"물",     translit:"mul"}
+      },
+      { key:"güneş",
+        tr:{text:"güneş",  translit:"güneş"},
+        en:{text:"sun",    translit:"sun"},
+        de:{text:"Sonne",  translit:"Sonne"},
+        es:{text:"sol",    translit:"sol"},
+        ar:{text:"شمس",    translit:"shams"},
+        he:{text:"שמש",    translit:"shemesh"},
+        zh:{text:"太阳",   translit:"tàiyáng"},
+        ru:{text:"солнце", translit:"solntse"},
+        ja:{text:"太陽",   translit:"taiyō"},
+        el:{text:"ήλιος",  translit:"ílios"},
+        hi:{text:"सूरज",    translit:"sūraj"},
+        ko:{text:"태양",   translit:"taeyang"}
+      },
+      { key:"kitap",
+        tr:{text:"kitap",  translit:"kitap"},
+        en:{text:"book",   translit:"book"},
+        de:{text:"Buch",   translit:"Buch"},
+        es:{text:"libro",  translit:"libro"},
+        ar:{text:"كتاب",   translit:"kitāb"},
+        he:{text:"ספר",    translit:"sefer"},
+        zh:{text:"书",     translit:"shū"},
+        ru:{text:"книга",  translit:"kniga"},
+        ja:{text:"本",     translit:"hon"},
+        el:{text:"βιβλίο", translit:"vivlío"},
+        hi:{text:"किताब",   translit:"kitāb"},
+        ko:{text:"책",     translit:"chaek"}
+      },
+      { key:"ev",
+        tr:{text:"ev",     translit:"ev"},
+        en:{text:"house",  translit:"house"},
+        de:{text:"Haus",   translit:"Haus"},
+        es:{text:"casa",   translit:"casa"},
+        ar:{text:"بيت",    translit:"bayt"},
+        he:{text:"בית",    translit:"bayit"},
+        zh:{text:"房子",   translit:"fángzi"},
+        ru:{text:"дом",    translit:"dom"},
+        ja:{text:"家",     translit:"ie"},
+        el:{text:"σπίτι",  translit:"spíti"},
+        hi:{text:"घर",     translit:"ghar"},
+        ko:{text:"집",     translit:"jip"}
+      },
+      { key:"ağaç",
+        tr:{text:"ağaç",   translit:"ağaç"},
+        en:{text:"tree",   translit:"tree"},
+        de:{text:"Baum",   translit:"Baum"},
+        es:{text:"árbol",  translit:"árbol"},
+        ar:{text:"شجرة",   translit:"shajara"},
+        he:{text:"עץ",     translit:"ets"},
+        zh:{text:"树",     translit:"shù"},
+        ru:{text:"дерево", translit:"derevo"},
+        ja:{text:"木",     translit:"ki"},
+        el:{text:"δέντρο", translit:"déntro"},
+        hi:{text:"पेड़",    translit:"peṛ"},
+        ko:{text:"나무",   translit:"namu"}
+      },
+      { key:"kuş",
+        tr:{text:"kuş",    translit:"kuş"},
+        en:{text:"bird",   translit:"bird"},
+        de:{text:"Vogel",  translit:"Vogel"},
+        es:{text:"pájaro", translit:"pájaro"},
+        ar:{text:"طائر",   translit:"ṭāʾir"},
+        he:{text:"ציפור",  translit:"tsipor"},
+        zh:{text:"鸟",     translit:"niǎo"},
+        ru:{text:"птица",  translit:"ptitsa"},
+        ja:{text:"鳥",     translit:"tori"},
+        el:{text:"πουλί",  translit:"poulí"},
+        hi:{text:"पक्षी",   translit:"pakṣī"},
+        ko:{text:"새",     translit:"sae"}
+      },
+      { key:"ekmek",
+        tr:{text:"ekmek",  translit:"ekmek"},
+        en:{text:"bread",  translit:"bread"},
+        de:{text:"Brot",   translit:"Brot"},
+        es:{text:"pan",    translit:"pan"},
+        ar:{text:"خبز",    translit:"khubz"},
+        he:{text:"לחם",    translit:"lechem"},
+        zh:{text:"面包",   translit:"miànbāo"},
+        ru:{text:"хлеб",   translit:"khleb"},
+        ja:{text:"パン",   translit:"pan"},
+        el:{text:"ψωμί",   translit:"psomí"},
+        hi:{text:"रोटी",    translit:"roṭī"},
+        ko:{text:"빵",     translit:"ppang"}
+      },
+      { key:"dost",
+        tr:{text:"dost",   translit:"dost"},
+        en:{text:"friend", translit:"friend"},
+        de:{text:"Freund", translit:"Freund"},
+        es:{text:"amigo",  translit:"amigo"},
+        ar:{text:"صديق",   translit:"ṣadīq"},
+        he:{text:"חבר",    translit:"chaver"},
+        zh:{text:"朋友",   translit:"péngyǒu"},
+        ru:{text:"друг",   translit:"drug"},
+        ja:{text:"友達",   translit:"tomodachi"},
+        el:{text:"φίλος",  translit:"fílos"},
+        hi:{text:"मित्र",   translit:"mitr"},
+        ko:{text:"친구",   translit:"chingu"}
+      }
+    ];
+
+    var COLS = 8;
+    var STORAGE_KEY = "mahjongLangsV1";
+
+    // Aktif diller (localStorage'dan yükle)
+    var activeLangs = (function(){
+      try {
+        var saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        if (Array.isArray(saved) && saved.length >= 2 && saved.length <= 6) {
+          var ok = saved.every(function(c){ return LANGUAGES[c]; });
+          if (ok) return saved;
+        }
+      } catch(e){}
+      return ["tr","en","de","es"];
+    })();
+
+    var tiles = [], selectedIndex = null, history = [],
+        timerSeconds = 0, timerInterval = null, gameActive = true,
+        bestKey = "mahjongBest";
+
+    // ─────────────────────────────────────────────
+    // Yardımcı fonksiyonlar
+    // ─────────────────────────────────────────────
+    function saveLangs(){
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(activeLangs)); } catch(e){}
+    }
+    function updateBestDisplay() {
+      var b = localStorage.getItem(bestKey);
+      document.getElementById("bestScore").innerText = b ? b : "—";
+    }
+    function stopTimer() { if(timerInterval) clearInterval(timerInterval); timerInterval=null; }
+    function startTimer() {
+      stopTimer();
+      timerInterval = setInterval(function() {
+        if(gameActive) {
+          timerSeconds++;
+          var m = Math.floor(timerSeconds/60), s = timerSeconds%60;
+          document.getElementById("timer").innerText = (m<10?"0"+m:m)+":"+(s<10?"0"+s:s);
+        }
+      }, 1000);
+    }
+
+    // ─────────────────────────────────────────────
+    // Dil seçici
+    // ─────────────────────────────────────────────
+    function renderLangSelector() {
+      var cont = document.getElementById("langSelector");
+      cont.innerHTML = "";
+      Object.keys(LANGUAGES).forEach(function(code){
+        var L = LANGUAGES[code];
+        var active = activeLangs.indexOf(code) > -1;
+        var chip = document.createElement("button");
+        chip.className = "lang-chip" + (active ? " active" : "");
+        if (active) {
+          chip.style.background = L.color;
+          chip.style.borderColor = L.color;
+          chip.style.color = "#fff";
+          chip.style.textShadow = "0 1px 2px rgba(0,0,0,0.35)";
+        }
+        chip.innerHTML = '<span class="chip-flag">' + L.flag + '</span>' + L.name;
+        chip.addEventListener("click", (function(c){ return function(){ toggleLang(c); }; })(code));
+        cont.appendChild(chip);
+      });
+    }
+
+    function toggleLang(code) {
+      var idx = activeLangs.indexOf(code);
+      if (idx > -1) {
+        if (activeLangs.length <= 2) {
+          document.getElementById("message").innerText = "⚠️ En az 2 dil seçili olmalı.";
+          return;
+        }
+        activeLangs.splice(idx, 1);
+      } else {
+        if (activeLangs.length >= 6) {
+          document.getElementById("message").innerText = "⚠️ En fazla 6 dil seçilebilir (ekran darlığı).";
+          return;
+        }
+        activeLangs.push(code);
+      }
+      saveLangs();
+      renderLangSelector();
+      resetGame();
+    }
+
+    // ─────────────────────────────────────────────
+    // Oyun
+    // ─────────────────────────────────────────────
+    function initGame() {
+      tiles = [];
+      var pool = [];
+      for (var i = 0; i < concepts.length; i++) {
+        for (var j = 0; j < activeLangs.length; j++) {
+          var lang = activeLangs[j];
+          var c = concepts[i][lang];
+          pool.push({
+            conceptId: i,
+            lang: lang,
+            text: c.text,
+            translit: c.translit
+          });
+        }
+      }
+      // Fisher-Yates
+      for (var i = pool.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var tmp = pool[i]; pool[i] = pool[j]; pool[j] = tmp;
+      }
+      for (var i = 0; i < pool.length; i++) {
+        tiles.push({
+          conceptId: pool[i].conceptId,
+          lang: pool[i].lang,
+          text: pool[i].text,
+          translit: pool[i].translit,
+          removed: false
+        });
+      }
+      renderGrid();
+      document.getElementById("remaining").innerText =
+        tiles.filter(function(t){ return !t.removed; }).length;
+      selectedIndex = null;
+      history = [];
+    }
+
+    function tileContentHTML(tile) {
+      var L = LANGUAGES[tile.lang];
+      var html = '<span class="tile-flag">' + L.flag + '</span>';
+      if (L.isLatin) {
+        html += '<div class="tile-text">' + tile.text + '</div>';
+      } else {
+        html += '<div class="tile-translit">' + tile.translit + '</div>';
+        html += '<div class="tile-native"' + (L.rtl ? ' dir="rtl"' : '') + '>' + tile.text + '</div>';
+      }
+      return html;
+    }
+
+    function renderGrid() {
+      var container = document.getElementById("grid");
+      container.innerHTML = "";
+      container.style.gridTemplateColumns = "repeat(" + COLS + ",1fr)";
+      for (var i = 0; i < tiles.length; i++) {
+        var tile = document.createElement("div");
+        tile.className = "tile";
+        tile.style.setProperty("--tile-color", LANGUAGES[tiles[i].lang].color);
+        if (tiles[i].removed) {
+          tile.classList.add("removed");
+        } else {
+          tile.innerHTML = tileContentHTML(tiles[i]);
+        }
+        if (selectedIndex === i) tile.classList.add("selected");
+        tile.addEventListener("click", (function(idx){ return function(){ onTileClick(idx); }; })(i));
+        container.appendChild(tile);
+      }
+    }
+
+    function isTileFree(idx) {
+      if (tiles[idx].removed) return false;
+      var row = Math.floor(idx / COLS), col = idx % COLS;
+      var leftFree   = (col === 0) || tiles[idx - 1].removed;
+      var rightFree  = (col === COLS - 1) || (idx + 1 >= tiles.length) || tiles[idx + 1].removed;
+      var topFree    = (row === 0) || tiles[idx - COLS].removed;
+      var bottomFree = (idx + COLS >= tiles.length) || tiles[idx + COLS].removed;
+      return (leftFree || rightFree || topFree || bottomFree);
+    }
+
+    function onTileClick(idx) {
+      if (tiles[idx].removed) return;
+      if (!isTileFree(idx)) {
+        document.getElementById("message").innerText = "Bu taş açık değil!";
+        return;
+      }
+      if (selectedIndex === null) {
+        selectedIndex = idx;
+        renderGrid();
+        document.getElementById("message").innerText = "Şimdi aynı kavramın farklı dildeki eşini seç.";
+        return;
+      }
+      if (selectedIndex === idx) {
+        selectedIndex = null;
+        renderGrid();
+        document.getElementById("message").innerText = "Seçim iptal.";
+        return;
+      }
+      var a = tiles[selectedIndex], b = tiles[idx];
+      var isMatch = (a.conceptId === b.conceptId) && (a.lang !== b.lang);
+      if (isMatch && isTileFree(idx)) {
+        history.push([selectedIndex, idx]);
+        tiles[selectedIndex].removed = true;
+        tiles[idx].removed = true;
+        var aText = a.text, bText = b.text;
+        var aLang = LANGUAGES[a.lang].flag, bLang = LANGUAGES[b.lang].flag;
+        selectedIndex = null;
+        renderGrid();
+        var remaining = tiles.filter(function(t){ return !t.removed; }).length;
+        document.getElementById("remaining").innerText = remaining;
+        if (remaining === 0) {
+          gameActive = false;
+          stopTimer();
+          var best = localStorage.getItem(bestKey);
+          if (!best || timerSeconds < parseInt(best)) {
+            localStorage.setItem(bestKey, timerSeconds);
+            updateBestDisplay();
+            document.getElementById("message").innerHTML =
+              "🎉 KAZANDIN! YENİ REKOR!<br><button onclick='resetGame()'>Tekrar Oyna</button>";
+          } else {
+            document.getElementById("message").innerHTML =
+              "🎉 TEBRİKLER! Oyunu tamamladın!<br><button onclick='resetGame()'>Tekrar Oyna</button>";
+          }
+        } else {
+          document.getElementById("message").innerText =
+            "✓ " + aLang + " " + aText + "  =  " + bLang + " " + bText;
+        }
+      } else {
+        document.getElementById("message").innerText = "Eşleşme yok veya taş kapalı!";
+        selectedIndex = null;
+        renderGrid();
+      }
+    }
+
+    function undo() {
+      if (history.length === 0) return;
+      var last = history.pop();
+      tiles[last[0]].removed = false;
+      tiles[last[1]].removed = false;
+      renderGrid();
+      document.getElementById("remaining").innerText =
+        tiles.filter(function(t){ return !t.removed; }).length;
+      document.getElementById("message").innerText = "Geri alındı.";
+    }
+
+    function resetGame() {
+      stopTimer();
+      timerSeconds = 0;
+      document.getElementById("timer").innerText = "00:00";
+      gameActive = true;
+      history = [];
+      initGame();
+      startTimer();
+      document.getElementById("message").innerText =
+        "Aynı kavramı taşıyan farklı dildeki kartları eşleştir.";
+    }
+
+    document.getElementById("undoBtn").addEventListener("click", undo);
+    document.getElementById("resetBtn").addEventListener("click", resetGame);
+
+    // Başlangıç
+    renderLangSelector();
+    initGame();
+    startTimer();
+    updateBestDisplay();
+
+    window.resetGame = resetGame;
+  })();
+</script>
+<div class="pacdi-share-bar" id="pacdiShareBar" style="clear:both;width:100%;flex-basis:100%;"></div>
+<script src="https://pacdi.store/assets/share-bar.js"></script>
+
+<div class="pacdi-sponsor-section" id="pacdiSponsorBar" style="clear:both;width:100%;flex-basis:100%;margin-top:24px;padding:16px;background:rgba(212,175,55,0.05);border:1px solid rgba(212,175,55,0.2);border-radius:12px;box-sizing:border-box;"></div>
+<script src="https://pacdi.store/assets/sponsor-bar.js"></script>
+
+<div id="pacdi-fsek" style="clear:both;width:100%;flex-basis:100%;text-align:center;padding:28px 16px 20px;border-top:1px solid rgba(212,175,55,0.15);margin-top:32px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-sizing:border-box;">
+  <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(212,175,55,0.06);border:1px solid rgba(212,175,55,0.25);border-radius:24px;padding:8px 20px;margin-bottom:12px;flex-wrap:wrap;justify-content:center;">
+    <span style="font-size:1rem;">🛡️</span>
+    <span style="font-size:0.72rem;font-weight:700;letter-spacing:0.1em;color:#D4AF37;text-transform:uppercase;">FSEK Registered · PACDI Framework</span>
+  </div>
+  <div style="font-size:0.78rem;color:#8A8F9A;margin-bottom:4px;">Operated by AskMeAI Teknoloji Ltd. Şti. (TR: 23837)</div>
+  <div style="font-size:0.72rem;color:#6B7280;margin-bottom:10px;">Intellectual property owned by © 2026 PACDI Global Yazılım Ltd. Şti. &mdash; FSEK No: <a href="https://pacdi.store/legal.html" style="color:#D4AF37;text-decoration:none;">2026/18897</a></div>
+  <div style="font-size:0.78rem;margin-bottom:10px;"><a href="https://pacdi.store/legal.html" style="color:#D4AF37;text-decoration:none;border-bottom:1px solid rgba(212,175,55,0.3);">Impressum &amp; Datenschutz &amp; AGB</a></div>
+  <div style="font-size:0.82rem;font-style:italic;color:#6B7280;">&ldquo;Technology in the service of humanity.&rdquo;</div>
+</div>
+<script>
+(function() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(function(){});
+  }
+
+  var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  var isInStandalone = ('standalone' in navigator && navigator.standalone);
+  var shown = sessionStorage.getItem('pwa-banner-shown');
+  if (shown || isInStandalone) return;
+
+  if (isIOS) {
+    setTimeout(function() {
+      var bar = document.createElement('div');
+      bar.id = 'pwa-banner';
+      bar.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#04162E;border-top:2px solid #F6B45F;padding:14px 16px;z-index:9999;font-family:system-ui;';
+      bar.innerHTML =
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">' +
+          '<div>' +
+            '<div style="color:#F6B45F;font-size:0.82rem;font-weight:700;margin-bottom:4px;">📲 Ana ekrana ekle</div>' +
+            '<div style="color:#b0b5bf;font-size:0.75rem;line-height:1.5;">Safari&#39;de <strong style="color:#eaf2fb;">&#11015; Paylaş</strong> butonuna bas, ardından <strong style="color:#eaf2fb;">Ana Ekrana Ekle</strong> seçeneğini seç.</div>' +
+            '<div style="color:#4a6a88;font-size:0.68rem;margin-top:4px;">&#9432; iOS&#39;ta otomatik kurulum desteklenmiyor — bu adım gerekli.</div>' +
+          '</div>' +
+          '<button onclick="document.getElementById(&#39;pwa-banner&#39;).remove();sessionStorage.setItem(&#39;pwa-banner-shown&#39;,&#39;1&#39;)" style="background:transparent;border:none;color:#7a9ab8;font-size:1.2rem;cursor:pointer;padding:0 4px;flex-shrink:0;">✕</button>' +
+        '</div>';
+      document.body.appendChild(bar);
+      sessionStorage.setItem('pwa-banner-shown', '1');
+    }, 3000);
+    return;
+  }
+
+  var deferredPrompt = null;
+  window.addEventListener('beforeinstallprompt', function(e) {
+    e.preventDefault();
+    deferredPrompt = e;
+    setTimeout(function() {
+      if (!deferredPrompt) return;
+      var bar = document.createElement('div');
+      bar.id = 'pwa-banner';
+      bar.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#04162E;border-top:2px solid #F6B45F;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;z-index:9999;font-family:system-ui;';
+      bar.innerHTML =
+        '<span style="color:#eaf2fb;font-size:0.85rem;">📲 Ana ekrana ekle &mdash; daha hızlı aç!</span>' +
+        '<div style="display:flex;gap:8px;">' +
+          '<button onclick="installPWA()" style="background:#F6B45F;border:none;color:#04162E;padding:6px 16px;border-radius:20px;font-weight:700;cursor:pointer;font-size:0.82rem;">Ekle</button>' +
+          '<button onclick="document.getElementById(&#39;pwa-banner&#39;).remove();sessionStorage.setItem(&#39;pwa-banner-shown&#39;,&#39;1&#39;)" style="background:transparent;border:1px solid rgba(246,180,95,0.3);color:#7a9ab8;padding:6px 12px;border-radius:20px;cursor:pointer;font-size:0.82rem;">Sonra</button>' +
+        '</div>';
+      document.body.appendChild(bar);
+    }, 3000);
+  });
+
+  window.installPWA = function() {
+    if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.then(function(){ deferredPrompt=null; }); }
+    var b = document.getElementById('pwa-banner'); if (b) b.remove();
+    sessionStorage.setItem('pwa-banner-shown', '1');
+  };
+})();
+</script>
+
+<button id="pacdi-feedback-btn" onclick="document.getElementById('pacdi-feedback-title').textContent='Oneri veya Hata Bildir';document.getElementById('pacdi-feedback-message').value='';document.getElementById('pacdi-feedback-modal').style.display='flex'" style="position:fixed;bottom:20px;right:20px;width:52px;height:52px;border-radius:50%;background:#F6B45F;border:none;font-size:1.4rem;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.3);z-index:9998;" title="Oneri veya hata bildir">💬</button>
+<div id="pacdi-feedback-modal" style="display:none;position:fixed;inset:0;background:rgba(4,22,46,0.75);z-index:9999;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:#0a2340;border:1px solid rgba(246,180,95,0.25);border-radius:12px;padding:24px;max-width:420px;width:100%;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <h3 id="pacdi-feedback-title" style="color:#F6B45F;font-size:1.05rem;margin:0;">Oneri veya Hata Bildir</h3>
+      <button onclick="document.getElementById('pacdi-feedback-modal').style.display='none'" style="background:transparent;border:none;color:#7a9ab8;font-size:1.3rem;cursor:pointer;">✕</button>
+    </div>
+    <textarea id="pacdi-feedback-message" placeholder="Ne dusunuyorsunuz? Bir hata mi buldunuz, yoksa oneriniz mi var?" style="width:100%;min-height:100px;background:rgba(255,255,255,0.03);border:1px solid rgba(246,180,95,0.15);border-radius:8px;padding:10px;color:#e8edf2;font-family:inherit;font-size:0.88rem;resize:vertical;margin-bottom:10px;box-sizing:border-box;"></textarea>
+    <input type="text" id="pacdi-feedback-contact" placeholder="E-posta (istege bagli - degerli onerilere tesekkur/hediye gonderebilmemiz icin birakmanizi oneririz)" style="width:100%;background:rgba(255,255,255,0.03);border:1px solid rgba(246,180,95,0.15);border-radius:8px;padding:10px;color:#e8edf2;font-family:inherit;font-size:0.85rem;margin-bottom:10px;box-sizing:border-box;">
+    <input type="text" id="pacdi-feedback-website" name="website" autocomplete="off" tabindex="-1" style="position:absolute;left:-9999px;opacity:0;height:0;width:0;">
+    <div id="pacdi-feedback-status" style="font-size:0.8rem;margin-bottom:10px;display:none;"></div>
+    <button id="pacdi-feedback-submit" onclick="pacdiSubmitFeedback()" style="width:100%;background:#F6B45F;color:#04162E;border:none;border-radius:8px;padding:11px;font-weight:700;font-size:0.9rem;cursor:pointer;font-family:inherit;">Gonder</button>
+  </div>
+</div>
+<script>
+(function() {
+  var pacdiFeedbackOpenTime = Date.now();
+  window.pacdiSubmitFeedback = function() {
+    var honeypot = document.getElementById('pacdi-feedback-website').value;
+    var elapsed = Date.now() - pacdiFeedbackOpenTime;
+    var statusEl = document.getElementById('pacdi-feedback-status');
+    var message = document.getElementById('pacdi-feedback-message').value.trim();
+    var contact = document.getElementById('pacdi-feedback-contact').value.trim();
+
+    if (!message) {
+      statusEl.style.display = 'block';
+      statusEl.style.color = '#e8604c';
+      statusEl.textContent = 'Lutfen bir mesaj yazin.';
+      return;
+    }
+
+    if (honeypot || elapsed < 2000) {
+      statusEl.style.display = 'block';
+      statusEl.style.color = '#6fcf97';
+      statusEl.textContent = 'Tesekkurler! Mesajiniz iletildi.';
+      document.getElementById('pacdi-feedback-message').value = '';
+      document.getElementById('pacdi-feedback-contact').value = '';
+      setTimeout(function() { document.getElementById('pacdi-feedback-modal').style.display = 'none'; statusEl.style.display = 'none'; }, 1500);
+      return;
+    }
+
+    var submitBtn = document.getElementById('pacdi-feedback-submit');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Gonderiliyor...';
+
+    fetch('/api/v1/feedback/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tool: document.title, name: '', contact: contact, message: message })
+    }).then(function(res) { return res.json(); }).then(function(data) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Gonder';
+      statusEl.style.display = 'block';
+      if (data.ok) {
+        statusEl.style.color = '#6fcf97';
+        statusEl.textContent = 'Tesekkurler! Mesajiniz iletildi.';
+        document.getElementById('pacdi-feedback-message').value = '';
+        document.getElementById('pacdi-feedback-contact').value = '';
+        setTimeout(function() { document.getElementById('pacdi-feedback-modal').style.display = 'none'; statusEl.style.display = 'none'; }, 1500);
+      } else {
+        statusEl.style.color = '#e8604c';
+        statusEl.textContent = 'Bir hata olustu, lutfen tekrar deneyin.';
+      }
+    }).catch(function() {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Gonder';
+      statusEl.style.display = 'block';
+      statusEl.style.color = '#e8604c';
+      statusEl.textContent = 'Baglanti hatasi, lutfen tekrar deneyin.';
+    });
+  };
+})();
+</script>
+
+</body>
+</html>
