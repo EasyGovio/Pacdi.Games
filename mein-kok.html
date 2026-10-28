@@ -52,6 +52,11 @@ body {
 .top h1 { font-family: var(--display); font-weight: 900; font-size: 34px; letter-spacing: .08em; margin: 0; color: var(--moon); line-height: 1; }
 .top .sub { color: var(--muted); font-size: 15px; flex: 1; min-width: 0; }
 .icon-btn { background: transparent; border: 1px solid var(--line); color: var(--fg); border-radius: 8px; width: 40px; height: 40px; font-size: 18px; cursor: pointer; }
+.lang { display: flex; gap: 4px; }
+.lang button { background: transparent; border: 1px solid var(--line); color: var(--muted); border-radius: 8px; min-width: 38px; height: 40px; font-family: var(--body); font-weight: 700; font-size: 14px; letter-spacing: .04em; cursor: pointer; padding: 0 6px; }
+.lang button[aria-pressed="true"] { color: #1c1008; background: var(--moon); border-color: var(--moon); }
+.lang button:focus-visible { outline: 2px solid var(--moon); outline-offset: 2px; }
+@media (max-width: 520px) { .top .sub { display: none; } .top { justify-content: space-between; } }
 .icon-btn:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--moon); outline-offset: 2px; }
 
 /* Sahne */
@@ -155,7 +160,8 @@ input[type=text].bad { border-color: var(--err); animation: shake .4s; }
 <div class="wrap">
   <header class="top">
     <h1>KÖK</h1>
-    <span class="sub">Kelimelerin köklerini bul</span>
+    <span class="sub" id="sub">Kelimelerin köklerini bul</span>
+    <div class="lang" id="lang" role="group" aria-label="Language"><button type="button" data-l="tr">TR</button><button type="button" data-l="de">DE</button><button type="button" data-l="en">EN</button></div>
     <button class="icon-btn" id="mute" type="button" aria-label="Sesi aç veya kapat">🔊</button>
   </header>
 
@@ -164,7 +170,7 @@ input[type=text].bad { border-color: var(--err); animation: shake .4s; }
     <div id="zones"></div>
     <div class="veil" id="veil">
       <h2>KÖK</h2>
-      <p>Resimdeki üç yer, kelimelerin köklerini taşıyor. Aklına gelen kelimeleri yaz, kökleri ortaya çıkar. Süre sınırı yok.</p>
+      <p id="veilP">Resimdeki üç yer, kelimelerin köklerini taşıyor. Aklına gelen kelimeleri yaz, kökleri ortaya çıkar. Süre sınırı yok.</p>
       <button class="btn" id="startBtn" type="button">Kampa gir</button>
     </div>
   </div>
@@ -188,7 +194,7 @@ input[type=text].bad { border-color: var(--err); animation: shake .4s; }
     <div class="actions"><button class="btn quiet" id="next" type="button" disabled>Pas</button></div>
     <p class="hint" id="hint">Süre sınırı yok. İstediğin kadar düşün.</p>
     <details class="log" id="logBox">
-      <summary>Eşleşmeyen denemeler (<span id="logN">0</span>)</summary>
+      <summary><span id="logT">Eşleşmeyen denemeler</span> (<span id="logN">0</span>)</summary>
       <p class="hint" id="logNote">Sistemin tanımadığı kelimeler burada birikir. Kopyalayıp kök sahibine gönder, listeye eklensin.</p>
       <ul class="found" id="logList"></ul>
       <div class="actions">
@@ -245,7 +251,7 @@ function stemOk(n, s) {
 }
 /* Girdi hiç aksanlı harf içeriyorsa sıkı, yoksa gevşek (katlanmış) karşılaştır */
 /* Kök ile başlayan ama anlamı ters olan biçimler kabul edilmez */
-var NOT = { huzur: ['huzursuz'], rahat: ['rahatsiz'], guven: ['guvensiz'], sevgi: ['sevgisiz'], sefkat: ['sefkatsiz'], sabir: ['sabirsiz'], tune: ['tunel'], yem: ['yemin'], kal: ['kalem', 'kalin', 'kalite', 'kalt'], dur: ['durst'], fest: ['festival'] };
+var NOT = { huzur: ['huzursuz'], rahat: ['rahatsiz'], guven: ['guvensiz'], sevgi: ['sevgisiz'], sefkat: ['sefkatsiz'], sabir: ['sabirsiz'], tune: ['tunel'], yem: ['yemin'], kal: ['kalem', 'kalin', 'kalite', 'kalt'], dur: ['durst'], fest: ['festival'], stand: ['standard'], rock: ['rocket'], firm: ['firmware'], root: ['rootless'], wall: ['wallet', 'wallpaper'], wand: ['wandern', 'wanderung', 'wandel'], stur: ['sturm'], herz: ['herzog'], liebe: ['lieber'], schutz: ['schutzlos'], trost: ['trostlos'], feed: ['feedback'], care: ['career', 'careless'], soft: ['software'], home: ['homeless', 'homework'], grow: ['growl'], fear: ['fearless'], wait: ['waiter', 'waitress'], rest: ['restless', 'restaurant'], stop: ['stopwatch'] };
 function matchEntry(en, nS, nF, strict) {
   var ex = NOT[en.stemF];
   if (ex && ex.some(function (x) { return nF.indexOf(x) === 0; })) return false;
@@ -257,72 +263,197 @@ function matchEntry(en, nS, nF, strict) {
   return !!en.stemS2 && stemOk(n, strict ? en.stemS2 : en.stemF2);
 }
 function mkTile(o) {
-  var t = { id: o.id, kok: o.kok, name: o.name, color: o.color, rects: o.rects, anchor: o.anchor, desc: o.desc, q: o.q, tips: o.tips, entries: [], dolch: [] };
+  var t = { id: o.id, kok: o.kok, color: o.color, rects: o.rects, anchor: o.anchor, L: o.L, entries: [], dolch: [] };
   var seen = {};
   function add(list, w, cat) { var e = mkEntry(w, cat), k = cat + '|' + e.stemS; if (seen[k]) return; seen[k] = 1; list.push(e); }
   CATS.forEach(function (c) { o.words[c.id].forEach(function (w) { add(t.entries, w, c.id); }); });
   o.dolch.forEach(function (w) { add(t.dolch, w, 'dolch'); });
   return t;
 }
+/* Kelime listeleri: Türkçe + Almanca + İngilizce birlikte tanınır. Hangi dilde yazılırsa yazılsın eşleşir. */
 var TILES = [
   mkTile({
-    id: 'sed', kok: 'SED', name: 'SED kökü', color: '255,150,60',
+    id: 'sed', kok: 'SED', color: '255,150,60',
     rects: [[41, 57, 19, 29]], anchor: [50, 91],
-    desc: 'Resmin merkezindeki ateşin başına bak. Güvenle yerleşebileceğin, sabit durup dinlenebileceğin o alanı gör.',
-    q: 'Bu resimdeki “yerleşme, oturma, sabit kalma, sarsılmama veya sakinleşme” hissini veren hangi Türkçe kelimeler aklına geliyor?',
-    tips: ['Ateşin başında bir yere ne yaparsın?', 'Telaşsız, hareketsiz bir hâli düşün.', 'Bir şeyi beklerken nasıl durursun?'],
+    L: {
+      tr: { name: 'SED kökü',
+        desc: 'Resmin merkezindeki ateşin başına bak. Güvenle yerleşebileceğin, sabit durup dinlenebileceğin o alanı gör.',
+        q: 'Bu resimdeki “yerleşme, oturma, sabit kalma, sarsılmama veya sakinleşme” hissini veren hangi Türkçe kelimeler aklına geliyor?',
+        tips: ['Ateşin başında bir yere ne yaparsın?', 'Telaşsız, hareketsiz bir hâli düşün.', 'Bir şeyi beklerken nasıl durursun?'] },
+      de: { name: 'SED-Wurzel',
+        desc: 'Schau auf das Feuer in der Mitte des Bildes. Sieh den Platz, an dem man sich sicher niederlassen, ruhig verweilen und ausruhen kann.',
+        q: 'Welche Wörter fallen dir ein, die das Gefühl von „sich setzen, niederlassen, fest bleiben, unerschüttert sein oder zur Ruhe kommen“ ausdrücken?',
+        tips: ['Was tust du am Feuer, wenn du dich niederlässt?', 'Denk an einen ruhigen Zustand ohne Hast und Bewegung.', 'Wie stehst oder sitzt du, wenn du auf etwas wartest?'] },
+      en: { name: 'SED root',
+        desc: 'Look at the fire in the center of the picture. See the place where you can settle safely, stay still and rest.',
+        q: 'Which words come to mind that carry the feeling of “settling, sitting, staying firm, being unshaken or growing calm”?',
+        tips: ['What do you do when you settle down by a fire?', 'Think of a calm state without hurry or movement.', 'How do you stand or sit while waiting for something?'] }
+    },
     words: {
       kinder: ['oturmak', 'otur', 'oturan', 'oturtmak', 'oturak', 'set', 'sedir', 'sed',
-        'sitzen', 'sitze', 'gesessen', 'setzen', 'setze', 'gesetzt', 'sitz', 'sessel'],
+        'sitzen', 'sitze', 'gesessen', 'setzen', 'setze', 'gesetzt', 'sitz', 'sessel',
+        'sit', 'sitting', 'sat', 'seat', 'seated', 'settle', 'settled', 'chair'],
       sinn: ['sakinleşmek', 'sakin', 'sakinleş', 'dinlenmek', 'dinlen', 'dinlenme', 'çökmek', 'çök', 'çömelmek', 'çömel',
         'bağdaş', 'bağdaş kurmak', 'bağdaş kur', 'tünemek', 'tünek', 'durulmak', 'durul', 'sabit', 'sabitlenmek', 'yatışmak',
         'huzur', 'yerleşmek', 'yaslanmak', 'dingin', 'durgun', 'sükunet', 'sessiz', 'rahat', 'mola', 'barınmak', 'sığınmak',
         'konaklamak', 'yuva', 'yurt', 'iskân', 'hareketsiz', 'kıpırdamamak',
         'hocken', 'hocke', 'gehockt', 'bücken', 'bücke', 'gebückt', 'fest', 'still', 'säen', 'säe', 'gesät', 'ernten', 'ernte', 'geerntet',
-        'halten', 'halt', 'ausruhen', 'ruhen', 'ruhe', 'niederlassen', 'verharren'],
+        'halten', 'halt', 'ausruhen', 'ruhen', 'ruhe', 'niederlassen', 'verharren',
+        'calm', 'rest', 'relax', 'peace', 'peaceful', 'quiet', 'dwell', 'linger', 'crouch', 'squat', 'perch', 'shelter', 'serene', 'tranquil', 'stillness', 'repose', 'hearth', 'refuge'],
       zeit: ['beklemek', 'bekle', 'bekleme', 'kalmak', 'kal', 'durmak', 'dur', 'verharren', 'bekleyiş', 'an', 'anlık', 'şimdi',
-        'warten', 'warte', 'gewartet', 'bleiben', 'bleibe', 'geblieben', 'stoppen']
+        'warten', 'warte', 'gewartet', 'bleiben', 'bleibe', 'geblieben', 'stoppen',
+        'wait', 'stay', 'remain', 'pause', 'moment', 'now', 'hold', 'stop']
     },
     dolch: ['kıskanmak', 'kısmak', 'kıskanç', 'hapsetmek', 'hapis', 'starr', 'bloke', 'donmak',
-      'blockieren', 'blockiert', 'einschließen', 'gefangen', 'isolieren']
+      'blockieren', 'blockiert', 'einschließen', 'gefangen', 'isolieren',
+      'trapped', 'frozen', 'stuck', 'jealous', 'envy', 'imprisoned', 'locked', 'blocked', 'isolated']
   }),
   mkTile({
-    id: 'sta', kok: 'STA', name: 'STA kökü', color: '170,210,140',
+    id: 'sta', kok: 'STA', color: '170,210,140',
     rects: [[8, 0, 26, 36], [40, 13, 20, 18]], anchor: [25, 12],
-    desc: 'Şimdi resimdeki ulu ağaca ve arkasındaki devasa dağa bak. Yüzyıllardır orada sarsılmadan dikiliyorlar.',
-    q: 'Ayakta dimdik durmayı, bir yere kök salmayı, direnmeyi veya bir sütun gibi sarsılmamayı anlatan hangi kelimeleri görüyorsun?',
-    tips: ['Ağaç yüzyıllarca ne yapar?', 'Dağ yerinden oynar mı?', 'Bir sütun gibi olmak için ne gerekir?'],
-    words: {
-      kinder: ['durmak', 'stant', 'taş', 'dikilmek'],
-      sinn: ['sabit', 'ayaklanmak', 'kök salmak', 'direnmek', 'dağ', 'ulu', 'sağlam',
-        'kök', 'dimdik', 'ayakta', 'sütun', 'dayanmak', 'sarsılmaz', 'kararlı', 'çınar', 'ağaç', 'temel', 'sebat', 'azim', 'tutunmak', 'tepe', 'zirve', 'köklenmek', 'güçlenmek', 'güç salmak', 'demir atmak'],
-      zeit: ['duraklama', 'süreç', 'yüzyıl', 'asır', 'kalıcı', 'daimi', 'sonsuz']
+    L: {
+      tr: { name: 'STA kökü',
+        desc: 'Şimdi resimdeki ulu ağaca ve arkasındaki devasa dağa bak. Yüzyıllardır orada sarsılmadan dikiliyorlar.',
+        q: 'Ayakta dimdik durmayı, bir yere kök salmayı, direnmeyi veya bir sütun gibi sarsılmamayı anlatan hangi kelimeleri görüyorsun?',
+        tips: ['Ağaç yüzyıllarca ne yapar?', 'Dağ yerinden oynar mı?', 'Bir sütun gibi olmak için ne gerekir?'] },
+      de: { name: 'STA-Wurzel',
+        desc: 'Sieh jetzt auf den uralten Baum und den gewaltigen Berg dahinter. Seit Jahrhunderten stehen sie dort, unerschüttert.',
+        q: 'Welche Wörter sprechen vom aufrechten Stehen, vom Wurzelschlagen, vom Standhalten oder davon, wie eine Säule nicht zu wanken?',
+        tips: ['Was tut ein Baum über Jahrhunderte?', 'Bewegt sich ein Berg von der Stelle?', 'Was braucht man, um wie eine Säule zu sein?'] },
+      en: { name: 'STA root',
+        desc: 'Now look at the ancient tree and the huge mountain behind it. For centuries they have stood there, unshaken.',
+        q: 'Which words speak of standing upright, taking root, holding out, or being unshaken like a pillar?',
+        tips: ['What does a tree do over centuries?', 'Does a mountain ever move from its place?', 'What does it take to be like a pillar?'] }
     },
-    dolch: ['inat', 'katı', 'duvar']
+    words: {
+      kinder: ['durmak', 'stant', 'taş', 'dikilmek',
+        'stehen', 'stand', 'gestanden', 'stein', 'stamm',
+        'stood', 'standing', 'stone', 'rock'],
+      sinn: ['sabit', 'ayaklanmak', 'kök salmak', 'direnmek', 'dağ', 'ulu', 'sağlam',
+        'kök', 'dimdik', 'ayakta', 'sütun', 'dayanmak', 'sarsılmaz', 'kararlı', 'çınar', 'ağaç', 'temel', 'sebat', 'azim', 'tutunmak', 'tepe', 'zirve', 'köklenmek', 'güçlenmek', 'güç salmak', 'demir atmak',
+        'wurzel', 'verwurzelt', 'standhaft', 'standhalten', 'säule', 'aufrecht', 'berg', 'baum', 'stark', 'unerschütterlich', 'beständig', 'fels', 'felsen', 'boden', 'fundament', 'zuverlässig', 'trotzen', 'widerstehen', 'stabil', 'fest',
+        'root', 'firm', 'steady', 'steadfast', 'resist', 'endure', 'pillar', 'tree', 'mountain', 'strong', 'strength', 'unshaken', 'upright', 'solid', 'stable', 'foundation', 'anchor', 'grounded', 'persist', 'mighty', 'ancient'],
+      zeit: ['duraklama', 'süreç', 'yüzyıl', 'asır', 'kalıcı', 'daimi', 'sonsuz',
+        'jahrhundert', 'jahrhunderte', 'jahrtausend', 'ewig', 'ewigkeit', 'dauer', 'zeitlos', 'überdauern', 'immer', 'jahre',
+        'century', 'centuries', 'forever', 'eternal', 'eternity', 'lasting', 'permanent', 'enduring', 'timeless', 'ages']
+    },
+    dolch: ['inat', 'katı', 'duvar',
+      'starr', 'stur', 'mauer', 'wand', 'trotz', 'eisern',
+      'stubborn', 'wall', 'rigid', 'stiff', 'obstinate', 'inflexible']
   }),
   mkTile({
-    id: 'mater', kok: 'MATER', name: 'MATER kökü', color: '255,190,90',
+    id: 'mater', kok: 'MATER', color: '255,190,90',
     rects: [[0, 54, 22, 34], [17, 70, 18, 17], [8, 38, 25, 24], [25, 50, 9, 16], [63, 53, 15, 22]], anchor: [22, 92],
-    desc: 'Resimdeki evcil hayvanlara ve birbiriyle uyum içinde olan doğaya bak. Burası ilk güvenli liman.',
-    q: 'Sana beslenmeyi, şefkati, korumayı, sevgiyi ve bireysel yalnızlıktan çıkıp “Biz” olmayı hatırlatan hangi kelimeler var?',
-    tips: ['Evde seni ilk kim besler ve korur?', 'Hayvanlar birbirine yaslanırken ne hissedersin?', '“Ben” yerine ne dersin?'],
-    words: {
-      kinder: ['anne', 'ana', 'hatun', 'valide'],
-      sinn: ['beslemek', 'eğitim', 'sıcaklık', 'kucaklama', 'teselli', 'güven', 'biz', 'şefkat', 'sevgi', 'yumuşak',
-        'sıcak', 'korumak', 'kollamak', 'sarılmak', 'sevmek', 'merhamet', 'yuva', 'aile', 'birlikte', 'beraber', 'sığınak', 'emzirmek', 'okşamak', 'sevecen', 'destek', 'yemek', 'yem'],
-      zeit: ['büyümek', 'sabır', 'zamanla', 'çocuk', 'bebek', 'nesil', 'olgun']
+    L: {
+      tr: { name: 'MATER kökü',
+        desc: 'Resimdeki evcil hayvanlara ve birbiriyle uyum içinde olan doğaya bak. Burası ilk güvenli liman.',
+        q: 'Sana beslenmeyi, şefkati, korumayı, sevgiyi ve bireysel yalnızlıktan çıkıp “Biz” olmayı hatırlatan hangi kelimeler var?',
+        tips: ['Evde seni ilk kim besler ve korur?', 'Hayvanlar birbirine yaslanırken ne hissedersin?', '“Ben” yerine ne dersin?'] },
+      de: { name: 'MATER-Wurzel',
+        desc: 'Sieh auf die zahmen Tiere und die Natur, die in Eintracht miteinander lebt. Hier ist der erste sichere Hafen.',
+        q: 'Welche Wörter erinnern dich an Nahrung, Zärtlichkeit, Schutz und Liebe, und daran, aus der Einsamkeit des „Ich“ ins „Wir“ zu finden?',
+        tips: ['Wer füttert und beschützt dich zuhause zuerst?', 'Was fühlst du, wenn Tiere sich aneinanderschmiegen?', 'Was sagst du statt „ich“?'] },
+      en: { name: 'MATER root',
+        desc: 'Look at the tame animals and the nature living in harmony. This is the first safe harbor.',
+        q: 'Which words remind you of nourishment, tenderness, protection and love, and of leaving the loneliness of “I” for “we”?',
+        tips: ['Who feeds and protects you first at home?', 'What do you feel when animals nestle against each other?', 'What do you say instead of “I”?'] }
     },
-    dolch: ['ayrılık', 'yalnızlık', 'korku']
+    words: {
+      kinder: ['anne', 'ana', 'hatun', 'valide',
+        'mutter', 'mama', 'mami', 'mutti',
+        'mother', 'mom', 'mum', 'mommy', 'mummy'],
+      sinn: ['beslemek', 'eğitim', 'sıcaklık', 'kucaklama', 'teselli', 'güven', 'biz', 'şefkat', 'sevgi', 'yumuşak',
+        'sıcak', 'korumak', 'kollamak', 'sarılmak', 'sevmek', 'merhamet', 'yuva', 'aile', 'birlikte', 'beraber', 'sığınak', 'emzirmek', 'okşamak', 'sevecen', 'destek', 'yemek', 'yem',
+        'nähren', 'ernähren', 'füttern', 'nahrung', 'wärme', 'geborgenheit', 'geborgen', 'trost', 'trösten', 'liebe', 'lieben', 'zärtlich', 'schutz', 'schützen', 'beschützen', 'fürsorge', 'wir', 'gemeinsam', 'gemeinschaft', 'familie', 'zuhause', 'heimat', 'kuscheln', 'umarmen', 'umarmung', 'vertrauen', 'sicherheit', 'sanft', 'weich', 'pflegen', 'nest', 'herz', 'zuneigung', 'mitgefühl', 'stillen',
+        'nourish', 'feed', 'nurture', 'warmth', 'warm', 'comfort', 'protect', 'protection', 'love', 'care', 'tender', 'tenderness', 'gentle', 'soft', 'trust', 'safe', 'safety', 'together', 'we', 'family', 'home', 'embrace', 'hug', 'hugs', 'cuddle', 'kindness', 'compassion', 'affection', 'belonging', 'nest', 'heart', 'security', 'secure', 'nurse', 'cherish'],
+      zeit: ['büyümek', 'sabır', 'zamanla', 'çocuk', 'bebek', 'nesil', 'olgun',
+        'wachsen', 'gedeihen', 'geduld', 'kindheit', 'kind', 'baby', 'säugling', 'generation', 'erwachsen', 'reifen', 'heranwachsen', 'aufwachsen',
+        'grow', 'growth', 'patience', 'patient', 'child', 'baby', 'mature', 'ripen']
+    },
+    dolch: ['ayrılık', 'yalnızlık', 'korku',
+      'trennung', 'einsamkeit', 'angst', 'verlassen', 'allein', 'furcht', 'abschied',
+      'separation', 'loneliness', 'lonely', 'fear', 'alone', 'abandon', 'goodbye', 'farewell']
   })
 ];
-var PRAISE = [
-  'Harika! Dil hissin tam kalbinden vurdu!',
-  'Muhteşem bir bağ!',
-  'Doğru iz üzerindesin!',
-  'Çok güzel, tam isabet!',
-  'Harika bir yakalayış!',
-  'Kelime köküne ulaştı!'
-];
+/* Diller */
+var CATNAME = {
+  tr: { kinder: 'Çocuk kelime', sinn: 'Anlam', zeit: 'Zaman', dolch: 'Gölge' },
+  de: { kinder: 'Kinderwort', sinn: 'Sinn', zeit: 'Zeit', dolch: 'Schatten' },
+  en: { kinder: 'Child word', sinn: 'Meaning', zeit: 'Time', dolch: 'Shadow' }
+};
+var PRAISE = {
+  tr: ['Harika! Dil hissin tam kalbinden vurdu!', 'Muhteşem bir bağ!', 'Doğru iz üzerindesin!', 'Çok güzel, tam isabet!', 'Harika bir yakalayış!', 'Kelime köküne ulaştı!'],
+  de: ['Wunderbar! Dein Sprachgefühl trifft mitten ins Herz!', 'Eine großartige Verbindung!', 'Du bist auf der richtigen Spur!', 'Sehr schön, genau ins Schwarze!', 'Toll gefunden!', 'Das Wort hat seine Wurzel erreicht!'],
+  en: ['Wonderful! Your feel for language struck right at the heart!', 'A magnificent connection!', 'You are on the right track!', 'Lovely, right on target!', 'A great catch!', 'The word has reached its root!']
+};
+var UI = {
+  tr: {
+    sub: 'Kelimelerin köklerini bul', mute: 'Sesi aç veya kapat', inv: 'Envanter', nav: 'Resimdeki yerler',
+    alt: 'Bir adam gözleri kapalı, orman içinde ateşin başında oturuyor. Çevresinde kurt, tilki, geyik, ceylan ve tavşan dinleniyor; arkada şelale, göl, ay ve dağlar, ağaçların arasında parlayan gözler.',
+    veil: 'Resimdeki üç yer, kelimelerin köklerini taşıyor. Aklına gelen kelimeleri yaz, kökleri ortaya çıkar. Süre sınırı yok.',
+    start: 'Kampa gir', ready: 'Hazır', readyDesc: 'Başlamak için “Kampa gir” düğmesine dokun.',
+    ph: 'Aklına gelen kelime', word: 'Kelimen', send: 'Gönder', hint: 'Süre sınırı yok. İstediğin kadar düşün.',
+    pass: 'Pas', next: 'Sonraki ›', finish: 'Bitir', again: 'Baştan oyna',
+    words: function (n) { return n + ' kelime'; },
+    zoneAria: function (n) { return n + ' bölgesini seç'; },
+    tooShort: 'Kelime çok kısa. Tam bir kelime yaz.', already: 'Bu kelimeyi zaten buldun. Yenisini ara.',
+    miss: 'Farklı bir eylem veya durum düşün... İpucu: ',
+    echoed: function (l) { return ' Bu kelime ' + l.join(' ve ') + ' kökünde de yankılandı.'; },
+    daggerAlso: 'Ayrıca kökün gölgesine de dokundun: 🗡️.',
+    daggerOnly: 'Bu kelime kökün gölgesine ait, yolu saptırıyor. 🗡️ kazandın ama köke yaklaşmadın.',
+    finLit: 'Kökler aydınlandı', fin: 'Yolculuk bitti',
+    finDesc: function (n) { return 'Toplam ' + n + ' kelime buldun. Ateş sakin sakin yanmaya devam ediyor.'; },
+    skipped: 'pas geçildi, yukarıdan dönebilirsin', back: 'Bir bölgeye dokunarak istediğin zaman geri dönebilirsin.',
+    logT: 'Eşleşmeyen denemeler', logNote: 'Sistemin tanımadığı kelimeler burada birikir. Kopyalayıp kök sahibine gönder, listeye eklensin.',
+    logNoteSrv: 'Sistemin tanımadığı kelimeler, sözlüğü geliştirmek için kök sahibine de iletilir. Kelimeyle birlikte kişisel bir bilgi gönderilmez.',
+    copy: 'Kopyala', clear: 'Temizle', copied: 'Kopyalandı.', selected: 'Metin seçildi. Kopyala komutunu kullan.',
+    noRec: 'Henüz kayıtlı kelime yok.', cleared: 'Liste temizlendi.', logArea: 'Eşleşmeyen kelimeler'
+  },
+  de: {
+    sub: 'Finde die Wurzeln der Wörter', mute: 'Ton an oder aus', inv: 'Inventar', nav: 'Orte im Bild',
+    alt: 'Ein Mann sitzt mit geschlossenen Augen im Wald am Feuer. Um ihn ruhen Wolf, Fuchs, Hirsch, Reh und Hase; dahinter Wasserfall, See, Mond und Berge, zwischen den Bäumen leuchtende Augen.',
+    veil: 'Die drei Orte im Bild tragen die Wurzeln der Wörter. Schreibe, was dir einfällt, und die Wurzeln kommen ans Licht. Kein Zeitlimit.',
+    start: 'Ins Lager gehen', ready: 'Bereit', readyDesc: 'Tippe auf „Ins Lager gehen“, um zu beginnen.',
+    ph: 'Was fällt dir ein?', word: 'Dein Wort', send: 'Senden', hint: 'Kein Zeitlimit. Denk so lange du willst.',
+    pass: 'Passen', next: 'Weiter ›', finish: 'Beenden', again: 'Nochmal spielen',
+    words: function (n) { return n + (n === 1 ? ' Wort' : ' Wörter'); },
+    zoneAria: function (n) { return n + ': Bereich wählen'; },
+    tooShort: 'Das Wort ist zu kurz. Schreib ein ganzes Wort.', already: 'Dieses Wort hast du schon gefunden. Such ein neues.',
+    miss: 'Denk an eine andere Handlung oder einen anderen Zustand... Tipp: ',
+    echoed: function (l) { return ' Dieses Wort hallte auch in ' + l.join(' und ') + ' wider.'; },
+    daggerAlso: 'Außerdem hast du den Schatten der Wurzel berührt: 🗡️.',
+    daggerOnly: 'Dieses Wort gehört zum Schatten der Wurzel und führt vom Weg ab. Du hast 🗡️ bekommen, bist der Wurzel aber nicht näher gekommen.',
+    finLit: 'Die Wurzeln leuchten', fin: 'Die Reise ist zu Ende',
+    finDesc: function (n) { return 'Du hast insgesamt ' + n + (n === 1 ? ' Wort' : ' Wörter') + ' gefunden. Das Feuer brennt friedlich weiter.'; },
+    skipped: 'übersprungen, du kannst oben zurückkehren', back: 'Tippe auf eine Stelle im Bild, um jederzeit zurückzukehren.',
+    logT: 'Nicht erkannte Wörter', logNote: 'Wörter, die das System nicht kennt, sammeln sich hier. Kopiere sie und schick sie der Person hinter den Wurzeln, damit sie in die Liste kommen.',
+    logNoteSrv: 'Wörter, die das System nicht kennt, werden zur Verbesserung des Wörterbuchs auch an die Person hinter den Wurzeln übermittelt. Es werden keine persönlichen Daten gesendet.',
+    copy: 'Kopieren', clear: 'Leeren', copied: 'Kopiert.', selected: 'Text markiert. Nutze den Kopieren-Befehl.',
+    noRec: 'Noch keine Wörter gespeichert.', cleared: 'Liste geleert.', logArea: 'Nicht erkannte Wörter'
+  },
+  en: {
+    sub: 'Find the roots of words', mute: 'Toggle sound', inv: 'Inventory', nav: 'Places in the picture',
+    alt: 'A man sits with closed eyes by a fire in the forest. Around him a wolf, fox, deer, roe and rabbit rest; behind them a waterfall, lake, moon and mountains, and glowing eyes between the trees.',
+    veil: 'The three places in the picture carry the roots of words. Type whatever comes to mind and the roots come to light. No time limit.',
+    start: 'Enter the camp', ready: 'Ready', readyDesc: 'Tap “Enter the camp” to begin.',
+    ph: 'A word that comes to mind', word: 'Your word', send: 'Send', hint: 'No time limit. Take as long as you like.',
+    pass: 'Pass', next: 'Next ›', finish: 'Finish', again: 'Play again',
+    words: function (n) { return n + (n === 1 ? ' word' : ' words'); },
+    zoneAria: function (n) { return 'Select ' + n + ' area'; },
+    tooShort: 'That word is too short. Type a full word.', already: 'You already found this word. Look for a new one.',
+    miss: 'Think of a different action or state... Hint: ',
+    echoed: function (l) { return ' This word also echoed in ' + l.join(' and ') + '.'; },
+    daggerAlso: 'You also touched the shadow of the root: 🗡️.',
+    daggerOnly: 'This word belongs to the root’s shadow and leads you astray. You earned 🗡️ but did not get closer to the root.',
+    finLit: 'The roots are lit', fin: 'The journey is over',
+    finDesc: function (n) { return 'You found ' + n + (n === 1 ? ' word' : ' words') + ' in total. The fire keeps burning peacefully.'; },
+    skipped: 'skipped, you can return from above', back: 'Tap a place in the picture to return any time.',
+    logT: 'Unrecognized tries', logNote: 'Words the system does not know collect here. Copy them and send them to the root owner so they can be added to the list.',
+    logNoteSrv: 'Words the system does not know are also sent to the root owner to improve the dictionary. No personal data is sent with the word.',
+    copy: 'Copy', clear: 'Clear', copied: 'Copied.', selected: 'Text selected. Use the copy command.',
+    noRec: 'No saved words yet.', cleared: 'List cleared.', logArea: 'Unrecognized words'
+  }
+};
 </script>
 
 <script>
@@ -331,9 +462,21 @@ var PRAISE = [
   var $ = function (id) { return document.getElementById(id); };
   var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var state = 'intro', cur = 0, sound = true, ac = null, inv;
+  var LANG_KEY = 'kok-lang-v1';
+  function pickLang() {
+    var l = '';
+    try { var m = /[?&]lang=(tr|de|en)\b/.exec(location.search); if (m) l = m[1]; } catch (e) {}
+    if (!l) { try { l = localStorage.getItem(LANG_KEY) || ''; } catch (e) {} }
+    if (!/^(tr|de|en)$/.test(l)) { var n = String((navigator.language || 'en')).slice(0, 2).toLowerCase(); l = n === 'tr' ? 'tr' : n === 'de' ? 'de' : 'en'; }
+    return l;
+  }
+  var LANG = pickLang();
+  function T(k, a) { var v = UI[LANG][k]; return typeof v === 'function' ? v(a) : v; }
+  function tl(t, k) { return t.L[LANG][k]; }
+  function catName(id) { return CATNAME[LANG][id]; }
   var EMOJI = ['🧱', '❤️', '🕯️', '✨', '⏳', '🗡️'];
   var catOf = {}; CATS.forEach(function (c) { catOf[c.id] = c; });
-  catOf.dolch = { e: '🗡️', name: 'Gölge' };
+  catOf.dolch = { e: '🗡️' };
 
   var panel = $('panel'), zname = $('zname'), descEl = $('desc'), qEl = $('q'), form = $('form'), input = $('word'),
       submitBtn = $('submit'), fb = $('fb'), foundEl = $('found'), countsEl = $('counts'), navEl = $('nav'),
@@ -346,12 +489,12 @@ var PRAISE = [
       var b = document.createElement('button');
       b.type = 'button'; b.className = 'zr';
       b.style.cssText = 'left:' + r[0] + '%;top:' + r[1] + '%;width:' + r[2] + '%;height:' + r[3] + '%;--c:' + t.color;
-      b.setAttribute('aria-label', t.name + ' bölgesini seç');
+      b.setAttribute('aria-label', T('zoneAria', tl(t, 'name')));
       b.addEventListener('click', function () { pickTile(ti); });
       zonesEl.appendChild(b); t.els.push(b);
     });
     var p = document.createElement('span');
-    p.className = 'root'; p.style.left = t.anchor[0] + '%'; p.style.top = t.anchor[1] + '%'; p.textContent = t.name;
+    p.className = 'root'; p.style.left = t.anchor[0] + '%'; p.style.top = t.anchor[1] + '%'; p.textContent = tl(t, 'name');
     zonesEl.appendChild(p); t.pill = p;
   });
 
@@ -413,7 +556,7 @@ var PRAISE = [
       var b = document.createElement('button'); b.type = 'button';
       b.className = (state === 'asking' && i === cur ? 'cur ' : '') + (hits(t) > 0 ? 'lit' : '');
       var a = document.createElement('span'); a.className = 'lab'; a.textContent = t.kok;
-      var s = document.createElement('span'); s.className = 'sm'; s.textContent = hits(t) + ' kelime';
+      var s = document.createElement('span'); s.className = 'sm'; s.textContent = T('words', hits(t));
       b.appendChild(a); b.appendChild(s);
       b.addEventListener('click', function () { pickTile(i); });
       navEl.appendChild(b);
@@ -426,11 +569,11 @@ var PRAISE = [
     CATS.forEach(function (c) {
       var tot = t.entries.filter(function (e) { return e.cat === c.id; });
       var f = uniqFound(tot).length;
-      var s = document.createElement('span'); s.textContent = c.e + ' ' + c.name + ' ' + f;
+      var s = document.createElement('span'); s.textContent = c.e + ' ' + catName(c.id) + ' ' + f;
       countsEl.appendChild(s);
     });
     var d = uniqFound(t.dolch).length;
-    var sd = document.createElement('span'); sd.textContent = '🗡️ Gölge ' + d; countsEl.appendChild(sd);
+    var sd = document.createElement('span'); sd.textContent = '🗡️ ' + catName('dolch') + ' ' + d; countsEl.appendChild(sd);
   }
   function renderFound(newWords) {
     foundEl.innerHTML = '';
@@ -446,9 +589,9 @@ var PRAISE = [
   function renderNext() {
     var t = TILES[cur];
     nextBtn.disabled = state !== 'asking' && state !== 'finished';
-    if (state === 'finished') nextBtn.textContent = 'Baştan oyna';
-    else if (hits(t) === 0) nextBtn.textContent = 'Pas';
-    else nextBtn.textContent = cur === TILES.length - 1 ? 'Bitir' : 'Sonraki ›';
+    if (state === 'finished') nextBtn.textContent = T('again');
+    else if (hits(t) === 0) nextBtn.textContent = T('pass');
+    else nextBtn.textContent = cur === TILES.length - 1 ? T('finish') : T('next');
   }
   function setFb(text, cls) { fb.textContent = text; fb.className = 'fb ' + (cls || ''); }
   function paint() {
@@ -471,10 +614,10 @@ var PRAISE = [
   function showTile(ti) {
     cur = ti; state = 'asking';
     var t = TILES[ti];
-    zname.textContent = t.name; descEl.textContent = t.desc; qEl.textContent = t.q;
+    zname.textContent = tl(t, 'name'); descEl.textContent = tl(t, 'desc'); qEl.textContent = tl(t, 'q');
     form.hidden = false; qEl.hidden = false;
     input.value = ''; input.classList.remove('bad'); setFb('');
-    hintEl.textContent = 'Süre sınırı yok. İstediğin kadar düşün.';
+    hintEl.textContent = T('hint');
     setControls(true); renderCounts(); renderFound(); renderNav(); renderNext(); paint();
   }
   function swap(fn) {
@@ -508,7 +651,7 @@ var PRAISE = [
   /* Açık Huni: blok sırası yok. Girdi tüm kaçellerin Kinder, Sinn, Zeit ve Dolch listelerine aynı anda sorulur. */
   function evaluate(raw) {
     var nS = normS(raw);
-    if (nS.length < 2) { miss('Kelime çok kısa. Tam bir kelime yaz.'); return; }
+    if (nS.length < 2) { miss(T('tooShort')); return; }
     var nF = fold(nS), strict = /[çğıöşü]/.test(nS);
     var credits = [], daggers = [], already = false;
     TILES.forEach(function (t, ti) {
@@ -533,9 +676,9 @@ var PRAISE = [
       if (dp.length) daggers.push({ t: t, ti: ti, en: dp[0], also: dp.slice(1) });
     });
     if (credits.length || daggers.length) { award(raw, credits, daggers); return; }
-    if (already) { setFb('Bu kelimeyi zaten buldun. Yenisini ara.', 'info'); input.value = ''; return; }
+    if (already) { setFb(T('already'), 'info'); input.value = ''; return; }
     logMiss(raw, cur);
-    miss('Farklı bir eylem veya durum düşün... İpucu: ' + pick(TILES[cur].tips));
+    miss(T('miss') + pick(tl(TILES[cur], 'tips')));
   }
   function miss(msg) {
     sMiss(); setFb(msg, 'bad');
@@ -563,11 +706,11 @@ var PRAISE = [
     });
     var msg = '';
     if (credits.length) {
-      msg = pick(PRAISE);
-      if (others.length) msg += ' Bu kelime ' + others.join(' ve ') + ' kökünde de yankılandı.';
+      msg = pick(PRAISE[LANG]);
+      if (others.length) msg += T('echoed', others);
     }
     if (daggers.length) {
-      msg += (msg ? ' ' : '') + (credits.length ? 'Ayrıca kökün gölgesine de dokundun: 🗡️.' : 'Bu kelime kökün gölgesine ait, yolu saptırıyor. 🗡️ kazandın ama köke yaklaşmadın.');
+      msg += (msg ? ' ' : '') + (credits.length ? T('daggerAlso') : T('daggerOnly'));
     }
     setFb(msg, credits.length ? 'ok' : 'info');
     input.value = ''; input.classList.remove('bad');
@@ -581,23 +724,23 @@ var PRAISE = [
     if (cur >= TILES.length - 1) swap(finish);
     else swap(function () { showTile(cur + 1); });
   });
-  function finish() {
-    state = 'finished'; setControls(false);
+  function finish() { state = 'finished'; setControls(false); renderFinish(); }
+  function renderFinish() {
     var total = TILES.reduce(function (s, t) { return s + hits(t); }, 0);
     var allLit = TILES.every(function (t) { return hits(t) > 0; });
-    zname.textContent = allLit ? 'Kökler aydınlandı' : 'Yolculuk bitti';
-    descEl.textContent = 'Toplam ' + total + ' kelime buldun. Ateş sakin sakin yanmaya devam ediyor.';
+    zname.textContent = allLit ? T('finLit') : T('fin');
+    descEl.textContent = T('finDesc', total);
     qEl.hidden = true; form.hidden = true; setFb(''); countsEl.innerHTML = '';
     foundEl.innerHTML = '';
     TILES.forEach(function (t) {
       var li = document.createElement('li'); li.className = 'wide';
-      var b = document.createElement('b'); b.textContent = t.name + ': ';
+      var b = document.createElement('b'); b.textContent = tl(t, 'name') + ': ';
       var words = uniqFound(t.entries.concat(t.dolch)).map(function (e) { return catOf[e.cat].e + ' ' + e.shown; });
       var s = document.createElement('span'); s.style.color = 'var(--fg)';
-      s.textContent = words.length ? words.join('  ') : 'pas geçildi, yukarıdan dönebilirsin';
+      s.textContent = words.length ? words.join('  ') : T('skipped');
       li.appendChild(b); li.appendChild(s); foundEl.appendChild(li);
     });
-    hintEl.textContent = 'Bir bölgeye dokunarak istediğin zaman geri dönebilirsin.';
+    hintEl.textContent = T('back');
     renderNav(); renderNext(); paint();
   }
 
@@ -655,15 +798,15 @@ var PRAISE = [
   }
   $('logCopy').addEventListener('click', function () {
     var txt = logText(), ta = $('logText'), msg = $('logMsg');
-    if (!txt) { msg.textContent = 'Henüz kayıtlı kelime yok.'; return; }
-    function fallback() { ta.hidden = false; ta.value = txt; ta.focus(); ta.select(); msg.textContent = 'Metin seçildi. Kopyala komutunu kullan.'; }
+    if (!txt) { msg.textContent = T('noRec'); return; }
+    function fallback() { ta.hidden = false; ta.value = txt; ta.focus(); ta.select(); msg.textContent = T('selected'); }
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(txt).then(function () { ta.hidden = true; msg.textContent = 'Kopyalandı.'; }, fallback);
+        navigator.clipboard.writeText(txt).then(function () { ta.hidden = true; msg.textContent = T('copied'); }, fallback);
       } else fallback();
     } catch (e) { fallback(); }
   });
-  $('logClear').addEventListener('click', function () { missLog = []; saveLog(); renderLog(); $('logText').hidden = true; $('logMsg').textContent = 'Liste temizlendi.'; });
+  $('logClear').addEventListener('click', function () { missLog = []; saveLog(); renderLog(); $('logText').hidden = true; $('logMsg').textContent = T('cleared'); });
 
   function start() {
     try { if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === 'suspended') ac.resume(); } catch (e) {}
@@ -673,8 +816,36 @@ var PRAISE = [
   }
   $('startBtn').addEventListener('click', start);
 
-  if (LOG_ENDPOINT) $('logNote').textContent = 'Sistemin tanımadığı kelimeler, sözlüğü geliştirmek için kök sahibine de iletilir. Kelimeyle birlikte kişisel bir bilgi gönderilmez.';
-  resetAll(); renderNav(); pruneLog(); renderLog();
+  function applyLang() {
+    document.documentElement.lang = LANG;
+    $('sub').textContent = T('sub'); $('mute').setAttribute('aria-label', T('mute'));
+    invEl.setAttribute('aria-label', T('inv')); navEl.setAttribute('aria-label', T('nav'));
+    $('art').alt = T('alt'); $('veilP').textContent = T('veil'); $('startBtn').textContent = T('start');
+    input.placeholder = T('ph'); input.lang = LANG; input.setAttribute('aria-label', T('word')); submitBtn.textContent = T('send');
+    $('logT').textContent = T('logT'); $('logCopy').textContent = T('copy'); $('logClear').textContent = T('clear');
+    $('logText').setAttribute('aria-label', T('logArea')); $('logNote').textContent = LOG_ENDPOINT ? T('logNoteSrv') : T('logNote');
+    $('logMsg').textContent = '';
+    Array.prototype.forEach.call($('lang').querySelectorAll('button'), function (b) { b.setAttribute('aria-pressed', b.dataset.l === LANG ? 'true' : 'false'); });
+    TILES.forEach(function (t) {
+      t.pill.textContent = tl(t, 'name');
+      t.els.forEach(function (e) { e.setAttribute('aria-label', T('zoneAria', tl(t, 'name'))); });
+    });
+    setFb('');
+    if (state === 'intro') { zname.textContent = T('ready'); descEl.textContent = T('readyDesc'); hintEl.textContent = T('hint'); }
+    else if (state === 'asking') {
+      var t = TILES[cur];
+      zname.textContent = tl(t, 'name'); descEl.textContent = tl(t, 'desc'); qEl.textContent = tl(t, 'q'); hintEl.textContent = T('hint'); renderCounts();
+    } else if (state === 'finished') renderFinish();
+    renderNav(); renderNext();
+  }
+  Array.prototype.forEach.call($('lang').querySelectorAll('button'), function (b) {
+    b.addEventListener('click', function () {
+      LANG = b.dataset.l;
+      try { localStorage.setItem(LANG_KEY, LANG); } catch (e) {}
+      applyLang();
+    });
+  });
+  resetAll(); pruneLog(); renderLog(); applyLang();
 })();
 </script>
 
