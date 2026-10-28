@@ -245,7 +245,7 @@ function stemOk(n, s) {
 }
 /* Girdi hiç aksanlı harf içeriyorsa sıkı, yoksa gevşek (katlanmış) karşılaştır */
 /* Kök ile başlayan ama anlamı ters olan biçimler kabul edilmez */
-var NOT = { huzur: ['huzursuz'], rahat: ['rahatsiz'], guven: ['guvensiz'], sevgi: ['sevgisiz'], sefkat: ['sefkatsiz'], sabir: ['sabirsiz'], tune: ['tunel'], kal: ['kalem', 'kalin', 'kalite', 'kalt'], dur: ['durst'], fest: ['festival'] };
+var NOT = { huzur: ['huzursuz'], rahat: ['rahatsiz'], guven: ['guvensiz'], sevgi: ['sevgisiz'], sefkat: ['sefkatsiz'], sabir: ['sabirsiz'], tune: ['tunel'], yem: ['yemin'], kal: ['kalem', 'kalin', 'kalite', 'kalt'], dur: ['durst'], fest: ['festival'] };
 function matchEntry(en, nS, nF, strict) {
   var ex = NOT[en.stemF];
   if (ex && ex.some(function (x) { return nF.indexOf(x) === 0; })) return false;
@@ -295,7 +295,7 @@ var TILES = [
     words: {
       kinder: ['durmak', 'stant', 'taş', 'dikilmek'],
       sinn: ['sabit', 'ayaklanmak', 'kök salmak', 'direnmek', 'dağ', 'ulu', 'sağlam',
-        'kök', 'dimdik', 'ayakta', 'sütun', 'dayanmak', 'sarsılmaz', 'kararlı', 'çınar', 'ağaç', 'temel', 'sebat', 'azim', 'tutunmak', 'tepe', 'zirve'],
+        'kök', 'dimdik', 'ayakta', 'sütun', 'dayanmak', 'sarsılmaz', 'kararlı', 'çınar', 'ağaç', 'temel', 'sebat', 'azim', 'tutunmak', 'tepe', 'zirve', 'köklenmek', 'güçlenmek', 'güç salmak', 'demir atmak'],
       zeit: ['duraklama', 'süreç', 'yüzyıl', 'asır', 'kalıcı', 'daimi', 'sonsuz']
     },
     dolch: ['inat', 'katı', 'duvar']
@@ -309,7 +309,7 @@ var TILES = [
     words: {
       kinder: ['anne', 'ana', 'hatun', 'valide'],
       sinn: ['beslemek', 'eğitim', 'sıcaklık', 'kucaklama', 'teselli', 'güven', 'biz', 'şefkat', 'sevgi', 'yumuşak',
-        'sıcak', 'korumak', 'kollamak', 'sarılmak', 'sevmek', 'merhamet', 'yuva', 'aile', 'birlikte', 'beraber', 'sığınak', 'emzirmek', 'okşamak', 'sevecen'],
+        'sıcak', 'korumak', 'kollamak', 'sarılmak', 'sevmek', 'merhamet', 'yuva', 'aile', 'birlikte', 'beraber', 'sığınak', 'emzirmek', 'okşamak', 'sevecen', 'destek', 'yemek', 'yem'],
       zeit: ['büyümek', 'sabır', 'zamanla', 'çocuk', 'bebek', 'nesil', 'olgun']
     },
     dolch: ['ayrılık', 'yalnızlık', 'korku']
@@ -642,6 +642,17 @@ var PRAISE = [
     missLog.forEach(function (m) { var li = document.createElement('li'); li.textContent = m.t + ': ' + m.w; ul.appendChild(li); });
   }
   function logText() { return missLog.map(function (m) { return m.t + ': ' + m.w; }).join('\n'); }
+  /* Sözlük genişleyince eski denemelerden artık eşleşenleri listeden düşür */
+  function matchesAny(raw) {
+    var nS = normS(raw); if (nS.length < 2) return false;
+    var nF = fold(nS), strict = /[çğıöşü]/.test(nS);
+    return TILES.some(function (t) { return t.entries.concat(t.dolch).some(function (en) { return matchEntry(en, nS, nF, strict); }); });
+  }
+  function pruneLog() {
+    var n = missLog.length;
+    missLog = missLog.filter(function (m) { return !matchesAny(m.w); });
+    if (missLog.length !== n) saveLog();
+  }
   $('logCopy').addEventListener('click', function () {
     var txt = logText(), ta = $('logText'), msg = $('logMsg');
     if (!txt) { msg.textContent = 'Henüz kayıtlı kelime yok.'; return; }
@@ -663,7 +674,7 @@ var PRAISE = [
   $('startBtn').addEventListener('click', start);
 
   if (LOG_ENDPOINT) $('logNote').textContent = 'Sistemin tanımadığı kelimeler, sözlüğü geliştirmek için kök sahibine de iletilir. Kelimeyle birlikte kişisel bir bilgi gönderilmez.';
-  resetAll(); renderNav(); renderLog();
+  resetAll(); renderNav(); pruneLog(); renderLog();
 })();
 </script>
 
